@@ -1,13 +1,11 @@
 
 # Standard imports
-from os.path import dirname, join
+from os.path import dirname
 
 # Third party imports
 from flore.utils import recognize_features_type, set_discrete_continuous, label_encode
 import pandas as pd
 import numpy as np
-
-
 
 MODULE_PATH = dirname(__file__)
 
@@ -31,7 +29,7 @@ def generate_dataset(df, columns, class_name, discrete, name):
     Returns
     -------
     dataset : dict
-        Dataset as a dictionary with the following elements: 
+        Dataset as a dictionary with the following elements:
             name : Name of the dataset
             df : Pandas DataFrame with the original data
             columns : list of the columns of the dataframe
@@ -42,8 +40,8 @@ def generate_dataset(df, columns, class_name, discrete, name):
             discrete : list with all the columns to be considered to have discrete values
             continuous : list with all the columns to be considered to have continuous values
             idx_features : dict with the column name of each column once arranged in a numpy array
-            label_encoder : label encoder for the discrete values 
-            X : numpy array with all the columns except for the class 
+            label_encoder : label encoder for the discrete values
+            X : numpy array with all the columns except for the class
             y : numpy array with the class column
     """
     possible_outcomes = list(df[class_name].unique())
@@ -99,6 +97,7 @@ def load_german():
 
     return generate_dataset(df, columns, class_name, discrete, 'german_credit')
 
+
 def load_adult():
     """Loads and returns the adult dataset
 
@@ -127,7 +126,8 @@ def load_adult():
 
     discrete = []
     return generate_dataset(df, columns, class_name, discrete, 'adult')
-    
+
+
 def load_compas():
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/compas-scores-two-years.csv', delimiter=',', skipinitialspace=True)
@@ -182,4 +182,3 @@ def load_heloc():
 
     discrete = []
     return generate_dataset(df, columns, class_name, discrete, 'heloc_dataset_v1')
-

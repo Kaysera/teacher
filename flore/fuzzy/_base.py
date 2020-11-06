@@ -29,6 +29,7 @@ def get_equal_width_division(variable, sets):
     sol[0] = variable.min()
     return sol
 
+
 def get_equal_freq_division(variable, sets):
     """Generate partitions of equal width from a variable
 
@@ -54,6 +55,7 @@ def get_equal_freq_division(variable, sets):
         sol[1] = sol[0]
     return sol
 
+
 def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets):
     """Function that obtains the peak of the fuzzy triangles of
     the continuous variables of a DataFrame
@@ -63,7 +65,7 @@ def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets):
     df : pandas.core.frame.DataFrame
         DataFrame from which to obtain the fuzzy points
     get_divisions : function
-        Function used to get the divisions. Currently 
+        Function used to get the divisions. Currently
         supported: equal freq and equal width
     df_numerical_columns : list
         List with the columns to get the fuzzy points
@@ -81,9 +83,10 @@ def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets):
         fuzzy_points[column] = get_divisions(df[column].to_numpy(), sets)
     return fuzzy_points
 
+
 def get_fuzzy_points_entropy(df, df_numerical_columns, class_name):
     """Function that obtains the peak of the fuzzy triangles of
-    the continuous variables of a DataFrame according to the 
+    the continuous variables of a DataFrame according to the
     Fuzzy Partitioning
 
     Parameters
@@ -105,7 +108,9 @@ def get_fuzzy_points_entropy(df, df_numerical_columns, class_name):
         fuzzy_points[column] = fuzzy_partitioning(df[column].to_numpy(), df[class_name].to_numpy())
     return fuzzy_points
 
+
 def fuzzy_partitioning(variable, class_variable):
+    # TODO: REVISE ACCORDING TO TEST TWO
     min_point = variable.min()
     max_point = variable.max()
     best_point = 0
@@ -123,11 +128,10 @@ def fuzzy_partitioning(variable, class_variable):
                 best_wef = wef
                 best_point = point
                 best_fuzzy_triangle = fuzzy_triangle
-    
-    left = ([(p,c) for p,c in zip(variable, class_variable) if p <= best_point])
-    right = ([(p,c) for p,c in zip(variable, class_variable) if p > best_point])
+    left = ([(p, c) for p, c in zip(variable, class_variable) if p <= best_point])
+    right = ([(p, c) for p, c in zip(variable, class_variable) if p > best_point])
     divisions = [('low', min_point), ('high', max_point)]
-    global_fuzzy_triangles =  get_fuzzy_triangle(variable, divisions)
+    global_fuzzy_triangles = get_fuzzy_triangle(variable, divisions)
 
     global_wef = weighted_fuzzy_entropy(global_fuzzy_triangles, class_variable)
 
@@ -136,21 +140,21 @@ def fuzzy_partitioning(variable, class_variable):
     cardinality = len(variable)
 
     delta = get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable)
-    
     threshold = (log2(cardinality - 1) + delta) / cardinality
 
     if not f_gain < threshold:
         left_variable, left_class = zip(*left)
         right_variable, right_class = zip(*right)
-        left_points = fuzzy_partitioning(np.array(left_variable), left_class)
-        right_points = fuzzy_partitioning(np.array(right_variable), right_class)
+        left_points = []
+        right_points = []
+        if len(left_variable) > 1:
+            left_points = fuzzy_partitioning(np.array(left_variable), left_class)
+        if len(right_variable) > 1:
+            right_points = fuzzy_partitioning(np.array(right_variable), right_class)
         points = left_points + right_points
         return np.unique(points).tolist()
-    
     else:
         return [min_point, max_point]
-
-
 
 
 def get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable):
@@ -160,19 +164,17 @@ def get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable)
     new_f_entropy = 0
     for triangle in global_fuzzy_triangles:
         old_f_entropy += fuzzy_entropy(global_fuzzy_triangles[triangle], class_variable)
-    
+
     for triangle in best_fuzzy_triangle:
         new_f_entropy += fuzzy_entropy(best_fuzzy_triangle[triangle], class_variable)
-    
+
     old_f_entropy *= n_classes
 
-    new_f_entropy *= n_classes # TODO: REVISE THIS, MAYBE NOT ALL N_CLASSES
+    new_f_entropy *= n_classes  # TODO: REVISE THIS, MAYBE NOT ALL N_CLASSES
 
     delta = log2(pow(3, n_classes) - 2) - old_f_entropy - new_f_entropy
 
     return delta
-
-
 
 
 def weighted_fuzzy_entropy(fuzzy_triangle, class_variable):
@@ -183,7 +185,7 @@ def weighted_fuzzy_entropy(fuzzy_triangle, class_variable):
         if triangle == 'low' or triangle == 'high':
             # Only has one extreme, i.e. [0,2.5]
             crisp_cardinality += 1
-        else: 
+        else:
             # Has two extremes, i.e. [0,2.5,5]
             crisp_cardinality += 2
         # print(f'Set: {triangle}')
@@ -193,6 +195,7 @@ def weighted_fuzzy_entropy(fuzzy_triangle, class_variable):
         wef += fuzzy_cardinality / crisp_cardinality * fuzzy_entropy(fuzzy_triangle[triangle], class_variable)
     return wef
 
+
 def fuzzy_entropy(triangle, class_variable, verbose=False):
     fe = 0
     for value in np.unique(class_variable):
@@ -200,23 +203,21 @@ def fuzzy_entropy(triangle, class_variable, verbose=False):
         for i in range(len(triangle)):
             if class_variable[i] == value:
                 class_fuzzy_cardinality += triangle[i]
-        
-        if class_fuzzy_cardinality > 0: # i.e. There are elements belonging to this class value
-            if verbose:
-                print(triangle)
-                print(class_variable)
+
+        if class_fuzzy_cardinality > 0:  # i.e. There are elements belonging to this class value
             fuzzy_cardinality = triangle.sum()
+            if verbose:
+                print(f'class_fuzzy_cardinality: {class_fuzzy_cardinality}')
+                print(f'fuzzy_cardinality: {fuzzy_cardinality}')
             ratio = class_fuzzy_cardinality / fuzzy_cardinality
             fe += -ratio * log2(ratio)
 
     return fe
 
 
-
-
 def get_fuzzy_triangle(variable, divisions, verbose=False):
-    """Function that generates a dictionary with the pertenence to each 
-    triangular fuzzy set of a variable of a DataFrame given the peaks of 
+    """Function that generates a dictionary with the pertenence to each
+    triangular fuzzy set of a variable of a DataFrame given the peaks of
     the triangles
 
     Parameters
@@ -237,13 +238,13 @@ def get_fuzzy_triangle(variable, divisions, verbose=False):
         variable
     """
     fuzz_dict = {}
-    # First triangle is only half triangle 
+    # First triangle is only half triangle
     fuzz_dict[divisions[0][0]] = fuzz.trimf(variable, [divisions[0][1], divisions[0][1], divisions[1][1]])
 
     for i in range(len(divisions) - 2):
         fuzz_dict[divisions[i+1][0]] = fuzz.trimf(variable, [divisions[i][1], divisions[i+1][1], divisions[i+2][1]])
 
-    # Last triangle is only half triangle 
+    # Last triangle is only half triangle
     fuzz_dict[divisions[-1][0]] = fuzz.trimf(variable, [divisions[-2][1], divisions[-1][1], divisions[-1][1]])
 
     if verbose:
@@ -255,7 +256,7 @@ def get_fuzzy_triangle(variable, divisions, verbose=False):
 
         plt.tight_layout()
 
-    return fuzz_dict 
+    return fuzz_dict
 
 
 def get_fuzzy_set_dataframe(df, gen_fuzzy_set, fuzzy_points, df_numerical_columns, labels, verbose=False):
@@ -286,8 +287,9 @@ def get_fuzzy_set_dataframe(df, gen_fuzzy_set, fuzzy_points, df_numerical_column
     """
     fuzzy_set = {}
     for column in df_numerical_columns:
-        fuzzy_set[column] = gen_fuzzy_set(df[column].to_numpy(), list(zip(labels,fuzzy_points[column])), verbose)
+        fuzzy_set[column] = gen_fuzzy_set(df[column].to_numpy(), list(zip(labels, fuzzy_points[column])), verbose)
     return fuzzy_set
+
 
 def get_fuzzy_set_instance(df, gen_fuzzy_set, fuzzy_points, df_numerical_columns, labels, verbose=False):
     """Get all the fuzzy sets from the columns of a DataFrame, and the pertenence value of
@@ -317,5 +319,5 @@ def get_fuzzy_set_instance(df, gen_fuzzy_set, fuzzy_points, df_numerical_columns
     """
     fuzzy_set = {}
     for column in df_numerical_columns:
-        fuzzy_set[column] = gen_fuzzy_set(df[column], list(zip(labels,fuzzy_points[column])), verbose)
+        fuzzy_set[column] = gen_fuzzy_set(df[column], list(zip(labels, fuzzy_points[column])), verbose)
     return fuzzy_set

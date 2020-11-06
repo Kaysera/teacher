@@ -1,30 +1,33 @@
-import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_equal
+from numpy.testing import assert_equal
 import pandas as pd
 
-from flore.fuzzy import get_equal_width_division, get_equal_freq_division, get_fuzzy_points, get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points_entropy, fuzzy_partitioning
+from flore.fuzzy import (get_equal_width_division, get_equal_freq_division, get_fuzzy_points,
+                         get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points_entropy)
+
 
 def test_get_equal_width_division():
-    array = np.array([0,1,1,2,2,2,3,3,6,7,9,9,10])
+    array = np.array([0, 1, 1, 2, 2, 2, 3, 3, 6, 7, 9, 9, 10])
     parts_three = get_equal_width_division(array, 3)
     parts_five = get_equal_width_division(array, 5)
-    assert parts_three == [0,5,10]
-    assert parts_five == [0,2.5,5,7.5,10]
+    assert parts_three == [0, 5, 10]
+    assert parts_five == [0, 2.5, 5, 7.5, 10]
+
 
 def test_get_equal_freq_division():
-    array = np.array([0,0,0,0,0,1,1,2,5,6,8,9,10,10,10])
+    array = np.array([0, 0, 0, 0, 0, 1, 1, 2, 5, 6, 8, 9, 10, 10, 10])
     parts_three = get_equal_freq_division(array, 3)
     parts_five = get_equal_freq_division(array, 5)
-    assert parts_three == [0,2,10]
-    assert parts_five == [0,0,2,8.5,10]
+    assert parts_three == [0, 2, 10]
+    assert parts_five == [0, 0, 2, 8.5, 10]
+
 
 def test_get_fuzzy_points():
     df = pd.DataFrame(
         [
-            [0,7,'six'],
-            [2,9,'nine'],
-            [10,10,'ninety']
+            [0, 7, 'six'],
+            [2, 9, 'nine'],
+            [10, 10, 'ninety']
         ],
         columns=['one', 'two', 'three']
     )
@@ -34,14 +37,14 @@ def test_get_fuzzy_points():
 
     width_points = get_fuzzy_points(df, get_equal_width_division, df_numerical_columns, sets)
     freq_points = get_fuzzy_points(df, get_equal_freq_division, df_numerical_columns, sets)
-    
-    assert width_points == {'one': [0,5,10], 'two' : [7,8.5,10]}
-    assert freq_points == {'one' : [0,2,10], 'two' : [7,9,10]}
+
+    assert width_points == {'one': [0, 5, 10], 'two': [7, 8.5, 10]}
+    assert freq_points == {'one': [0, 2, 10], 'two': [7, 9, 10]}
 
 
 def test_get_fuzzy_triangle():
-    variable_three = np.array([1.25,5,8.75])
-    variable_five = np.array([1.25,4.375,8.125])
+    variable_three = np.array([1.25, 5, 8.75])
+    variable_five = np.array([1.25, 4.375, 8.125])
 
     three_divisions = [('low', 0), ('mid', 5), ('high', 10)]
     five_divisions = [('very low', 0), ('low', 2.5), ('mid', 5), ('high', 7.5), ('very high', 10)]
@@ -49,27 +52,38 @@ def test_get_fuzzy_triangle():
     three_triangles = get_fuzzy_triangle(variable_three, three_divisions)
     five_triangles = get_fuzzy_triangle(variable_five, five_divisions)
 
-    assert_equal(three_triangles, {'low': np.array([0.75, 0.  , 0.  ]), 'mid': np.array([0.25, 1.  , 0.25]), 'high': np.array([0.  , 0.  , 0.75])})
-    assert_equal(five_triangles, {'very low': np.array([0.5, 0. , 0. ]), 'low': np.array([0.5 , 0.25, 0.  ]), 'mid': np.array([0.  , 0.75, 0.  ]), 'high': np.array([0.  , 0.  , 0.75]), 'very high': np.array([0.  , 0.  , 0.25])})
+    assert_equal(three_triangles, {'low': np.array([0.75, 0., 0.]), 'mid': np.array([0.25, 1., 0.25]),
+                                   'high': np.array([0., 0., 0.75])})
+    assert_equal(five_triangles, {'very low': np.array([0.5, 0., 0.]), 'low': np.array([0.5, 0.25, 0.]),
+                                  'mid': np.array([0., 0.75, 0.]), 'high': np.array([0., 0., 0.75]),
+                                  'very high': np.array([0., 0., 0.25])})
+
 
 def test_get_fuzzy_set_dataframe():
     df = pd.DataFrame(
         [
-            [0,1.25,'six'],
-            [2,5,'nine'],
-            [10,8.75,'ninety']
+            [0, 1.25, 'six'],
+            [2, 5, 'nine'],
+            [10, 8.75, 'ninety']
         ],
         columns=['one', 'two', 'three']
     )
     fuzzy_points = {
-        'one': [0,5,10],
-        'two' : [0,5,10]
+        'one': [0, 5, 10],
+        'two': [0, 5, 10]
     }
     fuzzy_labels = ['low', 'mid', 'high']
     df_numerical_columns = ['one', 'two']
 
-    fuzzy_set_dataframe = get_fuzzy_set_dataframe(df, get_fuzzy_triangle, fuzzy_points, df_numerical_columns, fuzzy_labels)
-    assert_equal(fuzzy_set_dataframe, {'one': {'low': np.array([1. , 0.6, 0. ]), 'mid': np.array([0. , 0.4, 0. ]), 'high': np.array([0., 0., 1.])}, 'two': {'low': np.array([0.75, 0.  , 0.  ]), 'mid': np.array([0.25, 1.  , 0.25]), 'high': np.array([0.  , 0.  , 0.75])}})
+    fuzzy_set_dataframe = get_fuzzy_set_dataframe(df, get_fuzzy_triangle, fuzzy_points,
+                                                  df_numerical_columns, fuzzy_labels)
+    assert_equal(fuzzy_set_dataframe, {'one': {'low': np.array([1., 0.6, 0.]),
+                                               'mid': np.array([0., 0.4, 0.]),
+                                               'high': np.array([0., 0., 1.])},
+                                       'two': {'low': np.array([0.75, 0., 0.]),
+                                               'mid': np.array([0.25, 1., 0.25]),
+                                               'high': np.array([0., 0., 0.75])}})
+
 
 def test_get_fuzzy_points_entropy():
     df = pd.DataFrame(
@@ -130,3 +144,14 @@ def test_get_fuzzy_points_entropy():
     class_name = 'class'
 
     print(get_fuzzy_points_entropy(df, df_numerical_columns, class_name))
+
+
+def test_get_fuzzy_points_entropy_two():
+    theory = np.array([0, 0, 3, 3, 7, 7, 9])
+    practice = np.array([0, 3, 3, 9, 1, 4, 9])
+    df = pd.DataFrame(([i, j, i+j >= 10] for i, j in zip(theory, practice)), columns=['theory', 'practice', 'class'])
+    df_numerical_columns = ['theory', 'practice']
+    class_name = 'class'
+
+    fuzzy_points = get_fuzzy_points_entropy(df, df_numerical_columns, class_name)
+    print(fuzzy_points)

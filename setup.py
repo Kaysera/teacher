@@ -1,6 +1,4 @@
-from setuptools import setup, find_packages, install_requires
-
-setup(name="flore", packages=find_packages())
+from setuptools import setup, find_packages
 
 install_requires = [
     'pandas',
@@ -10,3 +8,5 @@ install_requires = [
     'deap',
     'imblearn'
 ]
+
+setup(name="flore", packages=find_packages())

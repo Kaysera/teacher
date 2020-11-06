@@ -16,7 +16,7 @@ class Tree_id3:
         self.error = 0
         self.num_leaf = 0
         self.features = features
-        
+    
     def __str__(self):
         output = '\t'*self.level 
         if(self.is_leaf):
