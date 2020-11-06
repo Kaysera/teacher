@@ -21,10 +21,10 @@ def get_equal_width_division(variable, sets):
         Points of division between the partitions
     """
     try:
-        cut = pd.cut(variable, sets-1)
+        cut = pd.cut(variable, sets - 1)
         sol = [cat.left for cat in cut.categories] + [cut.categories[-1].right]
     except ValueError:
-        cut = pd.cut(variable, sets-1, duplicates='drop')
+        cut = pd.cut(variable, sets - 1, duplicates='drop')
         sol = [variable.min()] + [cat.left for cat in cut.categories] + [cut.categories[-1].right]
     sol[0] = variable.min()
     return sol
@@ -46,11 +46,11 @@ def get_equal_freq_division(variable, sets):
         Points of division between the partitions
     """
     try:
-        qcut = pd.qcut(variable, sets-1)
+        qcut = pd.qcut(variable, sets - 1)
         sol = [cat.left for cat in qcut.categories] + [qcut.categories[-1].right]
         sol[0] = variable.min()
     except ValueError:
-        qcut = pd.qcut(variable, sets-1, duplicates='drop')
+        qcut = pd.qcut(variable, sets - 1, duplicates='drop')
         sol = [variable.min()] + [cat.left for cat in qcut.categories] + [qcut.categories[-1].right]
         sol[1] = sol[0]
     return sol
@@ -242,7 +242,7 @@ def get_fuzzy_triangle(variable, divisions, verbose=False):
     fuzz_dict[divisions[0][0]] = fuzz.trimf(variable, [divisions[0][1], divisions[0][1], divisions[1][1]])
 
     for i in range(len(divisions) - 2):
-        fuzz_dict[divisions[i+1][0]] = fuzz.trimf(variable, [divisions[i][1], divisions[i+1][1], divisions[i+2][1]])
+        fuzz_dict[divisions[i + 1][0]] = fuzz.trimf(variable, [divisions[i][1], divisions[i + 1][1], divisions[i + 2][1]])
 
     # Last triangle is only half triangle
     fuzz_dict[divisions[-1][0]] = fuzz.trimf(variable, [divisions[-2][1], divisions[-1][1], divisions[-1][1]])

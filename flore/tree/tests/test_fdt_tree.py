@@ -12,7 +12,7 @@ def test_tree():
     theory = np.array([0, 0, 3, 3, 7, 7, 9])
     practice = np.array([0, 3, 3, 9, 1, 4, 9])
 
-    df = pd.DataFrame(([i, j, i+j >= 10] for i, j in zip(theory, practice)), columns=['theory', 'practice', 'class'])
+    df = pd.DataFrame(([i, j, i + j >= 10] for i, j in zip(theory, practice)), columns=['theory', 'practice', 'class'])
     print(df)
 
     df_numerical_columns = ['theory', 'practice']
@@ -42,7 +42,7 @@ def test_tree():
     print(fdt.predict(fuzzy_set_dataframe))
     print(fuzzy_set_dataframe)
 
-    assert 1 == 2-1
+    assert 1 == 2 - 1
 
 
 def test_iris():

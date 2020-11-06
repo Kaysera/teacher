@@ -252,7 +252,7 @@ class FuzzyLORE:
 
         fuzzy_y = self.fuzzy_neighborhood_y[fuzzy_set.index]
 
-        return np.sum(classic_y == fuzzy_y)/len(classic_y)
+        return np.sum(classic_y == fuzzy_y) / len(classic_y)
 
     def fidelity(self):
         return self._compare_trees(self.Z, self.fuzzy_neighborhood)

@@ -149,7 +149,7 @@ def test_get_fuzzy_points_entropy():
 def test_get_fuzzy_points_entropy_two():
     theory = np.array([0, 0, 3, 3, 7, 7, 9])
     practice = np.array([0, 3, 3, 9, 1, 4, 9])
-    df = pd.DataFrame(([i, j, i+j >= 10] for i, j in zip(theory, practice)), columns=['theory', 'practice', 'class'])
+    df = pd.DataFrame(([i, j, i + j >= 10] for i, j in zip(theory, practice)), columns=['theory', 'practice', 'class'])
     df_numerical_columns = ['theory', 'practice']
     class_name = 'class'
 

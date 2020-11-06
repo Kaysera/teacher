@@ -23,7 +23,7 @@ class TreeFDT:
                 output += '\t' * self.level
                 output += 'Feature ' + str(child.value)
                 output += '\n' + str(child)
-            output += '\n'+'\t' * self.level
+            output += '\n' + '\t' * self.level
         return output
 
 
@@ -119,7 +119,7 @@ class FDT:
             child.value = (att, value)
             child.mu = child_mu[value]
             current_tree.childlist.append(child)
-            self.partial_fit(X, y, child, current_depth+1)
+            self.partial_fit(X, y, child, current_depth + 1)
 
     def predict(self, fuzzy_X):
 

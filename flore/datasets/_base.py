@@ -132,7 +132,7 @@ def load_compas():
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/compas-scores-two-years.csv', delimiter=',', skipinitialspace=True)
 
-    columns = ['age', 'age_cat', 'sex', 'race',  'priors_count', 'days_b_screening_arrest', 'c_jail_in', 'c_jail_out',
+    columns = ['age', 'age_cat', 'sex', 'race', 'priors_count', 'days_b_screening_arrest', 'c_jail_in', 'c_jail_out',
                'c_charge_degree', 'is_recid', 'is_violent_recid', 'two_year_recid', 'decile_score', 'score_text']
 
     df = df[columns]
