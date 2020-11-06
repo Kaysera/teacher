@@ -23,5 +23,7 @@ jobs:
       - uses: actions/checkout@v2
 
       # Runs a single command using the runners shell
-      - name: Launch tests
-        run: pytest
+      - name: Python Pytest Github Action
+        # You may pin to the exact commit or the version.
+        # uses: fylein/python-pytest-github-action@24dcd8e6b37efdb9281fd21630a0eef8648bddb3
+        uses: fylein/python-pytest-github-action@v2
