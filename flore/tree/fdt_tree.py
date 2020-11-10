@@ -87,9 +87,9 @@ class FDT:
         cv = {}
         for class_value in np.unique(y):
             mask = y == class_value
-            cv[class_value] = (mu * mask).sum()
-        # RETURN THE ELEMENT WITH THE MAXIMUM SUM OF PERTENENCES (AGGREGATED VOTE)
-        return max(cv, key=lambda x: cv[x])
+            cv[class_value] = (mu * mask).sum() / mu.sum()
+        # EACH LEAF HAS A DICTIONARY WITH A WEIGHT PER CLASS VALUE
+        return cv
 
     def partial_fit(self, X, y, current_tree, current_depth):
         current_tree.level = current_depth
