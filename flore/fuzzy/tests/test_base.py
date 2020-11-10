@@ -155,7 +155,3 @@ def test_get_fuzzy_points_entropy_two():
 
     fuzzy_points = get_fuzzy_points_entropy(df, df_numerical_columns, class_name)
     print(fuzzy_points)
-
-
-def test_fail():
-    assert 1 == 2
