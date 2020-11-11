@@ -40,7 +40,6 @@ def test_tree():
     print(fdt.tree)
 
     print(fdt.predict(fuzzy_set_dataframe))
-    print(fuzzy_set_dataframe)
 
     assert 1 == 2 - 1
 

@@ -1,5 +1,6 @@
 import numpy as np
 from flore.fuzzy import fuzzy_entropy
+from collections import defaultdict
 
 
 class TreeFDT:
@@ -120,16 +121,25 @@ class FDT:
             child.mu = child_mu[value]
             current_tree.childlist.append(child)
             self.partial_fit(X, y, child, current_depth + 1)
+  
+    def aggregated_vote(self, all_classes):
+        agg_vote = defaultdict(lambda: np.zeros(len(all_classes[0][1])))
+        for leaf in all_classes:
+            for key in leaf[0]:
+                agg_vote[key] += leaf[0][key] * leaf[1]
+        return agg_vote
 
     def predict(self, fuzzy_X):
 
         X_size = len(list(list(fuzzy_X.values())[0].values())[0])
 
-        all_classes = self.partial_predict(fuzzy_X, np.ones(X_size), self.tree)
+        leaf_values = self.partial_predict(fuzzy_X, np.ones(X_size), self.tree)
+        agg_vote = self.aggregated_vote(leaf_values)
         # TODO: POR DIOS REHACER ESTE ONE-LINER MAGICO
         # INPUT: all_classes = [('one', [1,2,3,4]), ('two', [4,3,2,1]), ('three', [0,0,0,9])]
         # OUTPUT: ['two', 'two', 'one', 'three']
         # return all_classes
+        all_classes = [(key, agg_vote[key]) for key in agg_vote]
         classes_list = [i for (i, j) in [max(x, key=lambda a: a[1]) for x in list(zip(*[[(x[0], y) for y in x[1]] for x in all_classes]))]]
 
         return classes_list
