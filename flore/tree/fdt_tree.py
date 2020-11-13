@@ -30,7 +30,7 @@ class TreeFDT:
 
 class FDT:
     def __init__(self, features, fuzzy_set_df, fuzzy_threshold=0.0001,
-                 th=0.0001, max_depth=10, min_num_examples=1, prunning=True):
+                 th=0.0001, max_depth=10, min_num_examples=1, prunning=True, voting='agg_vote'):
         self.max_depth = max_depth
         self.tree = TreeFDT(set(features))
         self.min_num_examples = min_num_examples
@@ -38,33 +38,38 @@ class FDT:
         self.th = th
         self.fuzzy_threshold = fuzzy_threshold
         self.fuzzy_set_df = fuzzy_set_df
+        if voting == 'agg_vote':
+            self.voting_method = self.aggregated_vote
+        elif voting == 'max_match':
+            self.voting_method = self.maximum_matching
+        else:
+            raise Exception
 
-    def fit(self, X, y):
-        self.tree.mu = np.ones(len(y))
-        self.partial_fit(X, y, self.tree, 0)
-
-    def get_max_f_gain(self, tree, y, t_norm=np.minimum):
+    def get_max_f_gain(self, tree, y, t_norm=np.minimum, verbose=False):
         best_att = ''
         best_f_gain = 0
         best_child_mu = {}
         for feature in tree.features:
-            # print(f'Feature: {feature}')
             f_ent = fuzzy_entropy(tree.mu, y.to_numpy())
+            if verbose:
+                print(f'Feature: {feature}')
+                print(f'F_ent: {f_ent}')
             child_mu = {}
             wef = 0  # Weighted Fuzzy Entropy
             for value in self.fuzzy_set_df[feature]:
-                # print('------------------------------')
-                # print(f'value: {value}')
                 child_mu[value] = t_norm(tree.mu, self.fuzzy_set_df[feature][value])
                 fuzzy_cardinality = child_mu[value].sum()
                 crisp_cardinality = (child_mu[value] > 0).sum()
-                # print(f'child_mu: {child_mu[value]}')
-                # print(f'y: {y.to_numpy()}')
-                child_f_ent = fuzzy_entropy(child_mu[value], y.to_numpy(), verbose=False)
-                # print(f'child_f_ent: {child_f_ent}')
+                child_f_ent = fuzzy_entropy(child_mu[value], y.to_numpy(), verbose=verbose)
+                if verbose:
+                    print('------------------------------')
+                    print(f'value: {value}')
+                    print(f'child_mu: {child_mu[value]}')
+                    print(f'y: {y.to_numpy()}')
+                    print(f'child_f_ent: {child_f_ent}')
                 wef += fuzzy_cardinality / crisp_cardinality * child_f_ent
-
-            # print(f_ent, wef)
+            if verbose:
+                print(f_ent, wef)
             f_gain = f_ent - wef
 
             if f_gain > best_f_gain:
@@ -83,6 +88,7 @@ class FDT:
             return True
         if f_gain < self.fuzzy_threshold:
             return True
+        return False
 
     def get_class_value(self, mu, y):
         cv = {}
@@ -91,6 +97,10 @@ class FDT:
             cv[class_value] = (mu * mask).sum() / mu.sum()
         # EACH LEAF HAS A DICTIONARY WITH A WEIGHT PER CLASS VALUE
         return cv
+
+    def fit(self, X, y):
+        self.tree.mu = np.ones(len(y))
+        self.partial_fit(X, y, self.tree, 0)
 
     def partial_fit(self, X, y, current_tree, current_depth):
         current_tree.level = current_depth
@@ -109,7 +119,6 @@ class FDT:
                 current_tree.class_value = 0
             else:
                 current_tree.class_value = self.get_class_value(current_tree.mu, y)
-                # print(current_tree.class_value)
             return
 
         current_tree.is_leaf = False
@@ -121,7 +130,7 @@ class FDT:
             child.mu = child_mu[value]
             current_tree.childlist.append(child)
             self.partial_fit(X, y, child, current_depth + 1)
-  
+
     def aggregated_vote(self, all_classes):
         agg_vote = defaultdict(lambda: np.zeros(len(all_classes[0][1])))
         for leaf in all_classes:
@@ -129,17 +138,23 @@ class FDT:
                 agg_vote[key] += leaf[0][key] * leaf[1]
         return agg_vote
 
-    def predict(self, fuzzy_X):
+    def maximum_matching(self, all_classes):
+        max_match = defaultdict(lambda: np.zeros(len(all_classes[0][1])))
+        for leaf in all_classes:
+            for key in leaf[0]:
+                max_match[key] = np.maximum(max_match[key], (leaf[0][key] * leaf[1]))
+        return max_match
 
+    def predict(self, fuzzy_X, t_norm=np.minimum):
+        # Get the length of the array to predict
         X_size = len(list(list(fuzzy_X.values())[0].values())[0])
 
-        leaf_values = self.partial_predict(fuzzy_X, np.ones(X_size), self.tree)
-        agg_vote = self.aggregated_vote(leaf_values)
+        leaf_values = self.partial_predict(fuzzy_X, np.ones(X_size), self.tree, t_norm)
+        agg_vote = self.voting_method(leaf_values)
+        all_classes = [(key, agg_vote[key]) for key in agg_vote]
         # TODO: POR DIOS REHACER ESTE ONE-LINER MAGICO
         # INPUT: all_classes = [('one', [1,2,3,4]), ('two', [4,3,2,1]), ('three', [0,0,0,9])]
         # OUTPUT: ['two', 'two', 'one', 'three']
-        # return all_classes
-        all_classes = [(key, agg_vote[key]) for key in agg_vote]
         classes_list = [i for (i, j) in [max(x, key=lambda a: a[1]) for x in list(zip(*[[(x[0], y) for y in x[1]] for x in all_classes]))]]
 
         return classes_list

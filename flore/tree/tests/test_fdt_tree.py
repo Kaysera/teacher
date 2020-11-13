@@ -44,6 +44,51 @@ def test_tree():
     assert 1 == 2 - 1
 
 
+def test_inference():
+    # TODO: NOT WORKING
+    df = pd.DataFrame(
+        [
+            [2, 5, False],
+            [3, 8, False],
+            [5, 4, False],
+            [7, 8, True],
+            [7, 3, False],
+            [6, 9, True]
+        ],
+        columns=['theory', 'practice', 'class']
+    )
+
+    df_numerical_columns = ['theory', 'practice']
+    class_name = 'class'
+
+    fuzzy_points = {'theory': [0, 5, 10], 'practice': [0, 5, 10]}
+
+    X = df[df_numerical_columns]
+    y = df[class_name]
+
+    # THIS IS GET_FUZZY_SET_DATAFRAME
+    fuzzy_set_dataframe = {}
+    for column in df_numerical_columns:
+        labels = [f'{label}' for label in fuzzy_points[column]]
+        fuzzy_set_dataframe[column] = get_fuzzy_triangle(df[column].to_numpy(),
+                                                         list(zip(labels, fuzzy_points[column])),
+                                                         False)
+
+    print(fuzzy_set_dataframe)
+    # PARAMETRIZE FOR IT TO NOT NEED LABELS' NAMES
+    print('\n--------------------------------')
+    print('Begin tree')
+    print('--------------------------------')
+    fdt = FDT(df_numerical_columns, fuzzy_set_dataframe)
+    fdt.fit(X, y)
+
+    print(fdt.tree)
+
+    # print(fdt.predict(fuzzy_set_dataframe))
+
+    assert 1 == 2 - 1
+
+
 def test_iris():
     iris = datasets.load_iris(as_frame=True)
 
