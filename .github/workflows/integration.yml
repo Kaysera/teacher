@@ -33,3 +33,13 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+    - name: Upload Code Coverage
+      uses: codecov/codecov-action@v1.0.14
+      with:
+        # Repository upload token - get it from codecov.io. Required only for private repositories
+        token: ${{ secrets.CODECOV }}
+        # Path to coverage file to upload
+        file: ./coverage.xml
+        # Specify whether the Codecov output should be verbose
+        verbose: true
+
