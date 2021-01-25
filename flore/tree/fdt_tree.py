@@ -171,3 +171,57 @@ class FDT:
 
     def score(self, X, y):
         return np.sum(self.predict(X) == y) / y.shape[0]
+
+    def explain(self, fuzzy_X, class_value, n_rules='all', t_norm=np.minimum):
+        """Explains a single instance by returning a number of rules
+        that correspond to the class value of that instance
+
+        Parameters
+        ----------
+        fuzzy_X : [type]
+            Instance to explain
+        class_value : [type]
+            Target value to explain
+        n_rules : str of int, optional
+            Number of rules to return, by default 'all'
+        t_norm : function, optional
+            Numpy function to use as a T-norm, by default np.minimum
+
+        Returns
+        -------
+        list
+            List with the rules that explain the instance and their
+            degree of pertenence, in the format:
+            [degree, [(attribute_1, value_1), (attribute_2, value_2)...]]
+        """
+        # ONLY VALID TO EXPLAIN A SINGLE INSTANCE
+
+        rules_list = self.partial_explain(fuzzy_X, 1, self.tree, class_value, [], t_norm)
+        rules_list = sorted(rules_list, key=lambda rule: rule[0], reverse=True)
+
+        if n_rules == 'all':
+            return rules_list
+        else:
+            return rules_list[:n_rules]
+
+    def partial_explain(self, fuzzy_X, mu, tree, class_value, rule, t_norm=np.minimum, threshold=0.0001):
+        if tree.value != (0, 0):
+            att, value = tree.value
+            new_mu = t_norm(mu, fuzzy_X[att][value])
+            clause = (att, value)
+            new_rule = rule + [clause]
+        else:
+            new_mu = mu
+            new_rule = rule
+
+        if tree.is_leaf:
+            final_mu = t_norm(mu, tree.class_value[class_value])
+            if final_mu > threshold:
+                return [(final_mu[0], new_rule)]
+        else:
+            current_rules = []
+            for child in tree.childlist:
+                child_rules = self.partial_explain(fuzzy_X, new_mu, child, class_value, new_rule, t_norm)
+                if child_rules:
+                    current_rules += child_rules
+            return current_rules

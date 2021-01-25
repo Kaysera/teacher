@@ -38,10 +38,10 @@ def test_tree():
     fdt.fit(X, y)
 
     print(fdt.tree)
+    prediction = fdt.predict(fuzzy_set_dataframe)
+    results = [False, False, False, True, False, False, True]
 
-    print(fdt.predict(fuzzy_set_dataframe))
-
-    assert 1 == 2 - 1
+    assert prediction == results
 
 
 def test_inference():
@@ -82,10 +82,10 @@ def test_inference():
     fdt.fit(X, y)
 
     print(fdt.tree)
+    score = fdt.score(fuzzy_set_dataframe, y)
+    expected_score = 0.83333333
 
-    print(fdt.score(fuzzy_set_dataframe, y))
-
-    assert 1 == 2 - 1
+    np.testing.assert_almost_equal(score, expected_score)
 
 
 def test_iris():
@@ -118,19 +118,6 @@ def test_iris():
                                                         list(zip(labels, fuzzy_points[column])),
                                                         False)
 
-    # print('----------')
-    # print('Selecting variables')
-    # print('----------')
-
-    # remove_colums = []
-
-    # for variable in fuzzy_set_df_train:
-    #     if len(fuzzy_set_df_train[variable]) == 2:
-    #         remove_colums += [variable]
-
-    # for column in remove_colums:
-    #     del(fuzzy_set_df_train[column])
-
     # PARAMETRIZE FOR IT TO NOT NEED LABELS' NAMES
     print('----------')
     print('Training tree')
@@ -154,7 +141,10 @@ def test_iris():
     print('----------')
     print('Computing score')
     print('----------')
-    print(fdt.score(fuzzy_set_df_test, y_test))
+    score = fdt.score(fuzzy_set_df_test, y_test)
+    expected_score = 1
+
+    np.testing.assert_almost_equal(score, expected_score)
 
 
 def test_wine():
@@ -187,19 +177,6 @@ def test_wine():
                                                         list(zip(labels, fuzzy_points[column])),
                                                         False)
 
-    # print('----------')
-    # print('Selecting variables')
-    # print('----------')
-
-    # remove_colums = []
-
-    # for variable in fuzzy_set_df_train:
-    #     if len(fuzzy_set_df_train[variable]) == 2:
-    #         remove_colums += [variable]
-
-    # for column in remove_colums:
-    #     del(fuzzy_set_df_train[column])
-
     # PARAMETRIZE FOR IT TO NOT NEED LABELS' NAMES
     print('----------')
     print('Training tree')
@@ -223,4 +200,130 @@ def test_wine():
     print('----------')
     print('Computing score')
     print('----------')
-    print(fdt.score(fuzzy_set_df_test, y_test))
+    score = fdt.score(fuzzy_set_df_test, y_test)
+    expected_score = 0.9322033898305084
+
+    np.testing.assert_almost_equal(score, expected_score)
+
+
+def test_explain_all_rules():
+    wine = datasets.load_wine(as_frame=True)
+
+    df_numerical_columns = wine.feature_names
+    class_name = 'target'
+
+    X_train, X_test, y_train, y_test = train_test_split(wine.data,
+                                                        wine.target,
+                                                        test_size=0.33,
+                                                        random_state=42)
+
+    df_train = wine.frame.loc[X_train.index]
+    df_test = wine.frame.loc[X_test.index[0:1]]
+    print('\n----------')
+    print('Getting fuzzy points')
+    print('----------')
+
+    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
+
+    print('----------')
+    print('Get fuzzy set train')
+    print('----------')
+    # THIS IS GET_FUZZY_SET_DATAFRAME
+    fuzzy_set_df_train = {}
+    for column in df_numerical_columns:
+        labels = [f'{label}' for label in fuzzy_points[column]]
+        fuzzy_set_df_train[column] = get_fuzzy_triangle(df_train[column].to_numpy(),
+                                                        list(zip(labels, fuzzy_points[column])),
+                                                        False)
+
+    # PARAMETRIZE FOR IT TO NOT NEED LABELS' NAMES
+    print('----------')
+    print('Training tree')
+    print('----------')
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train, voting='max_match')
+    fdt.fit(X_train, y_train)
+
+    print(fdt.tree)
+
+    print('----------')
+    print('Get fuzzy set test')
+    print('----------')
+    # THIS IS GET_FUZZY_SET_DATAFRAME
+    fuzzy_set_df_test = {}
+    for column in df_numerical_columns:
+        labels = [f'{label}' for label in fuzzy_points[column]]
+        fuzzy_set_df_test[column] = get_fuzzy_triangle(df_test[column].to_numpy(),
+                                                       list(zip(labels, fuzzy_points[column])),
+                                                       False)
+    # PARAMETRIZE FOR IT TO NOT NEED LABELS' NAMES
+    print('----------')
+    print('Explaining instance')
+    print('----------')
+    prediction = fdt.predict(fuzzy_set_df_test)[0]
+    explanation = fdt.explain(fuzzy_set_df_test, prediction)
+    all_rules = [(0.6156156156156157, [('flavanoids', '1.75'), ('alcohol', '14.83')]),
+                 (0.6010101010101007, [('flavanoids', '1.75'), ('alcohol', '12.85'), ('proline', '750.0')]),
+                 (0.3843843843843843, [('flavanoids', '5.08'), ('alcohol', '12.85')]),
+                 (0.3843843843843843, [('flavanoids', '5.08'), ('alcohol', '14.83')]),
+                 (0.1191969887076537, [('flavanoids', '1.75'), ('alcohol', '12.85'), ('proline', '1547.0'), ('alcalinity_of_ash', '10.6')]),
+                 (0.1191969887076537, [('flavanoids', '1.75'), ('alcohol', '12.85'), ('proline', '1547.0'), ('alcalinity_of_ash', '30.0')])]
+    assert explanation == all_rules
+
+
+def test_explain_single_rule():
+    wine = datasets.load_wine(as_frame=True)
+
+    df_numerical_columns = wine.feature_names
+    class_name = 'target'
+
+    X_train, X_test, y_train, y_test = train_test_split(wine.data,
+                                                        wine.target,
+                                                        test_size=0.33,
+                                                        random_state=42)
+
+    df_train = wine.frame.loc[X_train.index]
+    df_test = wine.frame.loc[X_test.index[0:1]]
+    print('\n----------')
+    print('Getting fuzzy points')
+    print('----------')
+
+    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
+
+    print('----------')
+    print('Get fuzzy set train')
+    print('----------')
+    # THIS IS GET_FUZZY_SET_DATAFRAME
+    fuzzy_set_df_train = {}
+    for column in df_numerical_columns:
+        labels = [f'{label}' for label in fuzzy_points[column]]
+        fuzzy_set_df_train[column] = get_fuzzy_triangle(df_train[column].to_numpy(),
+                                                        list(zip(labels, fuzzy_points[column])),
+                                                        False)
+
+    # PARAMETRIZE FOR IT TO NOT NEED LABELS' NAMES
+    print('----------')
+    print('Training tree')
+    print('----------')
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train, voting='max_match')
+    fdt.fit(X_train, y_train)
+
+    print(fdt.tree)
+
+    print('----------')
+    print('Get fuzzy set test')
+    print('----------')
+    # THIS IS GET_FUZZY_SET_DATAFRAME
+    fuzzy_set_df_test = {}
+    for column in df_numerical_columns:
+        labels = [f'{label}' for label in fuzzy_points[column]]
+        fuzzy_set_df_test[column] = get_fuzzy_triangle(df_test[column].to_numpy(),
+                                                       list(zip(labels, fuzzy_points[column])),
+                                                       False)
+    # PARAMETRIZE FOR IT TO NOT NEED LABELS' NAMES
+    print('----------')
+    print('Explaining instance')
+    print('----------')
+    prediction = fdt.predict(fuzzy_set_df_test)[0]
+    explanation = fdt.explain(fuzzy_set_df_test, prediction, n_rules=1)
+    rule = [(0.6156156156156157, [('flavanoids', '1.75'), ('alcohol', '14.83')])]
+    assert explanation == rule
