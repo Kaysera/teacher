@@ -52,24 +52,27 @@ class FDT:
         for feature in tree.features:
             f_ent = fuzzy_entropy(tree.mu, y.to_numpy())
             if verbose:
+                print('------------------------------')
                 print(f'Feature: {feature}')
                 print(f'F_ent: {f_ent}')
             child_mu = {}
             wef = 0  # Weighted Fuzzy Entropy
+            crisp_cardinality = tree.mu.sum()
             for value in self.fuzzy_set_df[feature]:
                 child_mu[value] = t_norm(tree.mu, self.fuzzy_set_df[feature][value])
                 fuzzy_cardinality = child_mu[value].sum()
-                crisp_cardinality = (child_mu[value] > 0).sum()
-                child_f_ent = fuzzy_entropy(child_mu[value], y.to_numpy(), verbose=verbose)
+                child_f_ent = fuzzy_entropy(child_mu[value], y.to_numpy(), verbose=False)
                 if verbose:
                     print('------------------------------')
-                    print(f'value: {value}')
-                    print(f'child_mu: {child_mu[value]}')
-                    print(f'y: {y.to_numpy()}')
-                    print(f'child_f_ent: {child_f_ent}')
-                wef += fuzzy_cardinality / crisp_cardinality * child_f_ent
+                    print(f'\tvalue: {value}')
+                    # print(f'\tchild_mu: {child_mu[value]}')
+                    print(f'\ty: {y.to_numpy()}')
+                    print(f'\tchild_f_ent: {child_f_ent}')
+                wef += fuzzy_cardinality * child_f_ent
+            wef /= crisp_cardinality
             if verbose:
-                print(f_ent, wef)
+                print(f'Weighted Fuzzy Entropy: {wef}')
+                print(f'Crisp cardinality: {crisp_cardinality}')
             f_gain = f_ent - wef
 
             if f_gain > best_f_gain:
@@ -104,7 +107,7 @@ class FDT:
 
     def partial_fit(self, X, y, current_tree, current_depth):
         current_tree.level = current_depth
-        att, f_gain, child_mu = self.get_max_f_gain(current_tree, y)
+        att, f_gain, child_mu = self.get_max_f_gain(current_tree, y, verbose=False)
         # print(current_tree.value)
         # print(current_tree.mu)
         # apply mask to y
@@ -113,12 +116,7 @@ class FDT:
 
         if self.stop_met(f_gain, y_masked, current_depth):
             current_tree.is_leaf = True
-
-            if current_tree.value == (0, 0):
-                # CASO NODO RAIZ
-                current_tree.class_value = 0
-            else:
-                current_tree.class_value = self.get_class_value(current_tree.mu, y)
+            current_tree.class_value = self.get_class_value(current_tree.mu, y)
             return
 
         current_tree.is_leaf = False
@@ -128,8 +126,9 @@ class FDT:
             child = TreeFDT(new_features)
             child.value = (att, value)
             child.mu = child_mu[value]
-            current_tree.childlist.append(child)
-            self.partial_fit(X, y, child, current_depth + 1)
+            if child.mu.sum() > 0:
+                current_tree.childlist.append(child)
+                self.partial_fit(X, y, child, current_depth + 1)
 
     def aggregated_vote(self, all_classes):
         agg_vote = defaultdict(lambda: np.zeros(len(all_classes[0][1])))
@@ -152,7 +151,7 @@ class FDT:
         leaf_values = self.partial_predict(fuzzy_X, np.ones(X_size), self.tree, t_norm)
         agg_vote = self.voting_method(leaf_values)
         all_classes = [(key, agg_vote[key]) for key in agg_vote]
-        # TODO: POR DIOS REHACER ESTE ONE-LINER MAGICO
+        # TODO: REHACER ESTE ONE-LINER MAGICO
         # INPUT: all_classes = [('one', [1,2,3,4]), ('two', [4,3,2,1]), ('three', [0,0,0,9])]
         # OUTPUT: ['two', 'two', 'one', 'three']
         classes_list = [i for (i, j) in [max(x, key=lambda a: a[1]) for x in list(zip(*[[(x[0], y) for y in x[1]] for x in all_classes]))]]

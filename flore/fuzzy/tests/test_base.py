@@ -5,6 +5,9 @@ import pandas as pd
 from flore.fuzzy import (get_equal_width_division, get_equal_freq_division, get_fuzzy_points,
                          get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points_entropy)
 
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+
 
 def test_get_equal_width_division():
     array = np.array([0, 1, 1, 2, 2, 2, 3, 3, 6, 7, 9, 9, 10])
@@ -154,4 +157,44 @@ def test_get_fuzzy_points_entropy_two():
     class_name = 'class'
 
     fuzzy_points = get_fuzzy_points_entropy(df, df_numerical_columns, class_name)
+    print(fuzzy_points)
+
+
+def test_get_fuzzy_points_entropy_example():
+    df = pd.DataFrame(
+        [
+            [2, 5, False],
+            [3, 8, False],
+            [5, 4, False],
+            [6, 9, True],
+            [7, 8, True],
+            [7, 3, False],
+        ],
+        columns=['theory', 'practice', 'class']
+    )
+
+    df_numerical_columns = ['theory', 'practice']
+    class_name = 'class'
+
+    fuzzy_points = get_fuzzy_points_entropy(df, df_numerical_columns, class_name)
+    print(fuzzy_points)
+
+
+def test_get_fuzzy_points_entropy_iris():
+    iris = datasets.load_wine(as_frame=True)
+
+    class_name = 'target'
+
+    X_train, X_test, y_train, y_test = train_test_split(iris.data,
+                                                        iris.target,
+                                                        test_size=0.33,
+                                                        random_state=42)
+
+    df_train = iris.frame.loc[X_train.index]
+    df_numerical_columns = iris.feature_names
+
+    # column = 'petal length (cm)'
+    print('\n----------')
+
+    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
     print(fuzzy_points)

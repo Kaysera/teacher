@@ -105,13 +105,11 @@ def get_fuzzy_points_entropy(df, df_numerical_columns, class_name):
     """
     fuzzy_points = {}
     for column in df_numerical_columns:
-        fuzzy_points[column] = fuzzy_partitioning(df[column].to_numpy(), df[class_name].to_numpy())
+        fuzzy_points[column] = fuzzy_partitioning(df[column].to_numpy(), df[class_name].to_numpy(), df[column].min())
     return fuzzy_points
 
 
-def fuzzy_partitioning(variable, class_variable):
-    # TODO: REVISE ACCORDING TO TEST TWO
-    min_point = variable.min()
+def fuzzy_partitioning(variable, class_variable, min_point):
     max_point = variable.max()
     best_point = 0
     best_wef = inf
@@ -122,8 +120,12 @@ def fuzzy_partitioning(variable, class_variable):
             fuzzy_triangle = get_fuzzy_triangle(variable, divisions)
             # print(divisions)
             # print(fuzzy_triangle)
+            # print('----------------')
+            # print(f'Point: {point}')
             wef = weighted_fuzzy_entropy(fuzzy_triangle, class_variable)
             # print(point, wef)
+            # print(f'WEF: {wef}')
+            # print('-----------------')
             if wef < best_wef:
                 best_wef = wef
                 best_point = point
@@ -131,16 +133,25 @@ def fuzzy_partitioning(variable, class_variable):
     left = ([(p, c) for p, c in zip(variable, class_variable) if p <= best_point])
     right = ([(p, c) for p, c in zip(variable, class_variable) if p > best_point])
     divisions = [('low', min_point), ('high', max_point)]
+    # print(f'Best point: {best_point}')
+    # print(f'Best wef: {best_wef}')
+    # print(f'Best fuzzy triangle: {best_fuzzy_triangle}')
     global_fuzzy_triangles = get_fuzzy_triangle(variable, divisions)
 
     global_wef = weighted_fuzzy_entropy(global_fuzzy_triangles, class_variable)
+    # print(f'Global Weighted Fuzzy Entropy: {global_wef}')
 
     f_gain = global_wef - best_wef
 
     cardinality = len(variable)
-
     delta = get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable)
+    # print(f'Delta point: {delta}')
     threshold = (log2(cardinality - 1) + delta) / cardinality
+    # print(f'Threshold: {threshold}')
+
+    # pass_threshold = f_gain >= threshold
+    # print(f'Pass Threshold: {pass_threshold}')
+    # print('-----------------')
 
     if not f_gain < threshold:
         left_variable, left_class = zip(*left)
@@ -148,9 +159,9 @@ def fuzzy_partitioning(variable, class_variable):
         left_points = []
         right_points = []
         if len(left_variable) > 1:
-            left_points = fuzzy_partitioning(np.array(left_variable), left_class)
+            left_points = fuzzy_partitioning(np.array(left_variable), left_class, min_point)
         if len(right_variable) > 1:
-            right_points = fuzzy_partitioning(np.array(right_variable), right_class)
+            right_points = fuzzy_partitioning(np.array(right_variable), right_class, best_point)
         points = left_points + right_points
         return np.unique(points).tolist()
     else:
@@ -163,37 +174,32 @@ def get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable)
     old_f_entropy = 0
     new_f_entropy = 0
     for triangle in global_fuzzy_triangles:
-        old_f_entropy += fuzzy_entropy(global_fuzzy_triangles[triangle], class_variable)
+        old_f_entropy += n_classes * fuzzy_entropy(global_fuzzy_triangles[triangle], class_variable)
 
     for triangle in best_fuzzy_triangle:
-        new_f_entropy += fuzzy_entropy(best_fuzzy_triangle[triangle], class_variable)
+        bft = np.array(best_fuzzy_triangle[triangle])
+        cv = np.array(class_variable)
+        classes = cv[bft > 0]
+        new_n_classes = len(np.unique(classes))
+        new_f_entropy += new_n_classes * fuzzy_entropy(best_fuzzy_triangle[triangle], class_variable)
 
-    old_f_entropy *= n_classes
+    # print(f'Old Entropy: {old_f_entropy}')
+    # print(f'new Entropy: {new_f_entropy}')
 
-    new_f_entropy *= n_classes  # TODO: REVISE THIS, MAYBE NOT ALL N_CLASSES
-
-    delta = log2(pow(3, n_classes) - 2) - old_f_entropy - new_f_entropy
+    delta = log2(pow(3, n_classes) - 2) - (old_f_entropy - new_f_entropy)
 
     return delta
 
 
 def weighted_fuzzy_entropy(fuzzy_triangle, class_variable):
     wef = 0
+    crisp_cardinality = 0
     for triangle in fuzzy_triangle:
         fuzzy_cardinality = fuzzy_triangle[triangle].sum()
-        crisp_cardinality = (fuzzy_triangle[triangle] > 0).sum()
-        if triangle == 'low' or triangle == 'high':
-            # Only has one extreme, i.e. [0,2.5]
-            crisp_cardinality += 1
-        else:
-            # Has two extremes, i.e. [0,2.5,5]
-            crisp_cardinality += 2
-        # print(f'Set: {triangle}')
-        # print(f'fuzzy_cardinality: {fuzzy_cardinality}')
-        # print(f'crisp_cardinality: {crisp_cardinality}')
-
-        wef += fuzzy_cardinality / crisp_cardinality * fuzzy_entropy(fuzzy_triangle[triangle], class_variable)
-    return wef
+        crisp_cardinality += fuzzy_cardinality
+        fent = fuzzy_entropy(fuzzy_triangle[triangle], class_variable)
+        wef += fuzzy_cardinality * fent
+    return wef / crisp_cardinality
 
 
 def fuzzy_entropy(triangle, class_variable, verbose=False):

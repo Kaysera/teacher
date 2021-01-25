@@ -45,7 +45,6 @@ def test_tree():
 
 
 def test_inference():
-    # TODO: NOT WORKING
     df = pd.DataFrame(
         [
             [2, 5, False],
@@ -84,7 +83,7 @@ def test_inference():
 
     print(fdt.tree)
 
-    # print(fdt.predict(fuzzy_set_dataframe))
+    print(fdt.score(fuzzy_set_dataframe, y))
 
     assert 1 == 2 - 1
 
@@ -102,9 +101,15 @@ def test_iris():
 
     df_train = iris.frame.loc[X_train.index]
     df_test = iris.frame.loc[X_test.index]
+    print('\n----------')
+    print('Getting fuzzy points')
+    print('----------')
 
     fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
 
+    print('----------')
+    print('Get fuzzy set train')
+    print('----------')
     # THIS IS GET_FUZZY_SET_DATAFRAME
     fuzzy_set_df_train = {}
     for column in df_numerical_columns:
@@ -112,11 +117,32 @@ def test_iris():
         fuzzy_set_df_train[column] = get_fuzzy_triangle(df_train[column].to_numpy(),
                                                         list(zip(labels, fuzzy_points[column])),
                                                         False)
-    # PARAMETRIZE FOR IT TO NOT NEED LABELS' NAMES
 
-    fdt = FDT(df_numerical_columns, fuzzy_set_df_train)
+    # print('----------')
+    # print('Selecting variables')
+    # print('----------')
+
+    # remove_colums = []
+
+    # for variable in fuzzy_set_df_train:
+    #     if len(fuzzy_set_df_train[variable]) == 2:
+    #         remove_colums += [variable]
+
+    # for column in remove_colums:
+    #     del(fuzzy_set_df_train[column])
+
+    # PARAMETRIZE FOR IT TO NOT NEED LABELS' NAMES
+    print('----------')
+    print('Training tree')
+    print('----------')
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
 
+    print(fdt.tree)
+
+    print('----------')
+    print('Get fuzzy set test')
+    print('----------')
     # THIS IS GET_FUZZY_SET_DATAFRAME
     fuzzy_set_df_test = {}
     for column in df_numerical_columns:
@@ -125,7 +151,9 @@ def test_iris():
                                                        list(zip(labels, fuzzy_points[column])),
                                                        False)
     # PARAMETRIZE FOR IT TO NOT NEED LABELS' NAMES
-
+    print('----------')
+    print('Computing score')
+    print('----------')
     print(fdt.score(fuzzy_set_df_test, y_test))
 
 
@@ -158,11 +186,25 @@ def test_wine():
         fuzzy_set_df_train[column] = get_fuzzy_triangle(df_train[column].to_numpy(),
                                                         list(zip(labels, fuzzy_points[column])),
                                                         False)
+
+    # print('----------')
+    # print('Selecting variables')
+    # print('----------')
+
+    # remove_colums = []
+
+    # for variable in fuzzy_set_df_train:
+    #     if len(fuzzy_set_df_train[variable]) == 2:
+    #         remove_colums += [variable]
+
+    # for column in remove_colums:
+    #     del(fuzzy_set_df_train[column])
+
     # PARAMETRIZE FOR IT TO NOT NEED LABELS' NAMES
     print('----------')
     print('Training tree')
     print('----------')
-    fdt = FDT(df_numerical_columns, fuzzy_set_df_train)
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train, voting='max_match')
     fdt.fit(X_train, y_train)
 
     print(fdt.tree)
