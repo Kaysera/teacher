@@ -1,4 +1,4 @@
-from flore.explanation import FuzzyLORE
+from flore.explanation import FuzzyLORE_old
 from flore.datasets import load_compas, load_german
 from flore.neighbors import genetic_neighborhood
 from flore.fuzzy import get_equal_freq_division
@@ -57,7 +57,7 @@ def test_sumthinother():
 
     idx_record2explain = 3
 
-    flore = FuzzyLORE()
+    flore = FuzzyLORE_old()
 
     fuzzy_labels = ['low', 'mid']
     get_division = get_equal_freq_division

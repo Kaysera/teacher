@@ -1,4 +1,4 @@
-from flore.datasets import load_german, load_adult, load_compas, load_heloc
+from flore.datasets import load_german, load_adult, load_compas, load_heloc, load_beer
 
 
 def check_data(load_data, dataset_values):
@@ -191,3 +191,24 @@ def test_load_heloc():
     }
 
     check_data(load_heloc, dataset_values)
+
+
+def test_load_beer():
+    dataset_values = {
+        'name': 'beer',
+        'columns': ['color', 'bitterness', 'strength', 'beer_style'],
+        'class_name': 'beer_style',
+        'possible_outcomes': ['Blanche', 'Lager', 'Pilsner', 'IPA',
+                              'Stout', 'Barleywine', 'Porter', 'Belgian-Strong-Ale'],
+        'type_features': {'integer': [],
+                          'double': ['color', 'bitterness', 'strength'],
+                          'string': ['beer_style']},
+        'features_type': {'color': 'double', 'bitterness': 'double', 'strength': 'double', 'beer_style': 'string'},
+        'discrete': set(['beer_style']),
+        'continuous': ['color', 'bitterness', 'strength'],
+        'idx_features': {0: 'color', 1: 'bitterness', 2: 'strength'},
+        'dfshape': (400, 4),
+        'Xshape': (400, 3),
+        'yshape': (400,)
+    }
+    check_data(load_beer, dataset_values)
