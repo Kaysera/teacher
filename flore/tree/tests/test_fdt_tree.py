@@ -523,7 +523,7 @@ def test_get_alpha_counterfactual():
     print('----------')
     print('Element to predict')
     print(element)
-    print('----------')    
+    print('----------')
     prediction = fdt.predict(element)[0]
     print(f'Prediction: {prediction}')
     other_classes = ([x for x in np.unique(y_train) if prediction != x])

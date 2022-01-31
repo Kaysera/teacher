@@ -129,10 +129,7 @@ def alpha_factual_robust(explanations, threshold, debug=False):
         else:
             alpha_factual += [rule]
 
-
-
     if debug:
         return alpha_factual, total_mu
     else:
         return alpha_factual
-

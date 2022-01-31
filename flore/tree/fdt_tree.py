@@ -1,4 +1,3 @@
-from matplotlib.pyplot import get_plot_commands
 import numpy as np
 from flore.fuzzy import fuzzy_entropy
 from collections import defaultdict
@@ -293,7 +292,7 @@ class FDT:
         rules_list = []
         for class_val in all_classes:
             rules_list += self.get_cf_rules(class_val, t_norm)
-        
+
         return rules_list
 
     def get_cf_rules(self, class_value, t_norm=np.minimum):
@@ -405,7 +404,7 @@ class FDT:
 
         simmetric_distance = len(only_instance) + len(only_cf)
         rule_distance = 0
-            
+
         for key in cat_keys:
             if cf_dict[key] is not fuzzified_X[key]:
                 rule_distance += 1
@@ -418,10 +417,9 @@ class FDT:
         else:
             return rule_distance
 
-
     def cf_clause_distance(self, fuzzy_clause, fuzzy_value, cf_clause, alpha_factual=False):
         skip = abs(list(fuzzy_clause.keys()).index(fuzzy_value) - list(fuzzy_clause.keys()).index(cf_clause))
-        distance =  skip / len(fuzzy_clause)
+        distance = skip / len(fuzzy_clause)
 
         if not alpha_factual:
             distance *= (1 - fuzzy_clause[cf_clause][0])
