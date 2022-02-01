@@ -265,8 +265,10 @@ def test_explain_all_rules():
                  (0.6010101010101007, [('flavanoids', '1.75'), ('alcohol', '12.85'), ('proline', '750.0')]),
                  (0.3843843843843843, [('flavanoids', '5.08'), ('alcohol', '12.85')]),
                  (0.3843843843843843, [('flavanoids', '5.08'), ('alcohol', '14.83')]),
-                 (0.1191969887076537, [('flavanoids', '1.75'), ('alcohol', '12.85'), ('proline', '1547.0'), ('alcalinity_of_ash', '10.6')]),
-                 (0.1191969887076537, [('flavanoids', '1.75'), ('alcohol', '12.85'), ('proline', '1547.0'), ('alcalinity_of_ash', '30.0')])]
+                 (0.1191969887076537, [('flavanoids', '1.75'), ('alcohol', '12.85'),
+                                       ('proline', '1547.0'), ('alcalinity_of_ash', '10.6')]),
+                 (0.1191969887076537, [('flavanoids', '1.75'), ('alcohol', '12.85'), ('proline', '1547.0'),
+                                       ('alcalinity_of_ash', '30.0')])]
     assert explanation == all_rules
 
 

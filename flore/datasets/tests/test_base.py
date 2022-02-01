@@ -1,4 +1,4 @@
-from flore.datasets import load_german, load_adult, load_compas, load_heloc
+from flore.datasets import load_german, load_adult, load_compas, load_heloc, load_beer, load_breast, load_pima
 
 
 def check_data(load_data, dataset_values):
@@ -191,3 +191,106 @@ def test_load_heloc():
     }
 
     check_data(load_heloc, dataset_values)
+
+
+def test_load_beer():
+    dataset_values = {
+        'name': 'beer',
+        'columns': ['color', 'bitterness', 'strength', 'beer_style'],
+        'class_name': 'beer_style',
+        'possible_outcomes': ['Blanche', 'Lager', 'Pilsner', 'IPA',
+                              'Stout', 'Barleywine', 'Porter', 'Belgian-Strong-Ale'],
+        'type_features': {'integer': [],
+                          'double': ['color', 'bitterness', 'strength'],
+                          'string': ['beer_style']},
+        'features_type': {'color': 'double', 'bitterness': 'double', 'strength': 'double', 'beer_style': 'string'},
+        'discrete': set(['beer_style']),
+        'continuous': ['color', 'bitterness', 'strength'],
+        'idx_features': {0: 'color', 1: 'bitterness', 2: 'strength'},
+        'dfshape': (400, 4),
+        'Xshape': (400, 3),
+        'yshape': (400,)
+    }
+    check_data(load_beer, dataset_values)
+
+
+def test_load_pima():
+    dataset_values = {
+        'name': 'pima',
+        'columns': ['Pregnancies', 'Glucose', 'BloodPresure', 'SkinThickness', 'Insulin', 'BMI',
+                    'DiabetesPedigreeFunction', 'Age', 'Class'],
+        'class_name': 'Class',
+        'possible_outcomes': [1, 0],
+        'type_features': {'integer': ['Pregnancies', 'Glucose', 'BloodPresure', 'SkinThickness', 'Insulin', 'Age',
+                                      'Class'],
+                          'double': ['BMI', 'DiabetesPedigreeFunction'],
+                          'string': []},
+        'features_type': {'Pregnancies': 'integer', 'Glucose': 'integer', 'BloodPresure': 'integer',
+                          'SkinThickness': 'integer', 'Insulin': 'integer', 'Age': 'integer', 'Class': 'integer',
+                          'BMI': 'double', 'DiabetesPedigreeFunction': 'double'},
+        'discrete': set(['Class']),
+        'continuous': ['Pregnancies', 'Glucose', 'BloodPresure', 'SkinThickness',
+                       'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age'],
+        'idx_features': {0: 'Pregnancies', 1: 'Glucose', 2: 'BloodPresure', 3: 'SkinThickness',
+                         4: 'Insulin', 5: 'BMI', 6: 'DiabetesPedigreeFunction', 7: 'Age'},
+        'dfshape': (768, 9),
+        'Xshape': (768, 8),
+        'yshape': (768,)
+    }
+    check_data(load_pima, dataset_values)
+
+
+def test_load_breast():
+    dataset_values = {
+        'name': 'breast',
+        'columns': ['diagnosis', 'radius_mean', 'texture_mean', 'perimeter_mean', 'area_mean', 'smoothness_mean',
+                    'compactness_mean', 'concavity_mean', 'concave points_mean', 'symmetry_mean',
+                    'fractal_dimension_mean', 'radius_se', 'texture_se', 'perimeter_se', 'area_se', 'smoothness_se',
+                    'compactness_se', 'concavity_se', 'concave points_se', 'symmetry_se', 'fractal_dimension_se',
+                    'radius_worst', 'texture_worst', 'perimeter_worst', 'area_worst', 'smoothness_worst',
+                    'compactness_worst', 'concavity_worst', 'concave points_worst', 'symmetry_worst',
+                    'fractal_dimension_worst'],
+        'class_name': 'diagnosis',
+        'possible_outcomes': ['M', 'B'],
+        'type_features': {'integer': [],
+                          'double': ['radius_mean', 'texture_mean', 'perimeter_mean', 'area_mean',
+                                     'smoothness_mean', 'compactness_mean', 'concavity_mean', 'concave points_mean',
+                                     'symmetry_mean', 'fractal_dimension_mean', 'radius_se', 'texture_se',
+                                     'perimeter_se', 'area_se', 'smoothness_se', 'compactness_se', 'concavity_se',
+                                     'concave points_se', 'symmetry_se', 'fractal_dimension_se', 'radius_worst',
+                                     'texture_worst', 'perimeter_worst', 'area_worst', 'smoothness_worst',
+                                     'compactness_worst', 'concavity_worst', 'concave points_worst', 'symmetry_worst',
+                                     'fractal_dimension_worst'],
+                          'string': ['diagnosis']},
+        'features_type': {'radius_mean': 'double', 'texture_mean': 'double', 'perimeter_mean': 'double',
+                          'area_mean': 'double', 'smoothness_mean': 'double', 'compactness_mean': 'double',
+                          'concavity_mean': 'double', 'concave points_mean': 'double', 'symmetry_mean': 'double',
+                          'fractal_dimension_mean': 'double', 'radius_se': 'double', 'texture_se': 'double',
+                          'perimeter_se': 'double', 'area_se': 'double', 'smoothness_se': 'double',
+                          'compactness_se': 'double', 'concavity_se': 'double', 'concave points_se': 'double',
+                          'symmetry_se': 'double', 'fractal_dimension_se': 'double', 'radius_worst': 'double',
+                          'texture_worst': 'double', 'perimeter_worst': 'double', 'area_worst': 'double',
+                          'smoothness_worst': 'double', 'compactness_worst': 'double', 'concavity_worst': 'double',
+                          'concave points_worst': 'double', 'symmetry_worst': 'double',
+                          'fractal_dimension_worst': 'double', 'diagnosis': 'string'},
+        'discrete': set(['diagnosis']),
+        'continuous': ['radius_mean', 'texture_mean', 'perimeter_mean', 'area_mean', 'smoothness_mean',
+                       'compactness_mean', 'concavity_mean', 'concave points_mean', 'symmetry_mean',
+                       'fractal_dimension_mean', 'radius_se', 'texture_se', 'perimeter_se', 'area_se', 'smoothness_se',
+                       'compactness_se', 'concavity_se', 'concave points_se', 'symmetry_se', 'fractal_dimension_se',
+                       'radius_worst', 'texture_worst', 'perimeter_worst', 'area_worst', 'smoothness_worst',
+                       'compactness_worst', 'concavity_worst', 'concave points_worst', 'symmetry_worst',
+                       'fractal_dimension_worst'],
+        'idx_features': {0: 'radius_mean', 1: 'texture_mean', 2: 'perimeter_mean', 3: 'area_mean',
+                         4: 'smoothness_mean', 5: 'compactness_mean', 6: 'concavity_mean', 7: 'concave points_mean',
+                         8: 'symmetry_mean', 9: 'fractal_dimension_mean', 10: 'radius_se', 11: 'texture_se',
+                         12: 'perimeter_se', 13: 'area_se', 14: 'smoothness_se', 15: 'compactness_se',
+                         16: 'concavity_se', 17: 'concave points_se', 18: 'symmetry_se', 19: 'fractal_dimension_se',
+                         20: 'radius_worst', 21: 'texture_worst', 22: 'perimeter_worst', 23: 'area_worst',
+                         24: 'smoothness_worst', 25: 'compactness_worst', 26: 'concavity_worst',
+                         27: 'concave points_worst', 28: 'symmetry_worst', 29: 'fractal_dimension_worst'},
+        'dfshape': (569, 31),
+        'Xshape': (569, 30),
+        'yshape': (569,)
+    }
+    check_data(load_breast, dataset_values)

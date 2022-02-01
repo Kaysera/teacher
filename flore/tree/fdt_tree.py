@@ -154,7 +154,9 @@ class FDT:
         # TODO: REHACER ESTE ONE-LINER MAGICO
         # INPUT: all_classes = [('one', [1,2,3,4]), ('two', [4,3,2,1]), ('three', [0,0,0,9])]
         # OUTPUT: ['two', 'two', 'one', 'three']
-        classes_list = [i for (i, j) in [max(x, key=lambda a: a[1]) for x in list(zip(*[[(x[0], y) for y in x[1]] for x in all_classes]))]]
+        classes_list = [i for (i, j) in
+                        [max(x, key=lambda a: a[1]) for x in
+                         list(zip(*[[(x[0], y) for y in x[1]] for x in all_classes]))]]
 
         return classes_list
 

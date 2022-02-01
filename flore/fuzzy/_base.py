@@ -248,7 +248,8 @@ def get_fuzzy_triangle(variable, divisions, verbose=False):
     fuzz_dict[divisions[0][0]] = fuzz.trimf(variable, [divisions[0][1], divisions[0][1], divisions[1][1]])
 
     for i in range(len(divisions) - 2):
-        fuzz_dict[divisions[i + 1][0]] = fuzz.trimf(variable, [divisions[i][1], divisions[i + 1][1], divisions[i + 2][1]])
+        fuzz_dict[divisions[i + 1][0]] = fuzz.trimf(variable,
+                                                    [divisions[i][1], divisions[i + 1][1], divisions[i + 2][1]])
 
     # Last triangle is only half triangle
     fuzz_dict[divisions[-1][0]] = fuzz.trimf(variable, [divisions[-2][1], divisions[-1][1], divisions[-1][1]])
