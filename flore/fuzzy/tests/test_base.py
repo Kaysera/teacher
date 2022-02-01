@@ -75,17 +75,26 @@ def test_get_fuzzy_set_dataframe():
         'one': [0, 5, 10],
         'two': [0, 5, 10]
     }
-    fuzzy_labels = ['low', 'mid', 'high']
+    fuzzy_labels = {
+        'one': ['low', 'mid', 'high']
+    }
     df_numerical_columns = ['one', 'two']
+    df_categorical_columns = ['three']
 
     fuzzy_set_dataframe = get_fuzzy_set_dataframe(df, get_fuzzy_triangle, fuzzy_points,
-                                                  df_numerical_columns, fuzzy_labels)
-    assert_equal(fuzzy_set_dataframe, {'one': {'low': np.array([1., 0.6, 0.]),
-                                               'mid': np.array([0., 0.4, 0.]),
-                                               'high': np.array([0., 0., 1.])},
-                                       'two': {'low': np.array([0.75, 0., 0.]),
-                                               'mid': np.array([0.25, 1., 0.25]),
-                                               'high': np.array([0., 0., 0.75])}})
+                                                  df_numerical_columns, df_categorical_columns, fuzzy_labels)
+
+    expected_fuzzy_set = {'one': {'low': np.array([1, 0.6, 0]),
+                                  'mid': np.array([0, 0.4, 0]),
+                                  'high': np.array([0, 0., 1.])},
+                          'two': {'0': np.array([0.75, 0, 0]),
+                                  '5': np.array([0.25, 1, 0.25]),
+                                  '10': np.array([0, 0, 0.75])},
+                          'three': {'six': np.array([1, 0, 0]),
+                                    'nine': np.array([0, 1, 0]),
+                                    'ninety': np.array([0, 0, 1])}}
+
+    assert_equal(fuzzy_set_dataframe, expected_fuzzy_set)
 
 
 def _get_fuzzy_points_entropy():
