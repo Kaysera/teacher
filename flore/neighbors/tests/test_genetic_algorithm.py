@@ -1,4 +1,5 @@
-from flore.neighbors import genetic_algorithm, get_feature_values, random_init, informed_init, uniform_crossover, tournament_selection, replacement
+from flore.neighbors import (genetic_algorithm, get_feature_values, random_init, informed_init, uniform_crossover, 
+                             tournament_selection, replacement)
 import pandas as pd
 import numpy as np
 from random import seed
@@ -106,7 +107,7 @@ def test_replacement():
     assert new_population == [[15, 'c', 3.3, 'l'], [15, 'c', 3.3, 'l'], [15, 'c', 3.3, 'l'], [15, 'c', 3.3, 'l'], [10, 'b', 2.2, 'k']]
 
 
-def test_genetic_algorithm():
+def _genetic_algorithm():
     np.random.seed(42)
     test_df = pd.DataFrame(
         [

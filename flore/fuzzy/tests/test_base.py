@@ -88,7 +88,7 @@ def test_get_fuzzy_set_dataframe():
                                                'high': np.array([0., 0., 0.75])}})
 
 
-def test_get_fuzzy_points_entropy():
+def _get_fuzzy_points_entropy():
     df = pd.DataFrame(
         [
             [1.85, 9.7, True],
@@ -149,7 +149,7 @@ def test_get_fuzzy_points_entropy():
     print(get_fuzzy_points_entropy(df, df_numerical_columns, class_name))
 
 
-def test_get_fuzzy_points_entropy_two():
+def _get_fuzzy_points_entropy_two():
     theory = np.array([0, 0, 3, 3, 7, 7, 9])
     practice = np.array([0, 3, 3, 9, 1, 4, 9])
     df = pd.DataFrame(([i, j, i + j >= 10] for i, j in zip(theory, practice)), columns=['theory', 'practice', 'class'])
@@ -160,7 +160,7 @@ def test_get_fuzzy_points_entropy_two():
     print(fuzzy_points)
 
 
-def test_get_fuzzy_points_entropy_example():
+def _get_fuzzy_points_entropy_example():
     df = pd.DataFrame(
         [
             [2, 5, False],
@@ -180,7 +180,7 @@ def test_get_fuzzy_points_entropy_example():
     print(fuzzy_points)
 
 
-def test_get_fuzzy_points_entropy_iris():
+def _get_fuzzy_points_entropy_iris():
     iris = datasets.load_wine(as_frame=True)
 
     class_name = 'target'

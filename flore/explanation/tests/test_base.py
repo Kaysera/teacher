@@ -11,7 +11,7 @@ import random
 import numpy as np
 
 
-def test_sumthin():
+def _sumthin():
     seed = 0
 
     random.seed(seed)
@@ -40,7 +40,7 @@ def test_sumthin():
     # assert explanation == ([('duration_in_month', 'low', 0.9999583350693723)], 0)
 
 
-def test_sumthinother():
+def _sumthinother():
     seed = 0
 
     random.seed(seed)
