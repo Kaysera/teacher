@@ -111,7 +111,7 @@ class FuzzyLORE:
             finstance = dfZ.loc[i]
             try:
                 fy = self.fuzzy_inference(finstance, i, self.fuzzy_set_test, discrete, op)
-            except:
+            except Exception:  # TODO: CHECK PROPER EXCEPTION
                 print(i, finstance)
                 fy = None
             fuzzy_y += [fy]
@@ -124,7 +124,7 @@ class FuzzyLORE:
             finstance = df.loc[i]
             try:
                 fy = self.fuzzy_inference(finstance, i, fuzzy_set, discrete, op)
-            except:
+            except Exception:  # TODO: CHECK PROPER EXCEPTION
                 print(i, finstance)
                 fy = None
             fuzzy_neighborhood_y += [fy]
@@ -225,7 +225,7 @@ class FuzzyLORE:
             scores[rule[1]] += rule_score
         try:
             return max(scores, key=lambda a: scores[a])
-        except:
+        except Exception:  # TODO: CHECK PROPER EXCEPTION
             return None
 
     def fuzzy_inference(self, instance, idx_record2explain, fuzzy_set, discrete, op):

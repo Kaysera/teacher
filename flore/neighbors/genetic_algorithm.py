@@ -68,7 +68,8 @@ def replacement(old_population, new_individuals, fitness_function):
     return big_population[:len(old_population)]
 
 
-def genetic_algorithm(init_population, cxprob, crossprob, mutprob, mut_ext_prob, feature_values, tournament_k, fitness_function, rounds):
+def genetic_algorithm(init_population, cxprob, crossprob, mutprob,
+                      mut_ext_prob, feature_values, tournament_k, fitness_function, rounds):
     population = init_population
     for i in range(rounds):
         # Selection

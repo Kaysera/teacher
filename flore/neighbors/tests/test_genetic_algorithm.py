@@ -1,4 +1,4 @@
-from flore.neighbors import (genetic_algorithm, get_feature_values, random_init, informed_init, uniform_crossover, 
+from flore.neighbors import (genetic_algorithm, get_feature_values, random_init, informed_init, uniform_crossover,
                              tournament_selection, replacement)
 import pandas as pd
 import numpy as np
@@ -83,7 +83,10 @@ def test_tournament_selection():
 
         return x[0] + val_first[x[1]] + x[2] + val_second[x[3]]
 
-    assert tournament_selection(population, 3, fitness) == [[15, 'c', 3.3, 'l'], [10, 'b', 2.2, 'k'], [15, 'c', 3.3, 'l'], [15, 'c', 3.3, 'l'], [10, 'b', 2.2, 'k']]
+    expected_tournament = [[15, 'c', 3.3, 'l'], [10, 'b', 2.2, 'k'],
+                           [15, 'c', 3.3, 'l'], [15, 'c', 3.3, 'l'], [10, 'b', 2.2, 'k']]
+
+    assert tournament_selection(population, 3, fitness) == expected_tournament
 
 
 def test_replacement():
@@ -104,7 +107,9 @@ def test_replacement():
 
     tournament = tournament_selection(population, 3, fitness)
     new_population = replacement(population, tournament, fitness)
-    assert new_population == [[15, 'c', 3.3, 'l'], [15, 'c', 3.3, 'l'], [15, 'c', 3.3, 'l'], [15, 'c', 3.3, 'l'], [10, 'b', 2.2, 'k']]
+    expected_new_pop = [[15, 'c', 3.3, 'l'], [15, 'c', 3.3, 'l'],
+                        [15, 'c', 3.3, 'l'], [15, 'c', 3.3, 'l'], [10, 'b', 2.2, 'k']]
+    assert new_population == expected_new_pop
 
 
 def _genetic_algorithm():
@@ -144,5 +149,6 @@ def _genetic_algorithm():
 
         return x[0] + val_first[x[1]] + x[2] + val_second[x[3]]
 
-    final_pop = genetic_algorithm(initial_population, cxprob, crossprob, mutprob, mut_ext_prob, feat_values, tournament_k, fitness, rounds)
+    final_pop = genetic_algorithm(initial_population, cxprob, crossprob,
+                                  mutprob, mut_ext_prob, feat_values, tournament_k, fitness, rounds)
     print([(i, fitness(i)) for i in final_pop])
