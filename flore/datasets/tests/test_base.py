@@ -213,6 +213,7 @@ def test_load_beer():
     }
     check_data(load_beer, dataset_values)
 
+
 def test_load_pima():
     dataset_values = {
         'name': 'pima',

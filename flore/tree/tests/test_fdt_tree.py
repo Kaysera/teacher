@@ -555,7 +555,8 @@ def test_get_alpha_counterfactual():
 
     print('Alpha counterfactual')
 
-    acf = fdt.get_alpha_counterfactual(fuzzy_set_df_test, other_classes, df_numerical_columns, alpha_factuals, n_cf='all', stats=True)
+    acf = fdt.get_alpha_counterfactual(fuzzy_set_df_test, other_classes,
+                                       df_numerical_columns, alpha_factuals, n_cf='all', stats=True)
     for key, value in acf.items():
         print(f'Counterfactuals for class {key}:')
         for cf in value:

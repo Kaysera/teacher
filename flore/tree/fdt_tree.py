@@ -161,7 +161,6 @@ class FDT:
                         [max(x, key=lambda a: a[1]) for x in
                          list(zip(*[[(x[0], y) for y in x[1]] for x in all_classes]))]]
 
-
         return classes_list
 
     def partial_predict(self, fuzzy_X, mu, tree, t_norm=np.minimum):
@@ -324,7 +323,8 @@ class FDT:
                     current_rules += child_rules
             return current_rules
 
-    def get_alpha_counterfactual(self, fuzzy_X, other_classes, df_numerical_columns, alpha_factual, n_cf='best', stats=False):
+    def get_alpha_counterfactual(self, fuzzy_X, other_classes, df_numerical_columns,
+                                 alpha_factual, n_cf='best', stats=False):
         # SOLO FUNCIONA CON UN UNICO FUZZY_X
         # other_class = other_classes[0]
         # rules = self.get_cf_rules(other_class)
@@ -336,7 +336,8 @@ class FDT:
             other_class_rules = []
             cf_rules = self.get_cf_rules(other_class)
             for rule in cf_rules:
-                dist = sum([(1 - factual[1]) * self.cf_distance(fuzzy_X, rule, df_numerical_columns, factual[0]) for factual in alpha_factual])
+                dist = sum([(1 - factual[1]) * self.cf_distance(fuzzy_X, rule,
+                            df_numerical_columns, factual[0]) for factual in alpha_factual])
                 other_class_rules += [(rule, dist)]
 
             all_counterf[other_class] = sorted(other_class_rules, key=lambda rule: rule[1])
@@ -360,7 +361,8 @@ class FDT:
         all_counterf = {}
         for other_class in other_classes:
             rules = self.get_cf_rules(other_class)
-            all_counterf[other_class] = sorted([(rule, self.cf_distance(fuzzy_X, rule, df_numerical_columns)) for rule in rules], key=lambda rule: rule[1])
+            all_counterf[other_class] = sorted([(rule, self.cf_distance(fuzzy_X, rule, df_numerical_columns))
+                                                for rule in rules], key=lambda rule: rule[1])
             # for rule in all_counterf[other_class]:
             #     print(rule)
 

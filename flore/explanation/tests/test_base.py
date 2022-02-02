@@ -1,5 +1,5 @@
 from flore.explanation import FuzzyLORE_old
-from flore.datasets import load_compas, load_german
+from flore.datasets import load_compas
 from flore.neighbors import genetic_neighborhood
 from flore.fuzzy import get_equal_freq_division
 from math import prod
