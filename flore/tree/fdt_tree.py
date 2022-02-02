@@ -2,6 +2,8 @@ import numpy as np
 from flore.fuzzy import fuzzy_entropy
 from collections import defaultdict
 
+from functools import reduce
+
 
 class TreeFDT:
     def __init__(self, features):
@@ -153,10 +155,12 @@ class FDT:
         all_classes = [(key, agg_vote[key]) for key in agg_vote]
         # TODO: REHACER ESTE ONE-LINER MAGICO
         # INPUT: all_classes = [('one', [1,2,3,4]), ('two', [4,3,2,1]), ('three', [0,0,0,9])]
+        # print(all_classes)
         # OUTPUT: ['two', 'two', 'one', 'three']
         classes_list = [i for (i, j) in
                         [max(x, key=lambda a: a[1]) for x in
                          list(zip(*[[(x[0], y) for y in x[1]] for x in all_classes]))]]
+
 
         return classes_list
 
@@ -173,6 +177,53 @@ class FDT:
 
     def score(self, X, y):
         return np.sum(self.predict(X) == y) / y.shape[0]
+
+    def get_explanation_length(self, explanation):
+        unique_clauses = set([])
+        for class_value, mu, rule in explanation:
+            unique_clauses.update(rule)
+
+        return len(unique_clauses)
+
+    def get_unique_classes(self, fuzzy_X, t_norm=np.minimum):
+        # Get the number of classes that you get through inference
+        rules_list = self.partial_get_best_rule(fuzzy_X, 1, 0, self.tree, [], t_norm)
+        rules_list = sorted(rules_list, key=lambda rule: rule[1], reverse=True)
+        classes = set([])
+        for rule in rules_list:
+            class_value = max(rule[0], key=lambda x: rule[0][x])
+            classes.add(class_value)
+        return len(classes)
+
+    def get_best_rule(self, fuzzy_X, t_norm=np.minimum):
+        # GETS THE RULE WITH THE BEST MATCHING FOR THE INSTANCE TO PREDICT
+        rules_list = self.partial_get_best_rule(fuzzy_X, 1, 0, self.tree, [], t_norm)
+        rules_list = sorted(rules_list, key=lambda rule: rule[1], reverse=True)
+        best_rule = rules_list[0]
+        class_value = max(best_rule[0], key=lambda x: best_rule[0][x])
+        explanation = [(class_value, best_rule[1][0], best_rule[2])]
+        return explanation
+
+    def partial_get_best_rule(self, fuzzy_X, mu, threshold, tree, rule, t_norm=np.minimum):
+        if tree.value != (0, 0):
+            att, value = tree.value
+            new_mu = t_norm(mu, fuzzy_X[att][value])
+            clause = (att, value)
+            new_rule = rule + [clause]
+        else:
+            new_mu = mu
+            new_rule = rule
+
+        if tree.is_leaf:
+            if new_mu > threshold:
+                return [(tree.class_value, new_mu, new_rule)]
+        else:
+            current_rules = []
+            for child in tree.childlist:
+                child_rules = self.partial_get_best_rule(fuzzy_X, new_mu, threshold, child, new_rule, t_norm)
+                if child_rules:
+                    current_rules += child_rules
+            return current_rules
 
     def explain(self, fuzzy_X, class_value, n_rules='all', t_norm=np.minimum):
         """Explains a single instance by returning a number of rules
@@ -199,8 +250,7 @@ class FDT:
         # ONLY VALID TO EXPLAIN A SINGLE INSTANCE
 
         rules_list = self.partial_explain(fuzzy_X, 1, self.tree, class_value, [], t_norm)
-        rules_list = sorted(rules_list, key=lambda rule: rule[0], reverse=True)
-
+        rules_list = sorted(rules_list, key=lambda rule: rule[1], reverse=True)
         if n_rules == 'all':
             return rules_list
         else:
@@ -217,9 +267,11 @@ class FDT:
             new_rule = rule
 
         if tree.is_leaf:
-            final_mu = t_norm(mu, tree.class_value[class_value])
+            final_mu = new_mu * tree.class_value[class_value]
+            if type(final_mu) is not np.float64:
+                final_mu = final_mu[0]
             if final_mu > threshold:
-                return [(final_mu[0], new_rule)]
+                return [(tree.class_value, final_mu, new_rule)]
         else:
             current_rules = []
             for child in tree.childlist:
@@ -227,3 +279,163 @@ class FDT:
                 if child_rules:
                     current_rules += child_rules
             return current_rules
+
+    def write_factual(self, explanation):
+        readable_rule = 'IF '
+        for mu, rule in explanation:
+            for antecedent, consequent in rule:
+                readable_rule += f'{antecedent} IS APPROX. {consequent} AND '
+            readable_rule = readable_rule[:-5]
+            readable_rule += '\nOR '
+
+        readable_rule = readable_rule[:-4]
+        return readable_rule
+
+    def get_all_rules(self, all_classes, t_norm=np.minimum):
+        rules_list = []
+        for class_val in all_classes:
+            rules_list += self.get_cf_rules(class_val, t_norm)
+
+        return rules_list
+
+    def get_cf_rules(self, class_value, t_norm=np.minimum):
+        # print(class_value)
+        rules_list = self.partial_get_cf_rules(self.tree, class_value, [], t_norm)
+        return rules_list
+
+    def partial_get_cf_rules(self, tree, class_value, rule, t_norm=np.minimum, threshold=0.0001):
+        if tree.value != (0, 0):
+            att, value = tree.value
+            clause = (att, value)
+            new_rule = rule + [clause]
+        else:
+            new_rule = rule
+
+        if tree.is_leaf:
+            leaf_class = max(tree.class_value, key=lambda x: tree.class_value[x])
+            # print(class_value)
+            if leaf_class == class_value:
+                return [new_rule]
+        else:
+            current_rules = []
+            for child in tree.childlist:
+                child_rules = self.partial_get_cf_rules(child, class_value, new_rule, t_norm)
+                if child_rules:
+                    current_rules += child_rules
+            return current_rules
+
+    def get_alpha_counterfactual(self, fuzzy_X, other_classes, df_numerical_columns, alpha_factual, n_cf='best', stats=False):
+        # SOLO FUNCIONA CON UN UNICO FUZZY_X
+        # other_class = other_classes[0]
+        # rules = self.get_cf_rules(other_class)
+        # factual = alpha_factual[0]
+        # rule = rules[0]
+        # print(f'cf dist: {self.cf_distance(fuzzy_X, rule, df_numerical_columns, factual[0])}')
+        all_counterf = {}
+        for other_class in other_classes:
+            other_class_rules = []
+            cf_rules = self.get_cf_rules(other_class)
+            for rule in cf_rules:
+                dist = sum([(1 - factual[1]) * self.cf_distance(fuzzy_X, rule, df_numerical_columns, factual[0]) for factual in alpha_factual])
+                other_class_rules += [(rule, dist)]
+
+            all_counterf[other_class] = sorted(other_class_rules, key=lambda rule: rule[1])
+            # for rule in all_counterf[other_class]:
+            #     print(rule)
+
+        if n_cf == 'all':
+            return all_counterf
+        else:
+            if stats:
+                ts = 0  # AVG Counterfactuals per class
+                for key in all_counterf:
+                    ts += len(all_counterf[key])
+                ts /= len(all_counterf)
+                return ([(key, all_counterf[key][0]) for key in all_counterf], ts)
+            else:
+                return [(key, all_counterf[key][0]) for key in all_counterf]
+
+    def get_counterfactual(self, fuzzy_X, other_classes, df_numerical_columns, n_cf='best', stats=False):
+        # SOLO FUNCIONA CON UN UNICO FUZZY_X
+        all_counterf = {}
+        for other_class in other_classes:
+            rules = self.get_cf_rules(other_class)
+            all_counterf[other_class] = sorted([(rule, self.cf_distance(fuzzy_X, rule, df_numerical_columns)) for rule in rules], key=lambda rule: rule[1])
+            # for rule in all_counterf[other_class]:
+            #     print(rule)
+
+        if n_cf == 'all':
+            return all_counterf
+        else:
+            if stats:
+                ts = 0  # AVG Counterfactuals per class
+                for key in all_counterf:
+                    ts += len(all_counterf[key])
+                ts /= len(all_counterf)
+                return ([(key, all_counterf[key][0]) for key in all_counterf], ts)
+            else:
+                return [(key, all_counterf[key][0]) for key in all_counterf]
+
+    def fuzzify(self, fuzzy_X):
+        # MOVER A CARPETA CORRESPONDIENTE
+        fuzzified_X = {}
+        for key in fuzzy_X:
+            fuzzified_X[key] = max(fuzzy_X[key], key=lambda x: fuzzy_X[key][x][0])
+        return fuzzified_X
+
+    def cf_distance(self, fuzzy_X, cf, df_numerical_columns, alpha_factual=False, tau=0.5):
+        if alpha_factual:
+            fuzzified_X = dict(alpha_factual)
+        else:
+            fuzzified_X = self.fuzzify(fuzzy_X)
+
+        fuzzy_X_keys = list(fuzzified_X.keys())
+
+        cf_dict = {}
+        for key, val in cf:
+            cf_dict[key] = val
+
+        cf_keys = [x[0] for x in cf]
+        only_instance = [x for x in fuzzy_X_keys if x not in cf_keys]
+        only_cf = [x for x in cf_keys if x not in fuzzy_X_keys]
+        common_keys = set([])
+        common_keys.update([x for x in fuzzy_X_keys if x in cf_keys])
+        common_keys.update([x for x in cf_keys if x in fuzzy_X_keys])
+
+        num_keys = [x for x in common_keys if x in df_numerical_columns]
+        cat_keys = [x for x in common_keys if x not in df_numerical_columns]
+
+        simmetric_distance = len(only_instance) + len(only_cf)
+        rule_distance = 0
+
+        for key in cat_keys:
+            if cf_dict[key] is not fuzzified_X[key]:
+                rule_distance += 1
+
+        for key in num_keys:
+            rule_distance += self.cf_clause_distance(fuzzy_X[key], fuzzified_X[key], cf_dict[key], alpha_factual)
+
+        if alpha_factual:
+            return tau * simmetric_distance + (1 - tau) * rule_distance
+        else:
+            return rule_distance
+
+    def cf_clause_distance(self, fuzzy_clause, fuzzy_value, cf_clause, alpha_factual=False):
+        skip = abs(list(fuzzy_clause.keys()).index(fuzzy_value) - list(fuzzy_clause.keys()).index(cf_clause))
+        distance = skip / len(fuzzy_clause)
+
+        if not alpha_factual:
+            distance *= (1 - fuzzy_clause[cf_clause][0])
+
+        return distance
+
+    def robust_threshold(self, element, other_classes):
+        max_threshold = 0
+        for class_val in other_classes:
+            class_explanation = self.explain(element, class_val)
+            if len(class_explanation) > 0:
+                total_mu = reduce(lambda x, y: x + y[1], class_explanation, 0)
+                if total_mu > max_threshold:
+                    max_threshold = total_mu
+
+        return max_threshold

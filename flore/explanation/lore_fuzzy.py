@@ -8,7 +8,7 @@ import numpy as np
 from collections import defaultdict
 
 
-class FuzzyLORE:
+class FuzzyLORE_old:
 
     def __init__(self):
         self.neighborhood = None
