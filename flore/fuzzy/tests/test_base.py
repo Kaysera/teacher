@@ -1,9 +1,13 @@
 import numpy as np
-from numpy.testing import assert_equal
+from numpy.testing import assert_equal, assert_almost_equal
+from pytest import raises
 import pandas as pd
 
 from flore.fuzzy import (get_equal_width_division, get_equal_freq_division, get_fuzzy_points,
-                         get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points_entropy)
+                         get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points_entropy,
+                         fuzzy_entropy, weighted_fuzzy_entropy, UnsupportedDivisionException)
+
+from .._base import _get_delta_point, _fuzzy_partitioning
 
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
@@ -38,11 +42,28 @@ def test_get_fuzzy_points():
     df_numerical_columns = ['one', 'two']
     sets = 3
 
-    width_points = get_fuzzy_points(df, get_equal_width_division, df_numerical_columns, sets)
-    freq_points = get_fuzzy_points(df, get_equal_freq_division, df_numerical_columns, sets)
+    width_points = get_fuzzy_points(df, 'equal_width', df_numerical_columns, sets=sets)
+    freq_points = get_fuzzy_points(df, 'equal_freq', df_numerical_columns, sets=sets)
 
     assert width_points == {'one': [0, 5, 10], 'two': [7, 8.5, 10]}
     assert freq_points == {'one': [0, 2, 10], 'two': [7, 9, 10]}
+
+
+def test_get_fuzzy_points_unsupported_division():
+    with raises(UnsupportedDivisionException):
+        df = pd.DataFrame(
+            [
+                [0, 7, 'six'],
+                [2, 9, 'nine'],
+                [10, 10, 'ninety']
+            ],
+            columns=['one', 'two', 'three']
+        )
+
+        df_numerical_columns = ['one', 'two']
+        sets = 3
+
+        width_points = get_fuzzy_points(df, 'None', df_numerical_columns, sets=sets)
 
 
 def test_get_fuzzy_triangle():
@@ -97,100 +118,56 @@ def test_get_fuzzy_set_dataframe():
     assert_equal(fuzzy_set_dataframe, expected_fuzzy_set)
 
 
-def _get_fuzzy_points_entropy():
-    df = pd.DataFrame(
-        [
-            [1.85, 9.7, True],
-            [5.74, 3.01, True],
-            [3.13, 0.67, False],
-            [1.91, 5.32, True],
-            [7.7, 9.63, True],
-            [7.24, 6.84, True],
-            [3.08, 3.58, True],
-            [7.75, 0.43, True],
-            [0.9, 2.73, False],
-            [8.4, 5.37, True],
-            [0.81, 9.7, True],
-            [9.85, 8.39, True],
-            [9.64, 2.14, True],
-            [5.84, 1.67, True],
-            [3.94, 1.25, True],
-            [9.87, 0.76, True],
-            [1.26, 9.78, True],
-            [9.34, 5.9, True],
-            [1.53, 0.78, False],
-            [0.94, 0.33, False],
-            [5.09, 6.06, True],
-            [4.91, 9.56, True],
-            [9.09, 2.7, True],
-            [1.88, 0.32, False],
-            [4.98, 4.65, True],
-            [2.15, 6.77, True],
-            [4.58, 6.87, True],
-            [6.52, 3.2, True],
-            [7.33, 7.84, True],
-            [5.94, 4.14, True],
-            [1.55, 7.01, True],
-            [8.69, 2.61, True],
-            [1.25, 2.77, False],
-            [9.85, 1.15, True],
-            [9.96, 6.73, True],
-            [1.91, 1.58, False],
-            [9.15, 6.34, True],
-            [2.64, 9.22, True],
-            [6.46, 3.54, True],
-            [1.77, 0.38, False]
-        ],
+def test_fuzzy_entropy():
+    variable = np.array([1.25, 3.75, 5])
+    three_divisions = [('low', 0), ('mid', 5), ('high', 10)]
+    three_triangles = get_fuzzy_triangle(variable, three_divisions)
 
-        # [
-        #     [0,3,True],
-        #     [2.5,3,True],
-        #     [5,3,False],
-        #     [7.5,3,True],
-        #     [10,3,False],
-        # ],
-        columns=['theory', 'practice', 'class']
-    )
-
-    df_numerical_columns = ['theory', 'practice']
-    class_name = 'class'
-
-    print(get_fuzzy_points_entropy(df, df_numerical_columns, class_name))
+    class_var = np.array([1, 0, 1])
+    assert_almost_equal(fuzzy_entropy(three_triangles['low'], class_var, verbose=True), 0.8112781)
 
 
-def _get_fuzzy_points_entropy_two():
-    theory = np.array([0, 0, 3, 3, 7, 7, 9])
-    practice = np.array([0, 3, 3, 9, 1, 4, 9])
-    df = pd.DataFrame(([i, j, i + j >= 10] for i, j in zip(theory, practice)), columns=['theory', 'practice', 'class'])
-    df_numerical_columns = ['theory', 'practice']
-    class_name = 'class'
+def test_weighted_fuzzy_entropy():
+    variable = np.array([1.25, 3.75, 5])
+    three_divisions = [('low', 0), ('mid', 5), ('high', 10)]
+    three_triangles = get_fuzzy_triangle(variable, three_divisions)
 
-    fuzzy_points = get_fuzzy_points_entropy(df, df_numerical_columns, class_name)
-    print(fuzzy_points)
+    class_var = np.array([1, 0, 1])
+    assert_almost_equal(weighted_fuzzy_entropy(three_triangles, class_var), 0.9067153767)
 
 
-def _get_fuzzy_points_entropy_example():
-    df = pd.DataFrame(
-        [
-            [2, 5, False],
-            [3, 8, False],
-            [5, 4, False],
-            [6, 9, True],
-            [7, 8, True],
-            [7, 3, False],
-        ],
-        columns=['theory', 'practice', 'class']
-    )
+def test_get_delta_point():
+    variable = np.array([1.25, 3.75, 5])
+    three_divisions = [('low', 0), ('mid', 5), ('high', 10)]
+    two_divisions = [('low', 0), ('high', 10)]
+    three_triangles = get_fuzzy_triangle(variable, three_divisions)
+    two_triangles = get_fuzzy_triangle(variable, two_divisions)
 
-    df_numerical_columns = ['theory', 'practice']
-    class_name = 'class'
+    class_var = np.array([1, 0, 1])
 
-    fuzzy_points = get_fuzzy_points_entropy(df, df_numerical_columns, class_name)
-    print(fuzzy_points)
+    assert_almost_equal(_get_delta_point(two_triangles, three_triangles, class_var, verbose=True), 2.6378347)
 
 
-def _get_fuzzy_points_entropy_iris():
-    iris = datasets.load_wine(as_frame=True)
+def test_fuzzy_partitioning():
+    iris = datasets.load_iris(as_frame=True)
+    class_name = 'target'
+
+    X_train, _, _, _ = train_test_split(iris.data,
+                                        iris.target,
+                                        test_size=0.33,
+                                        random_state=42)
+
+    df_train = iris.frame.loc[X_train.index]
+    column = 'petal length (cm)'
+    fuzzy_points = _fuzzy_partitioning(df_train[column].to_numpy(), df_train[class_name].to_numpy(),
+                                       df_train[column].min(), verbose=False)
+    expected_fuzzy_points = [1.1, 1.9, 4.0, 5.0, 6.7]
+
+    assert fuzzy_points == expected_fuzzy_points
+
+
+def test_get_fuzzy_points_entropy():
+    iris = datasets.load_iris(as_frame=True)
 
     class_name = 'target'
 
@@ -202,8 +179,11 @@ def _get_fuzzy_points_entropy_iris():
     df_train = iris.frame.loc[X_train.index]
     df_numerical_columns = iris.feature_names
 
-    # column = 'petal length (cm)'
-    print('\n----------')
-
     fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
-    print(fuzzy_points)
+    fuzzy_points_generic = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
+
+    expected_fuzzy_points = {'sepal length (cm)': [4.3, 5.7, 7.7],
+                             'sepal width (cm)': [2.0, 4.2],
+                             'petal length (cm)': [1.1, 1.9, 4.0, 5.0, 6.7],
+                             'petal width (cm)': [0.1, 0.6, 1.0, 1.7, 2.5]}
+    assert fuzzy_points == expected_fuzzy_points
