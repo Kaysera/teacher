@@ -130,3 +130,6 @@ dmypy.json
 
 # VSCode config
 .vscode/
+
+# pre-commit config
+.pre-commit-config.yaml

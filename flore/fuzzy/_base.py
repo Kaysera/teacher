@@ -229,7 +229,7 @@ def _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable
 
 
 def weighted_fuzzy_entropy(fuzzy_triangle, class_variable):
-    """Function to compute the weighted fuzzy entropy of 
+    """Function to compute the weighted fuzzy entropy of
     a given fuzzy partition
 
     Parameters

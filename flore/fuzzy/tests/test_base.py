@@ -63,7 +63,7 @@ def test_get_fuzzy_points_unsupported_division():
         df_numerical_columns = ['one', 'two']
         sets = 3
 
-        width_points = get_fuzzy_points(df, 'None', df_numerical_columns, sets=sets)
+        get_fuzzy_points(df, 'None', df_numerical_columns, sets=sets)
 
 
 def test_get_fuzzy_triangle():
@@ -186,4 +186,6 @@ def test_get_fuzzy_points_entropy():
                              'sepal width (cm)': [2.0, 4.2],
                              'petal length (cm)': [1.1, 1.9, 4.0, 5.0, 6.7],
                              'petal width (cm)': [0.1, 0.6, 1.0, 1.7, 2.5]}
+
     assert fuzzy_points == expected_fuzzy_points
+    assert fuzzy_points_generic == expected_fuzzy_points
