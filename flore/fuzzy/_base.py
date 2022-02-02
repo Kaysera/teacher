@@ -337,7 +337,7 @@ def get_fuzzy_triangle(variable, divisions, verbose=False):
 
 
 def get_fuzzy_set_dataframe(df, gen_fuzzy_set, fuzzy_points, df_numerical_columns,
-                            df_categorical_columns, labels, verbose=False):
+                            df_categorical_columns, labels={}, verbose=False):
     """Get all the fuzzy sets from the columns of a DataFrame, and the pertenence value of
     each register to each fuzzy set
 
