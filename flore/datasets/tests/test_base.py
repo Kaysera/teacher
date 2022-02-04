@@ -196,7 +196,7 @@ def test_load_heloc():
 def test_load_beer():
     dataset_values = {
         'name': 'beer',
-        'columns': ['color', 'bitterness', 'strength', 'beer_style'],
+        'columns': ['beer_style', 'color', 'bitterness', 'strength'],
         'class_name': 'beer_style',
         'possible_outcomes': ['Blanche', 'Lager', 'Pilsner', 'IPA',
                               'Stout', 'Barleywine', 'Porter', 'Belgian-Strong-Ale'],
@@ -217,12 +217,12 @@ def test_load_beer():
 def test_load_pima():
     dataset_values = {
         'name': 'pima',
-        'columns': ['Pregnancies', 'Glucose', 'BloodPresure', 'SkinThickness', 'Insulin', 'BMI',
-                    'DiabetesPedigreeFunction', 'Age', 'Class'],
+        'columns': ['Class', 'Pregnancies', 'Glucose', 'BloodPresure', 'SkinThickness', 'Insulin', 'BMI',
+                    'DiabetesPedigreeFunction', 'Age'],
         'class_name': 'Class',
         'possible_outcomes': [1, 0],
-        'type_features': {'integer': ['Pregnancies', 'Glucose', 'BloodPresure', 'SkinThickness', 'Insulin', 'Age',
-                                      'Class'],
+        'type_features': {'integer': ['Class', 'Pregnancies', 'Glucose', 'BloodPresure', 'SkinThickness', 'Insulin',
+                                      'Age'],
                           'double': ['BMI', 'DiabetesPedigreeFunction'],
                           'string': []},
         'features_type': {'Pregnancies': 'integer', 'Glucose': 'integer', 'BloodPresure': 'integer',
