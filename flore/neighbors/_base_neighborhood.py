@@ -17,7 +17,10 @@ class BaseNeighborhood(ABC):
 
     @abstractmethod
     def fit(self):
-        pass
+        '''
+        Perform the operation necessary to get a neighborhood from a
+        given instance
+        '''
 
     def get_X(self):
         if self._X is None:
