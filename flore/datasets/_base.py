@@ -189,10 +189,14 @@ def load_beer():
     df = pd.read_csv(MODULE_PATH + '/data/beer.csv', delimiter=',')
 
     # Features Categorization
-    columns = df.columns
     class_name = 'beer_style'
+    df_cols = list(df.columns)
+    df_cols.remove(class_name)
+    new_cols = [class_name] + df_cols
+    df = df[new_cols]
 
     discrete = []
+    columns = df.columns
     return generate_dataset(df, columns, class_name, discrete, 'beer')
 
 
@@ -201,10 +205,14 @@ def load_pima():
     df = pd.read_csv(MODULE_PATH + '/data/pima-indians-diabetes.csv', delimiter=',')
 
     # Features Categorization
-    columns = df.columns
     class_name = 'Class'
+    df_cols = list(df.columns)
+    df_cols.remove(class_name)
+    new_cols = [class_name] + df_cols
+    df = df[new_cols]
 
     discrete = []
+    columns = df.columns
     return generate_dataset(df, columns, class_name, discrete, 'pima')
 
 

@@ -5,6 +5,7 @@ from .genetic_algorithm import (get_feature_values, random_init, informed_init,
 from ._base_neighborhood import BaseNeighborhood
 from ._simple_neighborhood import SimpleNeighborhood
 from ._fuzzy_neighborhood import FuzzyNeighborhood
+from ._lore_neighborhood import LoreNeighborhood
 
 __all__ = [
     "genetic_neighborhood",
@@ -19,5 +20,6 @@ __all__ = [
     "genetic_algorithm",
     "BaseNeighborhood",
     "SimpleNeighborhood",
-    "FuzzyNeighborhood"
+    "FuzzyNeighborhood",
+    "LoreNeighborhood"
 ]

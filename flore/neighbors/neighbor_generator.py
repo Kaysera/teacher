@@ -27,7 +27,7 @@ def genetic_neighborhood_old(dfZ, x, blackbox, dataset):
     return dfZ, Z
 
 
-def genetic_neighborhood(dfZ, x, blackbox, dataset):
+def genetic_neighborhood(dfZ, x, blackbox, dataset, population_size=1000):
     discrete = dataset['discrete']
     continuous = dataset['continuous']
     class_name = dataset['class_name']
@@ -43,8 +43,9 @@ def genetic_neighborhood(dfZ, x, blackbox, dataset):
                               cdist=normalized_euclidean_distance)
 
     Z = generate_data(x, feature_values, blackbox, discrete_no_class, continuous, class_name, idx_features,
-                      distance_function, neigtype={'ss': 0.5, 'sd': 0.5}, population_size=1000, halloffame_ratio=0.1,
-                      alpha1=0.5, alpha2=0.5, eta1=1.0, eta2=0.0,  tournsize=3, cxpb=0.5, mutpb=0.2, ngen=10)
+                      distance_function, neigtype={'ss': 0.5, 'sd': 0.5}, population_size=population_size,
+                      halloffame_ratio=0.1, alpha1=0.5, alpha2=0.5, eta1=1.0, eta2=0.0,  tournsize=3, cxpb=0.5,
+                      mutpb=0.2, ngen=10)
 
     zy = blackbox.predict(Z)
     # print(np.unique(zy, return_counts=True))

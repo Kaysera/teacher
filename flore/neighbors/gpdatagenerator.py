@@ -188,7 +188,8 @@ def generate_data(x, feature_values, bb, discrete, continuous, class_name, idx_f
                                               cxpb=cxpb, mutpb=mutpb, ngen=ngen, verbose=False)
 
         Xsso = get_oversample(population, halloffame)
-        Xgp.append(Xsso)
+        if Xsso:
+            Xgp.append(Xsso)
     
     if size_sdo > 0.0:
         toolbox_sdo = setup_toolbox(x, feature_values, bb, init=record_init, init_params=x, evaluate=fitness_sdo,
@@ -200,7 +201,8 @@ def generate_data(x, feature_values, bb, discrete, continuous, class_name, idx_f
                                               cxpb=cxpb, mutpb=mutpb, ngen=ngen, verbose=False)
 
         Xsdo = get_oversample(population, halloffame)
-        Xgp.append(Xsdo)
+        if Xsdo:
+            Xgp.append(Xsdo)
 
     if size_dso > 0.0:
         toolbox_dso = setup_toolbox(x, feature_values, bb, init=record_init, init_params=x, evaluate=fitness_dso,
@@ -212,7 +214,8 @@ def generate_data(x, feature_values, bb, discrete, continuous, class_name, idx_f
                                               cxpb=cxpb, mutpb=mutpb, ngen=ngen, verbose=False)
 
         Xdso = get_oversample(population, halloffame)
-        Xgp.append(Xdso)
+        if Xdso:
+            Xgp.append(Xdso)
 
     if size_ddo > 0.0:
         toolbox_ddo = setup_toolbox(x, feature_values, bb, init=record_init, init_params=x, evaluate=fitness_ddo,
@@ -224,7 +227,8 @@ def generate_data(x, feature_values, bb, discrete, continuous, class_name, idx_f
                                               cxpb=cxpb, mutpb=mutpb, ngen=ngen, verbose=False)
 
         Xddo = get_oversample(population, halloffame)
-        Xgp.append(Xddo)
+        if Xddo:
+            Xgp.append(Xddo)
 
     Xgp = np.concatenate((Xgp), axis=0)
 
