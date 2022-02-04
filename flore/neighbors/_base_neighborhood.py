@@ -1,0 +1,32 @@
+from abc import ABC, abstractmethod
+
+
+class NotFittedException(Exception):
+    pass
+
+
+class BaseNeighborhood(ABC):
+
+    def __init__(self, instance, size, class_name, bb):
+        self._X = None
+        self._y = None
+        self.instance = instance
+        self.size = size
+        self.class_name = class_name
+        self.bb = bb
+
+    @abstractmethod
+    def fit(self):
+        pass
+
+    def get_X(self):
+        if self._X is None:
+            raise NotFittedException
+        else:
+            return self._X
+
+    def get_y(self):
+        if self._y is None:
+            raise NotFittedException
+        else:
+            return self._y

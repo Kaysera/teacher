@@ -5,10 +5,6 @@ import matplotlib.pyplot as plt
 from math import log2, inf, pow
 
 
-class UnsupportedDivisionException(Exception):
-    pass
-
-
 def get_equal_width_division(variable, sets):
     """Generate partitions of equal width from a variable
 
@@ -92,7 +88,7 @@ def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0, class_name
             fuzzy_points[column] = _fuzzy_partitioning(df[column].to_numpy(), df[class_name].to_numpy(),
                                                        df[column].min(), verbose)
         else:
-            raise UnsupportedDivisionException
+            raise ValueError('Division method not supported')
     return fuzzy_points
 
 

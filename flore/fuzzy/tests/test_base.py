@@ -5,7 +5,7 @@ import pandas as pd
 
 from flore.fuzzy import (get_equal_width_division, get_equal_freq_division, get_fuzzy_points,
                          get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points_entropy,
-                         fuzzy_entropy, weighted_fuzzy_entropy, UnsupportedDivisionException)
+                         fuzzy_entropy, weighted_fuzzy_entropy)
 
 from .._base import _get_delta_point, _fuzzy_partitioning
 
@@ -50,7 +50,7 @@ def test_get_fuzzy_points():
 
 
 def test_get_fuzzy_points_unsupported_division():
-    with raises(UnsupportedDivisionException):
+    with raises(ValueError):
         df = pd.DataFrame(
             [
                 [0, 7, 'six'],

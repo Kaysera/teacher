@@ -5,8 +5,7 @@ from ._base import (get_equal_width_division,
                     get_fuzzy_set_dataframe,
                     get_fuzzy_points_entropy,
                     fuzzy_entropy,
-                    weighted_fuzzy_entropy,
-                    UnsupportedDivisionException)
+                    weighted_fuzzy_entropy)
 
 __all__ = [
     "get_equal_width_division",
@@ -16,6 +15,5 @@ __all__ = [
     "get_fuzzy_set_dataframe",
     "get_fuzzy_points_entropy",
     "fuzzy_entropy",
-    "weighted_fuzzy_entropy",
-    "UnsupportedDivisionException"
+    "weighted_fuzzy_entropy"
 ]
