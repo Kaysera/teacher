@@ -4,7 +4,7 @@ from collections import defaultdict
 
 
 class TreeFDT:
-    def __init__(self, features):
+    def __init__(self, features, t_norm=np.minimum, voting='agg_vote'):
         self.is_leaf = True
         self.childlist = []
         self.features = features
@@ -12,6 +12,13 @@ class TreeFDT:
         self.level = -1
         self.value = (0, 0)
         self.mu = []
+        self.t_norm = t_norm
+        if voting == 'agg_vote':
+            self._voting_method = self._aggregated_vote
+        elif voting == 'max_match':
+            self._voting_method = self._maximum_matching
+        else:
+            raise ValueError('Voting method not implemented')
 
     def __str__(self):
         output = '\t' * self.level
@@ -26,6 +33,55 @@ class TreeFDT:
                 output += '\n' + str(child)
             output += '\n' + '\t' * self.level
         return output
+
+    def __eq__(self, other):
+        if not isinstance(other, TreeFDT):
+            return False
+        return (self.is_leaf == other.is_leaf and
+                self.childlist == other.childlist and
+                self.features == other.features and
+                self.class_value == other.class_value and
+                self.level == other.level and
+                self.value == other.value and
+                self.mu == other.mu)
+
+    def _aggregated_vote(self, all_classes):
+        agg_vote = defaultdict(lambda: np.zeros(len(all_classes[0][1])))
+        for leaf in all_classes:
+            for key in leaf[0]:
+                agg_vote[key] += leaf[0][key] * leaf[1]
+        return agg_vote
+
+    def _maximum_matching(self, all_classes):
+        max_match = defaultdict(lambda: np.zeros(len(all_classes[0][1])))
+        for leaf in all_classes:
+            for key in leaf[0]:
+                max_match[key] = np.maximum(max_match[key], (leaf[0][key] * leaf[1]))
+        return max_match
+
+    def predict(self, fuzzy_X):
+        # Get the length of the array to predict
+        X_size = 1
+        leaf_values = self._partial_predict(fuzzy_X, np.ones(X_size), self)
+        agg_vote = self._voting_method(leaf_values)
+        # all_classes = [(key, agg_vote[key]) for key in agg_vote]
+        n_all_classes = [(key, agg_vote[key][0]) for key in agg_vote]
+        # TODO: REHACER AGG_VOTE PARA QUE EN VEZ DE ('one', [1]) SEA ('one', 1)
+        # INPUT: all_classes = [('one', [1,2,3,4]), ('two', [4,3,2,1]), ('three', [0,0,0,9])]
+        # OUTPUT: ['two', 'two', 'one', 'three']
+        classes_list = max(n_all_classes, key=lambda a: a[1])[0]
+        return classes_list
+
+    def _partial_predict(self, fuzzy_X, mu, tree):
+        if tree.value != (0, 0):
+            att, value = tree.value
+            new_mu = self.t_norm(mu, fuzzy_X[att][value])
+        else:
+            new_mu = mu
+        if tree.is_leaf:
+            return [(tree.class_value, new_mu)]
+        else:
+            return np.concatenate([self._partial_predict(fuzzy_X, new_mu, child) for child in tree.childlist])
 
 
 class FDT:

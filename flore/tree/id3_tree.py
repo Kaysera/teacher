@@ -2,7 +2,7 @@ import numpy as np
 from scipy.stats import entropy
 
 
-class Tree_id3:
+class TreeID3:
     def __init__(self, features):
         self.var_index = -1
         self.is_leaf = True
@@ -33,7 +33,7 @@ class Tree_id3:
         return output
 
     def __eq__(self, other):
-        if not isinstance(other, Tree_id3):
+        if not isinstance(other, TreeID3):
             return False
         return (self.var_index == other.var_index and
                 self.is_leaf == other.is_leaf and
@@ -61,7 +61,7 @@ class Tree_id3:
 class ID3:
     def __init__(self, features, X, y, max_depth=2, min_num_examples=1, prunning=True, th=0.0001):
         self.max_depth = max_depth
-        self.tree = Tree_id3(features)
+        self.tree = TreeID3(features)
         # lista de caracteristicas. tiene que ser de las mismas que X y
         # ademas ordenadas por el indice ambas. No puede estar la clase.
         self.features = features
@@ -182,7 +182,7 @@ class ID3:
         actual_tree.childlist = []
         # print(actual_tree)
         for sp in best_splits:
-            actual_tree.childlist.append(Tree_id3(self.features))
+            actual_tree.childlist.append(TreeID3(self.features))
             X_indexes = X[:, actual_tree.var_index] == sp
             # print("*************************************************")
             # print(sp)

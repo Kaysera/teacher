@@ -1,14 +1,14 @@
 import numpy as np
 from scipy.stats import entropy
 from flore.tree import BaseDecisionTree
-from .id3_tree import Tree_id3
+from .id3_tree import TreeID3
 
 
 class ID3_dev(BaseDecisionTree):
     def __init__(self, features, th=0.0001, max_depth=2, min_num_examples=1, prunning=True):
         super().__init__(features, th, max_depth, min_num_examples, prunning)
 
-        self.tree_ = Tree_id3(features)
+        self.tree_ = TreeID3(features)
         self.features_dic = {feature: i for i, feature in enumerate(features)}
         self.features_splits = None
         self.y_classes = None
@@ -16,9 +16,9 @@ class ID3_dev(BaseDecisionTree):
     def fit(self, X, y, debug=False):
         self.features_splits = [np.unique(X[:, i]) for i in range(len(self.features))]
         self.y_classes = np.unique(y)
-        self.partial_fit(X, y, self.tree_, 0, list(), debug)
+        self._partial_fit(X, y, self.tree_, 0, list(), debug)
 
-    def partial_fit(self, X, y, current_tree, current_depth, erased, debug):
+    def _partial_fit(self, X, y, current_tree, current_depth, erased, debug):
         current_tree.level = current_depth
         num_cases = X.shape[0]
 
@@ -118,7 +118,7 @@ class ID3_dev(BaseDecisionTree):
         current_tree.childlist = []
         # print(current_tree)
         for sp in best_splits:
-            current_tree.childlist.append(Tree_id3(self.features))
+            current_tree.childlist.append(TreeID3(self.features))
             X_indexes = X[:, current_tree.var_index] == sp
             # print("*************************************************")
             # print(sp)
@@ -126,8 +126,8 @@ class ID3_dev(BaseDecisionTree):
             # print(X[X_indexes], y[X_indexes])
             # print("*************************************************")
             if len(X[X_indexes]) > 0:
-                self.partial_fit(X[X_indexes], y[X_indexes], current_tree.childlist[-1],
-                                 current_depth+1, erased.copy(), debug)
+                self._partial_fit(X[X_indexes], y[X_indexes], current_tree.childlist[-1],
+                                  current_depth+1, erased.copy(), debug)
                 current_tree.error += current_tree.childlist[-1].error*(len(y[X_indexes])/len(y))
             else:
                 current_tree.childlist[-1].is_leaf = True

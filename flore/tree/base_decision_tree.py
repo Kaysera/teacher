@@ -24,7 +24,10 @@ class BaseDecisionTree(ABC):
         """
 
     def predict(self, X):
-        return np.array([self.tree_.predict(x) for x in X])
+        if isinstance(X, (list, np.ndarray)):
+            return np.array([self.tree_.predict(x) for x in X])
+        else:
+            return np.array([self.tree_.predict(X)])
 
     # tambien se da una funcion score que calcula el accuracy
     def score(self, X, y):
