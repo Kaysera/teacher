@@ -32,6 +32,20 @@ class Tree_id3:
             output += '\n'+'\t'*self.level
         return output
 
+    def __eq__(self, other):
+        if not isinstance(other, Tree_id3):
+            return False
+        return (self.var_index == other.var_index and
+                self.is_leaf == other.is_leaf and
+                self.childlist == other.childlist and
+                self.splits == other.splits and
+                self.class_value == other.class_value and
+                self.class_count == other.class_count and
+                self.level == other.level and
+                self.error == other.error and
+                self.num_leaf == other.num_leaf and
+                self.features == other.features)
+
     def predict(self, x):
         if self.is_leaf:
             return self.class_value

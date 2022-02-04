@@ -23,7 +23,7 @@ def get_equal_width_division(variable, sets):
     try:
         cut = pd.cut(variable, sets - 1)
         sol = [cat.left for cat in cut.categories] + [cut.categories[-1].right]
-    except ValueError:
+    except ValueError:  # pragma: no cover
         cut = pd.cut(variable, sets - 1, duplicates='drop')
         sol = [variable.min()] + [cat.left for cat in cut.categories] + [cut.categories[-1].right]
     sol[0] = variable.min()
