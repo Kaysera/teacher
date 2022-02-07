@@ -33,4 +33,4 @@ class BaseDecisionTree(ABC):
         return np.sum(self.predict(X) == y)/y.shape[0]
 
     def to_rule_based_system(self, verbose=False):
-        return self.tree_.to_rule_based_system(self, verbose=False)
+        return self.tree_.to_rule_based_system(verbose=False)

@@ -1,6 +1,7 @@
 import numpy as np
 from flore.fuzzy import fuzzy_entropy
 from collections import defaultdict
+from .rule import Rule
 
 
 class TreeFDT:
@@ -82,6 +83,31 @@ class TreeFDT:
             return [(tree.class_value, new_mu)]
         else:
             return np.concatenate([self._partial_predict(fuzzy_X, new_mu, child) for child in tree.childlist])
+
+    def to_rule_based_system(self, th=0.0001, verbose=False):
+        rules = self._get_rules(self, [], th, verbose)
+        return [Rule(antecedent, consequent, weight) for (antecedent, consequent, weight) in rules]
+
+    def _get_rules(self, tree, rule, th=0.0001, verbose=False):
+        if tree.value != (0, 0):
+            att, value = tree.value
+            clause = (att, value)
+            new_rule = rule + [clause]
+        else:
+            new_rule = rule
+
+        if tree.is_leaf:
+            if verbose:
+                for leaf_class, weight in tree.class_value.items():
+                    if weight > th:
+                        print(f'{new_rule} => Class value: {leaf_class} (Weight: {weight})')
+            return [(new_rule, leaf_class, weight) for leaf_class, weight in tree.class_value.items() if weight > th]
+        else:
+            current_rules = []
+            for child in tree.childlist:
+                child_rules = self._get_rules(child, new_rule, th, verbose)
+                current_rules += child_rules
+            return current_rules
 
 
 class FDT:
@@ -280,6 +306,39 @@ class FDT:
             current_rules = []
             for child in tree.childlist:
                 child_rules = self.partial_explain(fuzzy_X, new_mu, child, class_value, new_rule, t_norm)
+                if child_rules:
+                    current_rules += child_rules
+            return current_rules
+
+    def get_all_rules(self, all_classes, t_norm=np.minimum):
+        rules_list = []
+        for class_val in all_classes:
+            rules_list += self.get_cf_rules(class_val, t_norm)
+
+        return rules_list
+
+    def get_cf_rules(self, class_value, t_norm=np.minimum):
+        # print(class_value)
+        rules_list = self.partial_get_cf_rules(self.tree, class_value, [], t_norm)
+        return rules_list
+
+    def partial_get_cf_rules(self, tree, class_value, rule, t_norm=np.minimum, threshold=0.0001):
+        if tree.value != (0, 0):
+            att, value = tree.value
+            clause = (att, value)
+            new_rule = rule + [clause]
+        else:
+            new_rule = rule
+
+        if tree.is_leaf:
+            leaf_class = max(tree.class_value, key=lambda x: tree.class_value[x])
+            # print(class_value)
+            if leaf_class == class_value:
+                return [new_rule]
+        else:
+            current_rules = []
+            for child in tree.childlist:
+                child_rules = self.partial_get_cf_rules(child, class_value, new_rule, t_norm)
                 if child_rules:
                     current_rules += child_rules
             return current_rules

@@ -50,6 +50,38 @@ def test_rules_id3():
     assert id3.exploreTreeFn() == rules
 
 
+def test_rules_fdt():
+    iris = datasets.load_iris(as_frame=True)
+
+    df_numerical_columns = iris.feature_names
+    df_categorical_columns = []
+    class_name = 'target'
+
+    X_train, X_test, y_train, y_test = train_test_split(iris.data,
+                                                        iris.target,
+                                                        test_size=0.33,
+                                                        random_state=42)
+
+    df_train = iris.frame.loc[X_train.index]
+
+    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
+    fuzzy_set_df_train = get_fuzzy_set_dataframe(df_train, get_fuzzy_triangle, fuzzy_points,
+                                                 df_numerical_columns, df_categorical_columns)
+
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt.fit(X_train, y_train)
+
+    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt.fit(fuzzy_set_df_train, y_train)
+
+    all_rules = set([str(rule) for rule in fdt.get_all_rules(np.unique(iris.target))])
+    new_rules = new_fdt.to_rule_based_system()
+    new_rule_set = set([])
+    for rule in new_rules:
+        new_rule_set.add(str(rule.antecedent))
+    assert new_rule_set == all_rules
+
+
 def _get_fuzzy_element(fuzzy_X, idx):
     element = {}
     for feat in fuzzy_X:
