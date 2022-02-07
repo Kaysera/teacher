@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import entropy
+from .rule import Rule
 
 
 class TreeID3:
@@ -56,6 +57,22 @@ class TreeID3:
                     return self.childlist[i].predict(x)
                 else:
                     i = i+1
+
+    def to_rule_based_system(self, verbose=False):
+        rules = []
+        self._get_rules(self, rules, [], verbose)
+        return [Rule(antecedent, consequent, 1) for (antecedent, consequent) in rules]
+
+    def _get_rules(self, tree, rules, conditions, verbose=False):
+        if not tree.is_leaf:
+            for i in range(len(tree.splits)):
+                cond = (tree.features[tree.var_index], tree.splits[i])
+                self._get_rules(tree.childlist[i], rules, conditions + [cond], verbose)
+
+        else:
+            rules += [(conditions, tree.class_value)]
+            if verbose:
+                print(f'{conditions} => Class value: {tree.class_value}, Counts: {tree.class_count}')
 
 
 class ID3:

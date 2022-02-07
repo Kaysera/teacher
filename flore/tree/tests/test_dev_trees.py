@@ -28,7 +28,29 @@ def test_wine_id3():
     assert id3.tree == new_id3.tree_
 
 
-def get_fuzzy_element(fuzzy_X, idx):
+def test_rules_id3():
+    wine = datasets.load_wine(as_frame=True)
+
+    df_numerical_columns = wine.feature_names
+    print(df_numerical_columns)
+
+    X_train, X_test, y_train, y_test = train_test_split(wine.data,
+                                                        wine.target,
+                                                        test_size=0.33,
+                                                        random_state=42)
+
+    id3 = ID3(wine.feature_names, X_train.values, y_train)
+    id3.fit(X_train.values, y_train)
+
+    new_id3 = ID3_dev(wine.feature_names)
+    new_id3.fit(X_train.values, y_train)
+
+    rules = []
+    new_id3.tree_._get_rules(new_id3.tree_, rules, [])
+    assert id3.exploreTreeFn() == rules
+
+
+def _get_fuzzy_element(fuzzy_X, idx):
     element = {}
     for feat in fuzzy_X:
         element[feat] = {}
@@ -58,7 +80,7 @@ def test_iris_fdt():
                                                  df_numerical_columns, df_categorical_columns)
     fuzzy_set_df_test = get_fuzzy_set_dataframe(df_test, get_fuzzy_triangle, fuzzy_points,
                                                 df_numerical_columns, df_categorical_columns)
-    fuzzy_test = [get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
+    fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
 
     fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
@@ -70,6 +92,6 @@ def test_iris_fdt():
 
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
     np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
-    fuzzy_element = get_fuzzy_element(fuzzy_set_df_test, 1)
+    fuzzy_element = _get_fuzzy_element(fuzzy_set_df_test, 1)
     assert fdt.predict(fuzzy_element) == new_fdt.predict(fuzzy_element)
     assert new_fdt_score == fdt_score

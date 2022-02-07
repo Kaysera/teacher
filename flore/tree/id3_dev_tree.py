@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import entropy
-from flore.tree import BaseDecisionTree
+from .base_decision_tree import BaseDecisionTree
 from .id3_tree import TreeID3
 
 

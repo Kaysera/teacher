@@ -2,7 +2,7 @@ import numpy as np
 from flore.fuzzy import fuzzy_entropy
 
 from .fdt_tree import TreeFDT
-from flore.tree import BaseDecisionTree
+from .base_decision_tree import BaseDecisionTree
 
 
 class FDT_dev(BaseDecisionTree):

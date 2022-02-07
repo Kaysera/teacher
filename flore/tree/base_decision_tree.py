@@ -29,6 +29,8 @@ class BaseDecisionTree(ABC):
         else:
             return np.array([self.tree_.predict(X)])
 
-    # tambien se da una funcion score que calcula el accuracy
     def score(self, X, y):
         return np.sum(self.predict(X) == y)/y.shape[0]
+
+    def to_rule_based_system(self, verbose=False):
+        return self.tree_.to_rule_based_system(self, verbose=False)
