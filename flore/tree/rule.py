@@ -12,6 +12,9 @@ class Rule:
         self.consequent = consequent
         self.weight = weight
 
+    def __repr__(self):
+        return f'Rule({self.antecedent}, {self.consequent}, {self.weight})'
+
     def __str__(self):
         antecedents = " AND ".join([f"{feat}: {val}"for (feat, val) in self.antecedent])
         return f'{antecedents} => {self.consequent} (Weight: {self.weight})'

@@ -228,7 +228,10 @@ class FDT:
 
     def predict(self, fuzzy_X, t_norm=np.minimum):
         # Get the length of the array to predict
-        X_size = len(list(list(fuzzy_X.values())[0].values())[0])
+        try:
+            X_size = len(list(list(fuzzy_X.values())[0].values())[0])
+        except TypeError:
+            X_size = 1
 
         leaf_values = self.partial_predict(fuzzy_X, np.ones(X_size), self.tree, t_norm)
         agg_vote = self.voting_method(leaf_values)
