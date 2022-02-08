@@ -1,3 +1,4 @@
+from functools import reduce
 import numpy as np
 from flore.fuzzy import fuzzy_entropy
 from collections import defaultdict
@@ -347,3 +348,14 @@ class FDT:
                 if child_rules:
                     current_rules += child_rules
             return current_rules
+
+    def robust_threshold(self, element, other_classes):
+        max_threshold = 0
+        for class_val in other_classes:
+            class_explanation = self.explain(element, class_val)
+            if len(class_explanation) > 0:
+                total_mu = reduce(lambda x, y: x + y[1], class_explanation, 0)
+                if total_mu > max_threshold:
+                    max_threshold = total_mu
+
+        return max_threshold
