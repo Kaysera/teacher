@@ -284,7 +284,7 @@ class FDT:
         # ONLY VALID TO EXPLAIN A SINGLE INSTANCE
 
         rules_list = self.partial_explain(fuzzy_X, 1, self.tree, class_value, [], t_norm)
-        rules_list = sorted(rules_list, key=lambda rule: rule[0], reverse=True)
+        rules_list = sorted(rules_list, key=lambda rule: rule[1], reverse=True)
 
         if n_rules == 'all':
             return rules_list
@@ -302,9 +302,11 @@ class FDT:
             new_rule = rule
 
         if tree.is_leaf:
-            final_mu = t_norm(mu, tree.class_value[class_value])
+            final_mu = new_mu * tree.class_value[class_value]
+            if type(final_mu) is not np.float64:
+                final_mu = final_mu[0]
             if final_mu > threshold:
-                return [(final_mu[0], new_rule)]
+                return [(tree.class_value, final_mu, new_rule)]
         else:
             current_rules = []
             for child in tree.childlist:
