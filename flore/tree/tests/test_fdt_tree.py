@@ -206,7 +206,7 @@ def test_wine():
     np.testing.assert_almost_equal(score, expected_score)
 
 
-def test_explain_all_rules():
+def _explain_all_rules():
     wine = datasets.load_wine(as_frame=True)
 
     df_numerical_columns = wine.feature_names
@@ -272,7 +272,7 @@ def test_explain_all_rules():
     assert explanation == all_rules
 
 
-def test_explain_single_rule():
+def _explain_single_rule():
     wine = datasets.load_wine(as_frame=True)
 
     df_numerical_columns = wine.feature_names

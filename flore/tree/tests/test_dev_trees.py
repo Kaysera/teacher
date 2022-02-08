@@ -1,53 +1,71 @@
 from flore.tree import ID3, ID3_dev, FDT, FDT_dev
+from pytest import fixture
 
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
 from flore.fuzzy import get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points
 from flore.datasets import load_compas
-from flore.explanation import get_factual_FID3
+from flore.explanation import get_factual_FID3, get_factual_threshold, alpha_factual_avg
 import numpy as np
 import random
 
 
-def test_wine_id3():
-    wine = datasets.load_wine(as_frame=True)
-
-    df_numerical_columns = wine.feature_names
-    print(df_numerical_columns)
-
-    X_train, X_test, y_train, y_test = train_test_split(wine.data,
-                                                        wine.target,
-                                                        test_size=0.33,
-                                                        random_state=42)
-
-    id3 = ID3(wine.feature_names, X_train.values, y_train)
-    id3.fit(X_train.values, y_train)
-
-    new_id3 = ID3_dev(wine.feature_names)
-    new_id3.fit(X_train.values, y_train)
-
-    assert id3.score(X_test.values, y_test) == new_id3.score(X_test.values, y_test)
-    assert id3.tree == new_id3.tree_
+@fixture
+def set_random():
+    seed = 0
+    random.seed(seed)
+    np.random.seed(seed)
+    return seed
 
 
-def test_rules_id3():
+@fixture
+def prepare_wine(set_random):
     wine = datasets.load_wine(as_frame=True)
 
     X_train, X_test, y_train, y_test = train_test_split(wine.data,
                                                         wine.target,
                                                         test_size=0.33,
-                                                        random_state=42)
+                                                        random_state=set_random)
 
-    id3 = ID3(wine.feature_names, X_train.values, y_train)
-    id3.fit(X_train.values, y_train)
+    return [wine.feature_names, X_train, X_test, y_train, y_test]
 
-    new_id3 = ID3_dev(wine.feature_names)
-    new_id3.fit(X_train.values, y_train)
 
-    rules = []
-    new_id3.tree_._get_rules(new_id3.tree_, rules, [])
-    assert id3.exploreTreeFn() == rules
+@fixture
+def prepare_iris_fdt(set_random):
+    iris = datasets.load_iris(as_frame=True)
+
+    df_numerical_columns = iris.feature_names
+    df_categorical_columns = []
+    class_name = 'target'
+
+    X_train, X_test, y_train, y_test = train_test_split(iris.data,
+                                                        iris.target,
+                                                        test_size=0.33,
+                                                        random_state=set_random)
+
+    df_train = iris.frame.loc[X_train.index]
+    df_test = iris.frame.loc[X_test.index]
+
+    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
+    fuzzy_set_df_train = get_fuzzy_set_dataframe(df_train, get_fuzzy_triangle, fuzzy_points,
+                                                 df_numerical_columns, df_categorical_columns)
+    fuzzy_set_df_test = get_fuzzy_set_dataframe(df_test, get_fuzzy_triangle, fuzzy_points,
+                                                df_numerical_columns, df_categorical_columns)
+
+    fuzzy_element = _get_fuzzy_element(fuzzy_set_df_test, 5)
+    all_classes = np.unique(iris.target)
+    return [fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
+
+
+def _get_fuzzy_element(fuzzy_X, idx):
+    element = {}
+    for feat in fuzzy_X:
+        element[feat] = {}
+        for fuzzy_set in fuzzy_X[feat]:
+            element[feat][fuzzy_set] = fuzzy_X[feat][fuzzy_set][idx]
+
+    return element
 
 
 def _get_categorical_fuzzy(var):
@@ -63,13 +81,34 @@ def _fuzzify_dataset(dataframe, fuzzy_set, fuzzify_variable):
     return ndf
 
 
-def test_explain_id3():
-    # TODO: FINISH
-    seed = 0
+def test_wine_id3(prepare_wine):
+    feature_names, X_train, X_test, y_train, y_test = prepare_wine
 
-    random.seed(seed)
-    np.random.seed(seed)
+    id3 = ID3(feature_names, X_train.values, y_train)
+    id3.fit(X_train.values, y_train)
 
+    new_id3 = ID3_dev(feature_names)
+    new_id3.fit(X_train.values, y_train)
+
+    assert id3.score(X_test.values, y_test) == new_id3.score(X_test.values, y_test)
+    assert id3.tree == new_id3.tree_
+
+
+def test_rules_id3(prepare_wine):
+    feature_names, X_train, X_test, y_train, y_test = prepare_wine
+
+    id3 = ID3(feature_names, X_train.values, y_train)
+    id3.fit(X_train.values, y_train)
+
+    new_id3 = ID3_dev(feature_names)
+    new_id3.fit(X_train.values, y_train)
+
+    rules = []
+    new_id3.tree_._get_rules(new_id3.tree_, rules, [])
+    assert id3.exploreTreeFn() == rules
+
+
+def test_explain_id3(set_random):
     dataset = load_compas()
 
     df = dataset['df']
@@ -77,7 +116,7 @@ def test_explain_id3():
     X = df.drop(class_name, axis=1)
     y = df[class_name]
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=set_random)
 
     idx_record2explain = 1
 
@@ -116,22 +155,8 @@ def test_explain_id3():
         assert fact_rule.consequent == exp_rule[1]
 
 
-def test_rules_fdt():
-    iris = datasets.load_iris(as_frame=True)
-
-    df_numerical_columns = iris.feature_names
-    df_categorical_columns = []
-    class_name = 'target'
-
-    X_train, X_test, y_train, y_test = train_test_split(iris.data,
-                                                        iris.target,
-                                                        test_size=0.33,
-                                                        random_state=42)
-
-    df_train = iris.frame.loc[X_train.index]
-    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
-    fuzzy_set_df_train = get_fuzzy_set_dataframe(df_train, get_fuzzy_triangle, fuzzy_points,
-                                                 df_numerical_columns, df_categorical_columns)
+def test_factual_mean_fdt(prepare_iris_fdt):
+    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
 
     fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
@@ -139,7 +164,31 @@ def test_rules_fdt():
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train)
 
-    all_rules = set([str(rule) for rule in fdt.get_all_rules(np.unique(iris.target))])
+    fdt_predict = fdt.predict(fuzzy_element)[0]
+    predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
+    # print(predicted_best_rules)
+    alpha_factuals, total_mu = alpha_factual_avg(predicted_best_rules, None, debug=True)
+
+    new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
+    rules = new_fdt.to_rule_based_system()
+    factual = get_factual_threshold(fuzzy_element, rules, new_fdt_predict, 'mean')
+
+    for exp_rule, fact_rule in zip(alpha_factuals, factual):
+        for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):
+            assert exp_ante[0] == fact_ante[0]
+            assert exp_ante[1] == fact_ante[1]
+
+
+def test_rules_fdt(prepare_iris_fdt):
+    fuzzy_set_df_train, _, X_train, y_train, _, _, _, all_classes = prepare_iris_fdt
+
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt.fit(X_train, y_train)
+
+    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt.fit(fuzzy_set_df_train, y_train)
+
+    all_rules = set((str(tuple(rule)) for rule in fdt.get_all_rules(all_classes)))
     new_rules = new_fdt.to_rule_based_system()
     new_rule_set = set([])
     for rule in new_rules:
@@ -147,48 +196,20 @@ def test_rules_fdt():
     assert new_rule_set == all_rules
 
 
-def _get_fuzzy_element(fuzzy_X, idx):
-    element = {}
-    for feat in fuzzy_X:
-        element[feat] = {}
-        for fuzzy_set in fuzzy_X[feat]:
-            element[feat][fuzzy_set] = fuzzy_X[feat][fuzzy_set][idx]
+def test_iris_fdt(prepare_iris_fdt):
+    fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
 
-    return element
-
-
-def test_iris_fdt():
-    iris = datasets.load_iris(as_frame=True)
-
-    df_numerical_columns = iris.feature_names
-    df_categorical_columns = []
-    class_name = 'target'
-
-    X_train, X_test, y_train, y_test = train_test_split(iris.data,
-                                                        iris.target,
-                                                        test_size=0.33,
-                                                        random_state=42)
-
-    df_train = iris.frame.loc[X_train.index]
-    df_test = iris.frame.loc[X_test.index]
-
-    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
-    fuzzy_set_df_train = get_fuzzy_set_dataframe(df_train, get_fuzzy_triangle, fuzzy_points,
-                                                 df_numerical_columns, df_categorical_columns)
-    fuzzy_set_df_test = get_fuzzy_set_dataframe(df_test, get_fuzzy_triangle, fuzzy_points,
-                                                df_numerical_columns, df_categorical_columns)
     fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
 
     fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
-
     fdt_score = fdt.score(fuzzy_set_df_test, y_test)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train)
-
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
+
     np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
-    fuzzy_element = _get_fuzzy_element(fuzzy_set_df_test, 1)
+
     assert fdt.predict(fuzzy_element) == new_fdt.predict(fuzzy_element)
     assert new_fdt_score == fdt_score

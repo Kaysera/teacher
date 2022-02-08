@@ -8,7 +8,7 @@ class Rule:
         consequent : string or number
         weight: weight of the consequent in the tree
         """
-        self.antecedent = antecedent
+        self.antecedent = tuple(antecedent)
         self.consequent = consequent
         self.weight = weight
 
