@@ -54,7 +54,7 @@ def prepare_iris_fdt(set_random):
     fuzzy_set_df_test = get_fuzzy_set_dataframe(df_test, get_fuzzy_triangle, fuzzy_points,
                                                 df_numerical_columns, df_categorical_columns)
 
-    fuzzy_element = _get_fuzzy_element(fuzzy_set_df_test, 5)
+    fuzzy_element = _get_fuzzy_element(fuzzy_set_df_test, 27)
     all_classes = np.unique(iris.target)
     return [fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
 
@@ -210,7 +210,6 @@ def test_factual_mean_fdt(prepare_iris_fdt):
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
-    # print(predicted_best_rules)
     alpha_factuals, total_mu = _alpha_factual_avg(predicted_best_rules, None, debug=True)
 
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
@@ -224,7 +223,7 @@ def test_factual_mean_fdt(prepare_iris_fdt):
 
 
 def test_factual_robust_fdt(prepare_iris_fdt):
-    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
+    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes = prepare_iris_fdt
 
     fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
@@ -234,12 +233,13 @@ def test_factual_robust_fdt(prepare_iris_fdt):
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
-    # print(predicted_best_rules)
-    alpha_factuals, total_mu = _alpha_factual_avg(predicted_best_rules, None, debug=True)
+    other_classes = [cv for cv in all_classes if cv != fdt_predict]
+    fdt_rob_thres = fdt.robust_threshold(fuzzy_element, other_classes)
 
+    alpha_factuals, total_mu = _alpha_factual_robust(predicted_best_rules, fdt_rob_thres, debug=True)
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
-    factual = get_factual_threshold(fuzzy_element, rules, new_fdt_predict, 'mean')
+    factual = get_factual_threshold(fuzzy_element, rules, new_fdt_predict, 'robust')
 
     for exp_rule, fact_rule in zip(alpha_factuals, factual):
         for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):
