@@ -1,3 +1,4 @@
+from functools import reduce
 from flore.tree import ID3, ID3_dev, FDT, FDT_dev
 from pytest import fixture
 
@@ -6,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 from flore.fuzzy import get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points
 from flore.datasets import load_compas
-from flore.explanation import get_factual_FID3, get_factual_threshold, alpha_factual_avg
+from flore.explanation import get_factual_FID3, get_factual_threshold
 import numpy as np
 import random
 
@@ -79,6 +80,49 @@ def _fuzzify_dataset(dataframe, fuzzy_set, fuzzify_variable):
     for k in fuzzy_set:
         ndf[k] = fuzzify_variable(fuzzy_set[k])
     return ndf
+
+
+def _alpha_factual_avg(explanations, alpha, debug=False):
+    avg = reduce(lambda x, y: x + y[1], explanations, 0) / len(explanations)
+    first_class_dict, first_matching, first_rule = explanations[0]
+    alpha_factual = [(first_rule, first_matching)]
+    for class_dict, matching, rule in explanations[1:]:
+        if matching >= avg:
+            if debug:
+                alpha_factual += [(rule, matching)]
+            else:
+                alpha_factual += [rule]
+        else:
+            break
+
+    if debug:
+        total_mu = 0
+        for rule, matching in alpha_factual:
+            total_mu += matching
+        return alpha_factual, total_mu
+    else:
+        return alpha_factual
+
+
+def _alpha_factual_robust(explanations, threshold, debug=False):
+    # This is the cummulative mu of the
+    # rules that will be selected
+    first_class_dict, first_matching, first_rule = explanations[0]
+    total_mu = first_matching
+    alpha_factual = [(first_rule, first_matching)]
+    for class_dict, matching, rule in explanations[1:]:
+        if total_mu >= threshold:
+            break
+        total_mu += matching
+        if debug:
+            alpha_factual += [(rule, matching)]
+        else:
+            alpha_factual += [rule]
+
+    if debug:
+        return alpha_factual, total_mu
+    else:
+        return alpha_factual
 
 
 def test_wine_id3(prepare_wine):
@@ -167,7 +211,31 @@ def test_factual_mean_fdt(prepare_iris_fdt):
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
     # print(predicted_best_rules)
-    alpha_factuals, total_mu = alpha_factual_avg(predicted_best_rules, None, debug=True)
+    alpha_factuals, total_mu = _alpha_factual_avg(predicted_best_rules, None, debug=True)
+
+    new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
+    rules = new_fdt.to_rule_based_system()
+    factual = get_factual_threshold(fuzzy_element, rules, new_fdt_predict, 'mean')
+
+    for exp_rule, fact_rule in zip(alpha_factuals, factual):
+        for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):
+            assert exp_ante[0] == fact_ante[0]
+            assert exp_ante[1] == fact_ante[1]
+
+
+def test_factual_robust_fdt(prepare_iris_fdt):
+    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
+
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt.fit(X_train, y_train)
+
+    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt.fit(fuzzy_set_df_train, y_train)
+
+    fdt_predict = fdt.predict(fuzzy_element)[0]
+    predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
+    # print(predicted_best_rules)
+    alpha_factuals, total_mu = _alpha_factual_avg(predicted_best_rules, None, debug=True)
 
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
