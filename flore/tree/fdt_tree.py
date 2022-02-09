@@ -349,6 +349,114 @@ class FDT:
                     current_rules += child_rules
             return current_rules
 
+    def get_alpha_counterfactual(self, fuzzy_X, other_classes, df_numerical_columns,
+                                 alpha_factual, n_cf='best', stats=False):
+        # SOLO FUNCIONA CON UN UNICO FUZZY_X
+        # other_class = other_classes[0]
+        # rules = self.get_cf_rules(other_class)
+        # factual = alpha_factual[0]
+        # rule = rules[0]
+        # print(f'cf dist: {self.cf_distance(fuzzy_X, rule, df_numerical_columns, factual[0])}')
+        all_counterf = {}
+        for other_class in other_classes:
+            other_class_rules = []
+            cf_rules = self.get_cf_rules(other_class)
+            for rule in cf_rules:
+                dist = sum([(1 - factual[1]) * self.cf_distance(fuzzy_X, rule, df_numerical_columns, factual[0])
+                           for factual in alpha_factual])
+                other_class_rules += [(rule, dist)]
+
+            all_counterf[other_class] = sorted(other_class_rules, key=lambda rule: rule[1])
+            # for rule in all_counterf[other_class]:
+            #     print(rule)
+
+        if n_cf == 'all':
+            return all_counterf
+        else:
+            if stats:
+                ts = 0  # AVG Counterfactuals per class
+                for key in all_counterf:
+                    ts += len(all_counterf[key])
+                ts /= len(all_counterf)
+                return ([(key, all_counterf[key][0]) for key in all_counterf], ts)
+            else:
+                return [(key, all_counterf[key][0]) for key in all_counterf]
+
+    def get_counterfactual(self, fuzzy_X, other_classes, df_numerical_columns, n_cf='best', stats=False):
+        # SOLO FUNCIONA CON UN UNICO FUZZY_X
+        all_counterf = {}
+        for other_class in other_classes:
+            rules = self.get_cf_rules(other_class)
+            all_counterf[other_class] = sorted([(rule, self.cf_distance(fuzzy_X, rule, df_numerical_columns))
+                                                for rule in rules], key=lambda rule: rule[1])
+            # for rule in all_counterf[other_class]:
+            #     print(rule)
+
+        if n_cf == 'all':
+            return all_counterf
+        else:
+            if stats:
+                ts = 0  # AVG Counterfactuals per class
+                for key in all_counterf:
+                    ts += len(all_counterf[key])
+                ts /= len(all_counterf)
+                return ([(key, all_counterf[key][0]) for key in all_counterf], ts)
+            else:
+                return [(key, all_counterf[key][0]) for key in all_counterf]
+
+    def fuzzify(self, fuzzy_X):
+        # MOVER A CARPETA CORRESPONDIENTE
+        fuzzified_X = {}
+        for key in fuzzy_X:
+            fuzzified_X[key] = max(fuzzy_X[key], key=lambda x: fuzzy_X[key][x][0])
+        return fuzzified_X
+
+    def cf_distance(self, fuzzy_X, cf, df_numerical_columns, alpha_factual=False, tau=0.5):
+        if alpha_factual:
+            fuzzified_X = dict(alpha_factual)
+        else:
+            fuzzified_X = self.fuzzify(fuzzy_X)
+
+        fuzzy_X_keys = list(fuzzified_X.keys())
+
+        cf_dict = {}
+        for key, val in cf:
+            cf_dict[key] = val
+
+        cf_keys = [x[0] for x in cf]
+        only_instance = [x for x in fuzzy_X_keys if x not in cf_keys]
+        only_cf = [x for x in cf_keys if x not in fuzzy_X_keys]
+        common_keys = set([])
+        common_keys.update([x for x in fuzzy_X_keys if x in cf_keys])
+        common_keys.update([x for x in cf_keys if x in fuzzy_X_keys])
+
+        num_keys = [x for x in common_keys if x in df_numerical_columns]
+        cat_keys = [x for x in common_keys if x not in df_numerical_columns]
+
+        simmetric_distance = len(only_instance) + len(only_cf)
+        rule_distance = 0
+
+        for key in cat_keys:
+            if cf_dict[key] is not fuzzified_X[key]:
+                rule_distance += 1
+
+        for key in num_keys:
+            rule_distance += self.cf_clause_distance(fuzzy_X[key], fuzzified_X[key], cf_dict[key], alpha_factual)
+
+        if alpha_factual:
+            return tau * simmetric_distance + (1 - tau) * rule_distance
+        else:
+            return rule_distance
+
+    def cf_clause_distance(self, fuzzy_clause, fuzzy_value, cf_clause, alpha_factual=False):
+        skip = abs(list(fuzzy_clause.keys()).index(fuzzy_value) - list(fuzzy_clause.keys()).index(cf_clause))
+        distance = skip / len(fuzzy_clause)
+
+        if not alpha_factual:
+            distance *= (1 - fuzzy_clause[cf_clause][0])
+
+        return distance
+
     def robust_threshold(self, element, other_classes):
         max_threshold = 0
         for class_val in other_classes:
