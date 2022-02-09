@@ -56,3 +56,24 @@ def get_factual_threshold(instance, rule_list, class_val, threshold, debug=False
         return factual
     else:
         raise ValueError('Threshold method not supported')
+
+
+def get_factual_difference(instance, rule_list, class_val, lam, beta=None):
+    fired_rules = get_factual_FID3(instance, rule_list)
+    max_weight_class = _prepare_factual(fired_rules, class_val)
+    max_weight_class.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
+    factual = [max_weight_class[0]]
+    prev_matching = factual[0].matching(instance) * factual[0].weight
+    AD_sum = prev_matching
+    for rule in max_weight_class[1:]:
+        matching = rule.matching(instance) * rule.weight
+        factor = prev_matching / matching
+        if factor > 1 + lam:
+            if beta is None or beta >= AD_sum:
+                break
+
+        prev_matching = matching
+        AD_sum += matching
+        factual.append(rule)
+
+    return factual
