@@ -22,7 +22,7 @@ class TreeFDT:
         else:
             raise ValueError('Voting method not implemented')
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         output = '\t' * self.level
         if(self.is_leaf):
             output += 'Class value: ' + str(self.class_value)
@@ -45,7 +45,7 @@ class TreeFDT:
                 self.class_value == other.class_value and
                 self.level == other.level and
                 self.value == other.value and
-                self.mu == other.mu)
+                np.array_equal(self.mu, other.mu))
 
     def _aggregated_vote(self, all_classes):
         agg_vote = defaultdict(lambda: np.zeros(len(all_classes[0][1])))
@@ -98,7 +98,7 @@ class TreeFDT:
             new_rule = rule
 
         if tree.is_leaf:
-            if verbose:
+            if verbose:  # pragma: no cover
                 for leaf_class, weight in tree.class_value.items():
                     if weight > th:
                         print(f'{new_rule} => Class value: {leaf_class} (Weight: {weight})')

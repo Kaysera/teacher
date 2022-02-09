@@ -16,7 +16,7 @@ class TreeID3:
         self.num_leaf = 0
         self.features = features
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         output = '\t' * self.level
         if(self.is_leaf):
             output += 'Class value: ' + str(self.class_value) + '\tCounts: ' + str(self.class_count)
@@ -71,7 +71,7 @@ class TreeID3:
 
         else:
             rules += [(conditions, tree.class_value)]
-            if verbose:
+            if verbose:  # pragma: no cover
                 print(f'{conditions} => Class value: {tree.class_value}, Counts: {tree.class_count}')
 
 

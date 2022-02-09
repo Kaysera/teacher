@@ -1,6 +1,6 @@
 from functools import reduce
 from flore.tree import ID3, ID3_dev, FDT, FDT_dev
-from pytest import fixture
+from pytest import fixture, raises
 
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
@@ -378,3 +378,85 @@ def test_iris_fdt(prepare_iris_fdt):
 
     assert fdt.predict(fuzzy_element) == new_fdt.predict(fuzzy_element)
     assert new_fdt_score == fdt_score
+    assert new_fdt.tree_ == fdt.tree
+
+
+def test_iris_min_examples_fdt(prepare_iris_fdt):
+    fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
+
+    fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
+
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train, min_num_examples=50)
+    fdt.fit(X_train, y_train)
+    fdt_score = fdt.score(fuzzy_set_df_test, y_test)
+
+    new_fdt = FDT_dev(fuzzy_set_df_train.keys(), min_num_examples=50)
+    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt_score = new_fdt.score(fuzzy_test, y_test)
+
+    np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
+
+    assert fdt.predict(fuzzy_element) == new_fdt.predict(fuzzy_element)
+    assert new_fdt_score == fdt_score
+    assert new_fdt.tree_ == fdt.tree
+
+
+def test_iris_max_depth_fdt(prepare_iris_fdt):
+    fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
+
+    fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
+
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train, max_depth=2)
+    fdt.fit(X_train, y_train)
+    fdt_score = fdt.score(fuzzy_set_df_test, y_test)
+
+    new_fdt = FDT_dev(fuzzy_set_df_train.keys(), max_depth=2)
+    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt_score = new_fdt.score(fuzzy_test, y_test)
+
+    np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
+
+    assert fdt.predict(fuzzy_element) == new_fdt.predict(fuzzy_element)
+    assert new_fdt_score == fdt_score
+    assert new_fdt.tree_ == fdt.tree
+
+
+def test_iris_max_match_fdt(prepare_iris_fdt):
+    fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
+
+    fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
+
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train, voting='max_match')
+    fdt.fit(X_train, y_train)
+    fdt_score = fdt.score(fuzzy_set_df_test, y_test)
+
+    new_fdt = FDT_dev(fuzzy_set_df_train.keys(), voting='max_match')
+    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt_score = new_fdt.score(fuzzy_test, y_test)
+
+    np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
+
+    assert fdt.predict(fuzzy_element) == new_fdt.predict(fuzzy_element)
+    assert new_fdt_score == fdt_score
+    assert new_fdt.tree_ == fdt.tree
+
+
+def test_iris_invalid_voting_fdt(prepare_iris_fdt):
+    with raises(ValueError):
+        fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
+        FDT_dev(fuzzy_set_df_train.keys(), voting='invalid')
+
+
+def test_not_instance_tree_fdt(prepare_iris_fdt):
+    fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
+    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    assert new_fdt.tree_ != 10
+
+
+def test_not_instance_tree_id3(prepare_wine):
+    feature_names, X_train, X_test, y_train, y_test = prepare_wine
+
+    new_id3 = ID3_dev(feature_names)
+    new_id3.fit(X_train.values, y_train)
+
+    assert 10 != new_id3.tree_
