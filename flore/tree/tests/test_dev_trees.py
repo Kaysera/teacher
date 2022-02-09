@@ -6,7 +6,7 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
 from flore.fuzzy import get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points
-from flore.datasets import load_compas
+from flore.datasets import load_compas, load_beer
 from flore.explanation import get_factual_FID3, get_factual_threshold, get_factual_difference
 import numpy as np
 import random
@@ -59,6 +59,36 @@ def prepare_iris_fdt(set_random):
     return [fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
 
 
+@fixture
+def prepare_beer_fdt(set_random):
+    dataset = load_beer()
+
+    df = dataset['df']
+    class_name = dataset['class_name']
+    X = df.drop(class_name, axis=1)
+    y = df[class_name]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=set_random)
+
+    df_categorical_columns = dataset['discrete']
+    class_name = dataset['class_name']
+    df_categorical_columns.remove(class_name)
+    df_numerical_columns = dataset['continuous']
+
+    df_train = df.loc[X_train.index]
+    df_test = df.loc[X_test.index]
+
+    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
+    fuzzy_set_df_train = get_fuzzy_set_dataframe(df_train, get_fuzzy_triangle, fuzzy_points,
+                                                 df_numerical_columns, df_categorical_columns)
+    fuzzy_set_df_test = get_fuzzy_set_dataframe(df_test, get_fuzzy_triangle, fuzzy_points,
+                                                df_numerical_columns, df_categorical_columns)
+
+    fuzzy_element = _get_fuzzy_element(fuzzy_set_df_test, 48)
+    all_classes = dataset['possible_outcomes']
+    return [fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
+
+
 def _get_fuzzy_element(fuzzy_X, idx):
     element = {}
     for feat in fuzzy_X:
@@ -88,14 +118,14 @@ def _alpha_factual_avg(explanations, alpha, debug=False):
     alpha_factual = [(first_rule, first_matching)]
     for class_dict, matching, rule in explanations[1:]:
         if matching >= avg:
-            if debug:
+            if debug:  # pragma: no cover
                 alpha_factual += [(rule, matching)]
             else:
                 alpha_factual += [rule]
         else:
             break
 
-    if debug:
+    if debug:  # pragma: no cover
         total_mu = 0
         for rule, matching in alpha_factual:
             total_mu += matching
@@ -114,12 +144,12 @@ def _alpha_factual_robust(explanations, threshold, debug=False):
         if total_mu >= threshold:
             break
         total_mu += matching
-        if debug:
+        if debug:  # pragma: no cover
             alpha_factual += [(rule, matching)]
         else:
             alpha_factual += [rule]
 
-    if debug:
+    if debug:  # pragma: no cover
         return alpha_factual, total_mu
     else:
         return alpha_factual
@@ -127,20 +157,23 @@ def _alpha_factual_robust(explanations, threshold, debug=False):
 
 def _alpha_factual_factor(explanations, alpha, debug=False):
     first_class_dict, first_matching, first_rule = explanations[0]
-    alpha_factual = [(first_rule, first_matching)]
+    if debug:  # pragma: no cover
+        alpha_factual = [(first_rule, first_matching)]
+    else:
+        alpha_factual = [first_rule]
     prev_matching = first_matching
     for class_dict, matching, rule in explanations[1:]:
         factor = prev_matching / matching
         if factor <= 1 + alpha:
             prev_matching = matching
-            if debug:
+            if debug:  # pragma: no cover
                 alpha_factual += [(rule, matching)]
             else:
                 alpha_factual += [rule]
         else:
             break
 
-    if debug:
+    if debug:  # pragma: no cover
         total_mu = 0
         for rule, matching in alpha_factual:
             total_mu += matching
@@ -151,7 +184,10 @@ def _alpha_factual_factor(explanations, alpha, debug=False):
 
 def _alpha_factual_factor_sum(explanations, alpha, beta, debug=False):
     first_class_dict, first_matching, first_rule = explanations[0]
-    alpha_factual = [(first_rule, first_matching)]
+    if debug:  # pragma: no cover
+        alpha_factual = [(first_rule, first_matching)]
+    else:
+        alpha_factual = [first_rule]
     prev_matching = first_matching
     total_mu = first_matching
     for class_dict, matching, rule in explanations[1:]:
@@ -159,14 +195,14 @@ def _alpha_factual_factor_sum(explanations, alpha, beta, debug=False):
         if total_mu < beta or factor <= 1 + alpha:
             prev_matching = matching
             total_mu += matching
-            if debug:
+            if debug:  # pragma: no cover
                 alpha_factual += [(rule, matching)]
             else:
                 alpha_factual += [rule]
         else:
             break
 
-    if debug:
+    if debug:  # pragma: no cover
         return alpha_factual, total_mu
     else:
         return alpha_factual
@@ -257,7 +293,7 @@ def test_factual_mean_fdt(prepare_iris_fdt):
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
-    alpha_factuals, total_mu = _alpha_factual_avg(predicted_best_rules, None, debug=True)
+    alpha_factuals = _alpha_factual_avg(predicted_best_rules, None)
 
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
@@ -269,8 +305,8 @@ def test_factual_mean_fdt(prepare_iris_fdt):
             assert exp_ante[1] == fact_ante[1]
 
 
-def test_factual_robust_fdt(prepare_iris_fdt):
-    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes = prepare_iris_fdt
+def test_factual_robust_fdt(prepare_beer_fdt):
+    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes = prepare_beer_fdt
 
     fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
@@ -283,15 +319,38 @@ def test_factual_robust_fdt(prepare_iris_fdt):
     other_classes = [cv for cv in all_classes if cv != fdt_predict]
     fdt_rob_thres = fdt.robust_threshold(fuzzy_element, other_classes)
 
-    alpha_factuals, total_mu = _alpha_factual_robust(predicted_best_rules, fdt_rob_thres, debug=True)
+    alpha_factuals = _alpha_factual_robust(predicted_best_rules, fdt_rob_thres)
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
     factual = get_factual_threshold(fuzzy_element, rules, new_fdt_predict, 'robust')
-
     for exp_rule, fact_rule in zip(alpha_factuals, factual):
         for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):
             assert exp_ante[0] == fact_ante[0]
             assert exp_ante[1] == fact_ante[1]
+
+
+def test_factual_threshold_not_supported_fdt(prepare_iris_fdt):
+    with raises(ValueError):
+        fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
+
+        fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+        fdt.fit(X_train, y_train)
+
+        new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+        new_fdt.fit(fuzzy_set_df_train, y_train)
+
+        fdt_predict = fdt.predict(fuzzy_element)[0]
+        predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
+        alpha_factuals = _alpha_factual_avg(predicted_best_rules, None)
+
+        new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
+        rules = new_fdt.to_rule_based_system()
+        factual = get_factual_threshold(fuzzy_element, rules, new_fdt_predict, 'Unsupported')
+
+        for exp_rule, fact_rule in zip(alpha_factuals, factual):
+            for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):
+                assert exp_ante[0] == fact_ante[0]
+                assert exp_ante[1] == fact_ante[1]
 
 
 def test_lambda_factual_fdt(prepare_iris_fdt):
@@ -307,14 +366,38 @@ def test_lambda_factual_fdt(prepare_iris_fdt):
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
     lam = 0.98
 
-    alpha_factuals, total_mu = _alpha_factual_factor(predicted_best_rules, lam, debug=True)
-
+    alpha_factuals = _alpha_factual_factor(predicted_best_rules, lam)
+    print(alpha_factuals)
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
     factual = get_factual_difference(fuzzy_element, rules, new_fdt_predict, lam)
 
     for exp_rule, fact_rule in zip(alpha_factuals, factual):
-        for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):
+        for exp_ante, fact_ante in zip(exp_rule, fact_rule.antecedent):
+            assert exp_ante[0] == fact_ante[0]
+            assert exp_ante[1] == fact_ante[1]
+
+
+def test_lambda_factual_complex_fdt(prepare_beer_fdt):
+    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_beer_fdt
+
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt.fit(X_train, y_train)
+
+    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt.fit(fuzzy_set_df_train, y_train)
+
+    fdt_predict = fdt.predict(fuzzy_element)[0]
+    predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
+    lam = 0.5
+
+    alpha_factuals = _alpha_factual_factor(predicted_best_rules, lam)
+
+    new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
+    rules = new_fdt.to_rule_based_system()
+    factual = get_factual_difference(fuzzy_element, rules, new_fdt_predict, lam)
+    for exp_rule, fact_rule in zip(alpha_factuals, factual):
+        for exp_ante, fact_ante in zip(exp_rule, fact_rule.antecedent):
             assert exp_ante[0] == fact_ante[0]
             assert exp_ante[1] == fact_ante[1]
 
@@ -333,13 +416,13 @@ def test_lambda_beta_factual_fdt(prepare_iris_fdt):
     lam = 0.98
     beta = 0.5
 
-    alpha_factuals, total_mu = _alpha_factual_factor_sum(predicted_best_rules, lam, beta, debug=True)
+    alpha_factuals = _alpha_factual_factor_sum(predicted_best_rules, lam, beta)
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
     factual = get_factual_difference(fuzzy_element, rules, new_fdt_predict, lam, beta)
 
     for exp_rule, fact_rule in zip(alpha_factuals, factual):
-        for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):
+        for exp_ante, fact_ante in zip(exp_rule, fact_rule.antecedent):
             assert exp_ante[0] == fact_ante[0]
             assert exp_ante[1] == fact_ante[1]
 
