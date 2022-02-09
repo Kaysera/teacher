@@ -74,7 +74,6 @@ def test_wine_id3(prepare_wine):
 
     new_id3 = ID3_dev(feature_names)
     new_id3.fit(X_train.values, y_train)
-
     assert id3.score(X_test.values, y_test) == new_id3.score(X_test.values, y_test)
     assert id3.tree == new_id3.tree_
 
