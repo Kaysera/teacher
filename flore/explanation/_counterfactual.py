@@ -50,6 +50,23 @@ def get_instance_counterfactual(instance, rule_list, prediction, df_numerical_co
     return counterfactual
 
 
+def get_factual_counterfactual(factual, instance, rule_list, prediction, df_numerical_columns, tau=0.5):
+    counterfactual = []
+    max_weight_rules = _get_maximum_weight_rules(rule_list)
+    counter_rules = [rule for rule in max_weight_rules if rule.consequent != prediction]
+    for class_val in np.unique([rule.consequent for rule in counter_rules]):
+        possible_cf = []
+        for cf_rule in (rule for rule in counter_rules if rule.consequent == class_val):
+            cf_dist = 0
+            for fact_rule in factual:
+                AD = fact_rule.matching(instance) * fact_rule.weight
+                cf_dist += (1 - AD) * _cf_dist_rule(instance, fact_rule, cf_rule, df_numerical_columns, tau)
+            possible_cf.append((cf_rule, cf_dist))
+        counterfactual.append((min(possible_cf, key=lambda rule: rule[1])))
+
+    return counterfactual
+
+
 def _cf_dist_instance(instance, cf_rule, df_numerical_columns):
     fuzzified_instance = {feat: max(fuzz_sets, key=lambda x: fuzz_sets[x]) for feat, fuzz_sets in instance.items()}
     cf_dict = {key: val for key, val in cf_rule.antecedent}
@@ -60,6 +77,21 @@ def _cf_dist_instance(instance, cf_rule, df_numerical_columns):
         rule_distance += _weighted_literal_distance(instance[key], fuzzified_instance[key], cf_dict[key])
 
     return rule_distance
+
+
+def _cf_dist_rule(instance, rule, cf_rule, df_numerical_columns, tau=0.5):
+    rule_dict = {key: val for key, val in rule.antecedent}
+    cf_dict = {key: val for key, val in cf_rule.antecedent}
+    num_keys = [x for x in df_numerical_columns if x in rule_dict and x in cf_dict]
+
+    rule_distance = _get_categorical_cf_distance(rule_dict, cf_dict, df_numerical_columns)
+    for key in num_keys:
+        rule_distance += _literal_distance(instance[key], rule_dict[key], cf_dict[key])
+
+    only_instance = [x for x in rule_dict if x not in cf_dict]
+    only_cf = [x for x in cf_dict if x not in rule_dict]
+    simmetric_distance = len(only_instance) + len(only_cf)
+    return tau * simmetric_distance + (1 - tau) * rule_distance
 
 
 def _get_categorical_cf_distance(fuzzy_element, cf_dict, df_numerical_columns):

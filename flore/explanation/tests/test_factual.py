@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 from flore.fuzzy import get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points
 from flore.datasets import load_compas, load_beer
-from flore.explanation import get_factual_FID3, get_factual_threshold, get_factual_difference
+from flore.explanation import get_factual_FID3, get_threshold_factual, get_difference_factual
 import numpy as np
 import random
 
@@ -258,7 +258,7 @@ def test_factual_mean_fdt(prepare_iris_fdt):
 
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
-    factual = get_factual_threshold(fuzzy_element, rules, new_fdt_predict, 'mean')
+    factual = get_threshold_factual(fuzzy_element, rules, new_fdt_predict, 'mean')
 
     for exp_rule, fact_rule in zip(alpha_factuals, factual):
         for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):
@@ -279,11 +279,11 @@ def test_factual_robust_fdt(prepare_beer_fdt):
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
     other_classes = [cv for cv in all_classes if cv != fdt_predict]
     fdt_rob_thres = fdt.robust_threshold(fuzzy_element, other_classes)
-
     alpha_factuals = _alpha_factual_robust(predicted_best_rules, fdt_rob_thres)
+
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
-    factual = get_factual_threshold(fuzzy_element, rules, new_fdt_predict, 'robust')
+    factual = get_threshold_factual(fuzzy_element, rules, new_fdt_predict, 'robust')
     for exp_rule, fact_rule in zip(alpha_factuals, factual):
         for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):
             assert exp_ante[0] == fact_ante[0]
@@ -306,7 +306,7 @@ def test_factual_threshold_not_supported_fdt(prepare_iris_fdt):
 
         new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
         rules = new_fdt.to_rule_based_system()
-        factual = get_factual_threshold(fuzzy_element, rules, new_fdt_predict, 'Unsupported')
+        factual = get_threshold_factual(fuzzy_element, rules, new_fdt_predict, 'Unsupported')
 
         for exp_rule, fact_rule in zip(alpha_factuals, factual):
             for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):
@@ -331,7 +331,7 @@ def test_lambda_factual_fdt(prepare_iris_fdt):
     print(alpha_factuals)
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
-    factual = get_factual_difference(fuzzy_element, rules, new_fdt_predict, lam)
+    factual = get_difference_factual(fuzzy_element, rules, new_fdt_predict, lam)
 
     for exp_rule, fact_rule in zip(alpha_factuals, factual):
         for exp_ante, fact_ante in zip(exp_rule, fact_rule.antecedent):
@@ -356,7 +356,7 @@ def test_lambda_factual_complex_fdt(prepare_beer_fdt):
 
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
-    factual = get_factual_difference(fuzzy_element, rules, new_fdt_predict, lam)
+    factual = get_difference_factual(fuzzy_element, rules, new_fdt_predict, lam)
     for exp_rule, fact_rule in zip(alpha_factuals, factual):
         for exp_ante, fact_ante in zip(exp_rule, fact_rule.antecedent):
             assert exp_ante[0] == fact_ante[0]
@@ -380,7 +380,7 @@ def test_lambda_beta_factual_fdt(prepare_iris_fdt):
     alpha_factuals = _alpha_factual_factor_sum(predicted_best_rules, lam, beta)
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
-    factual = get_factual_difference(fuzzy_element, rules, new_fdt_predict, lam, beta)
+    factual = get_difference_factual(fuzzy_element, rules, new_fdt_predict, lam, beta)
 
     for exp_rule, fact_rule in zip(alpha_factuals, factual):
         for exp_ante, fact_ante in zip(exp_rule, fact_rule.antecedent):

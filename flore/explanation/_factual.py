@@ -36,15 +36,14 @@ def _robust_threshold(instance, rule_list, class_val):
     return max(all_th)
 
 
-def get_factual_threshold(instance, rule_list, class_val, threshold, debug=False):
+def get_threshold_factual(instance, rule_list, class_val, threshold, debug=False):
     fired_rules = get_factual_FID3(instance, rule_list)
+    max_weight_class = _prepare_factual(fired_rules, class_val)
+    max_weight_class.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
     if threshold == 'mean':
         avg = reduce(lambda x, y: x + y.matching(instance), fired_rules, 0) / len(fired_rules)
-        max_weight_class = _prepare_factual(fired_rules, class_val)
         return [rule for rule in max_weight_class if rule.matching(instance) > avg]
     elif threshold == 'robust':
-        max_weight_class = _prepare_factual(fired_rules, class_val)
-        max_weight_class.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
         robust_threshold = _robust_threshold(instance, rule_list, class_val)
         factual = []
         AD_sum = 0
@@ -58,7 +57,7 @@ def get_factual_threshold(instance, rule_list, class_val, threshold, debug=False
         raise ValueError('Threshold method not supported')
 
 
-def get_factual_difference(instance, rule_list, class_val, lam, beta=None):
+def get_difference_factual(instance, rule_list, class_val, lam, beta=None):
     fired_rules = get_factual_FID3(instance, rule_list)
     max_weight_class = _prepare_factual(fired_rules, class_val)
     max_weight_class.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)

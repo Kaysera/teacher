@@ -6,9 +6,10 @@ from sklearn.model_selection import train_test_split
 
 from flore.fuzzy import get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points
 from flore.datasets import load_compas, load_beer
-from flore.explanation import get_factual_FID3, get_counterfactual_FID3, get_instance_counterfactual
+from flore.explanation import (get_factual_FID3, get_counterfactual_FID3, get_instance_counterfactual,
+                               get_threshold_factual, get_factual_counterfactual)
 
-from .test_factual import _get_fuzzy_element, _get_categorical_fuzzy, _fuzzify_dataset
+from .test_factual import _get_fuzzy_element, _get_categorical_fuzzy, _fuzzify_dataset, _alpha_factual_robust
 import numpy as np
 import random
 
@@ -218,6 +219,38 @@ def test_instance_cf_fdt(prepare_beer_fdt):
     new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
     rules = new_fdt.to_rule_based_system()
     new_fdt_cf = get_instance_counterfactual(fuzzy_element, rules, new_fdt_predict, df_numerical_columns)
+
+    fdt_cf_dict = {}
+    for class_val, (rule, distance) in fdt_cf:
+        fdt_cf_dict[class_val] = (tuple(rule), distance)
+
+    new_fdt_cf_dict = {}
+    for rule, distance in new_fdt_cf:
+        new_fdt_cf_dict[rule.consequent] = (rule.antecedent, distance)
+
+    assert fdt_cf_dict == new_fdt_cf_dict
+
+
+def test_factual_cf_fdt(prepare_beer_fdt):
+    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes, df_numerical_columns = prepare_beer_fdt
+
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt.fit(X_train, y_train)
+
+    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt.fit(fuzzy_set_df_train, y_train)
+
+    fdt_predict = fdt.predict(fuzzy_element)[0]
+    predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
+    other_classes = [cv for cv in all_classes if cv != fdt_predict]
+    fdt_rob_thres = fdt.robust_threshold(fuzzy_element, other_classes)
+    alpha_factuals = _alpha_factual_robust(predicted_best_rules, fdt_rob_thres)
+    fdt_cf = fdt.get_alpha_counterfactual(fuzzy_element, other_classes, df_numerical_columns, alpha_factuals)
+
+    new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
+    rules = new_fdt.to_rule_based_system()
+    factual = get_threshold_factual(fuzzy_element, rules, new_fdt_predict, 'robust')
+    new_fdt_cf = get_factual_counterfactual(factual, fuzzy_element, rules, new_fdt_predict, df_numerical_columns)
 
     fdt_cf_dict = {}
     for class_val, (rule, distance) in fdt_cf:
