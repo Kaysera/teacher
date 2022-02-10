@@ -4,7 +4,7 @@ from pytest import raises
 import pandas as pd
 
 from flore.fuzzy import (get_equal_width_division, get_equal_freq_division, get_fuzzy_points,
-                         get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points_entropy,
+                         get_fuzzy_triangle, get_fuzzy_set_dataframe,
                          fuzzy_entropy, weighted_fuzzy_entropy)
 
 from .._base import _get_delta_point, _fuzzy_partitioning
@@ -179,7 +179,6 @@ def test_get_fuzzy_points_entropy():
     df_train = iris.frame.loc[X_train.index]
     df_numerical_columns = iris.feature_names
 
-    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
     fuzzy_points_generic = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
 
     expected_fuzzy_points = {'sepal length (cm)': [4.3, 5.7, 7.7],
@@ -187,5 +186,4 @@ def test_get_fuzzy_points_entropy():
                              'petal length (cm)': [1.1, 1.9, 4.0, 5.0, 6.7],
                              'petal width (cm)': [0.1, 0.6, 1.0, 1.7, 2.5]}
 
-    assert fuzzy_points == expected_fuzzy_points
     assert fuzzy_points_generic == expected_fuzzy_points

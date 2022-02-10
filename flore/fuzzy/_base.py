@@ -92,32 +92,6 @@ def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0, class_name
     return fuzzy_points
 
 
-def get_fuzzy_points_entropy(df, df_numerical_columns, class_name, verbose=False):
-    """Function that obtains the peak of the fuzzy triangles of
-    the continuous variables of a DataFrame according to the
-    Fuzzy Partitioning
-
-    Parameters
-    ----------
-    df : pandas.core.frame.DataFrame
-        DataFrame from which to obtain the fuzzy points
-    df_numerical_columns : list
-        List with the columns to get the fuzzy points
-    class_name : str
-        Name of the class variable
-
-    Returns
-    -------
-    dict
-        Dictionary with the format {key : [points]}
-    """
-    fuzzy_points = {}
-    for column in df_numerical_columns:
-        fuzzy_points[column] = _fuzzy_partitioning(df[column].to_numpy(), df[class_name].to_numpy(),
-                                                   df[column].min(), verbose)
-    return fuzzy_points
-
-
 def _fuzzy_partitioning(variable, class_variable, min_point, verbose=False):
     max_point = variable.max()
     best_point = 0

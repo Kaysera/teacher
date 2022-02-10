@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from flore.fuzzy import get_fuzzy_points_entropy, get_fuzzy_triangle
+from flore.fuzzy import get_fuzzy_points, get_fuzzy_triangle
 from flore.tree import FDT
 
 from sklearn import datasets
@@ -20,8 +20,7 @@ def test_tree():
 
     X = df[df_numerical_columns]
     y = df[class_name]
-
-    fuzzy_points = get_fuzzy_points_entropy(df, df_numerical_columns, class_name)
+    fuzzy_points = get_fuzzy_points(df, 'entropy', df_numerical_columns, class_name=class_name)
 
     # THIS IS GET_FUZZY_SET_DATAFRAME
     fuzzy_set_dataframe = {}
@@ -105,7 +104,7 @@ def test_iris():
     print('Getting fuzzy points')
     print('----------')
 
-    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
+    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
 
     print('----------')
     print('Get fuzzy set train')
@@ -164,7 +163,7 @@ def test_wine():
     print('Getting fuzzy points')
     print('----------')
 
-    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
+    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
 
     print('----------')
     print('Get fuzzy set train')
@@ -223,7 +222,7 @@ def _explain_all_rules():
     print('Getting fuzzy points')
     print('----------')
 
-    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
+    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
 
     print('----------')
     print('Get fuzzy set train')
@@ -289,7 +288,7 @@ def _explain_single_rule():
     print('Getting fuzzy points')
     print('----------')
 
-    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
+    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
 
     print('----------')
     print('Get fuzzy set train')
