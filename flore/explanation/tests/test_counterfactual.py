@@ -1,4 +1,4 @@
-from flore.tree import ID3, ID3_dev
+from flore.tree import ID3, ID3_dev, FDT, FDT_dev
 from pytest import fixture
 
 from sklearn import datasets
@@ -6,7 +6,9 @@ from sklearn.model_selection import train_test_split
 
 from flore.fuzzy import get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points
 from flore.datasets import load_compas, load_beer
-from flore.explanation import get_factual_FID3, get_counterfactual_FID3
+from flore.explanation import get_factual_FID3, get_counterfactual_FID3, get_instance_counterfactual
+
+from .test_factual import _get_fuzzy_element, _get_categorical_fuzzy, _fuzzify_dataset
 import numpy as np
 import random
 
@@ -73,30 +75,8 @@ def prepare_beer_fdt(set_random):
 
     fuzzy_element = _get_fuzzy_element(fuzzy_set_df_test, 48)
     all_classes = dataset['possible_outcomes']
-    return [fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
-
-
-def _get_fuzzy_element(fuzzy_X, idx):
-    element = {}
-    for feat in fuzzy_X:
-        element[feat] = {}
-        for fuzzy_set in fuzzy_X[feat]:
-            element[feat][fuzzy_set] = fuzzy_X[feat][fuzzy_set][idx]
-
-    return element
-
-
-def _get_categorical_fuzzy(var):
-    x = [var[k] for k in var]
-    label = {i: j for i, j in enumerate(var)}
-    return np.array([label[elem] for elem in np.argmax(x, axis=0)])
-
-
-def _fuzzify_dataset(dataframe, fuzzy_set, fuzzify_variable):
-    ndf = dataframe.copy()
-    for k in fuzzy_set:
-        ndf[k] = fuzzify_variable(fuzzy_set[k])
-    return ndf
+    return [fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train,
+            X_test, y_test, fuzzy_element, all_classes, df_numerical_columns]
 
 
 def _compare_rule(explanation, counter_rule):
@@ -220,3 +200,31 @@ def test_counterfactual_id3(set_random):
             assert exp_ante[0] == fact_ante[0]
             assert exp_ante[1] == fact_ante[1]
         assert fact_rule.consequent == exp_rule[1]
+
+
+def test_instance_cf_fdt(prepare_beer_fdt):
+    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes, df_numerical_columns = prepare_beer_fdt
+
+    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt.fit(X_train, y_train)
+
+    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt.fit(fuzzy_set_df_train, y_train)
+
+    fdt_predict = fdt.predict(fuzzy_element)[0]
+    other_classes = [cv for cv in all_classes if cv != fdt_predict]
+    fdt_cf = fdt.get_counterfactual(fuzzy_element, other_classes, df_numerical_columns)
+
+    new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
+    rules = new_fdt.to_rule_based_system()
+    new_fdt_cf = get_instance_counterfactual(fuzzy_element, rules, new_fdt_predict, df_numerical_columns)
+
+    fdt_cf_dict = {}
+    for class_val, (rule, distance) in fdt_cf:
+        fdt_cf_dict[class_val] = (tuple(rule), distance)
+
+    new_fdt_cf_dict = {}
+    for rule, distance in new_fdt_cf:
+        new_fdt_cf_dict[rule.consequent] = (rule.antecedent, distance)
+
+    assert fdt_cf_dict == new_fdt_cf_dict

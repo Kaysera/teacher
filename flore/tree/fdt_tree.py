@@ -408,7 +408,7 @@ class FDT:
         # MOVER A CARPETA CORRESPONDIENTE
         fuzzified_X = {}
         for key in fuzzy_X:
-            fuzzified_X[key] = max(fuzzy_X[key], key=lambda x: fuzzy_X[key][x][0])
+            fuzzified_X[key] = max(fuzzy_X[key], key=lambda x: fuzzy_X[key][x])
         return fuzzified_X
 
     def cf_distance(self, fuzzy_X, cf, df_numerical_columns, alpha_factual=False, tau=0.5):
@@ -424,8 +424,7 @@ class FDT:
             cf_dict[key] = val
 
         cf_keys = [x[0] for x in cf]
-        only_instance = [x for x in fuzzy_X_keys if x not in cf_keys]
-        only_cf = [x for x in cf_keys if x not in fuzzy_X_keys]
+
         common_keys = set([])
         common_keys.update([x for x in fuzzy_X_keys if x in cf_keys])
         common_keys.update([x for x in cf_keys if x in fuzzy_X_keys])
@@ -433,17 +432,18 @@ class FDT:
         num_keys = [x for x in common_keys if x in df_numerical_columns]
         cat_keys = [x for x in common_keys if x not in df_numerical_columns]
 
-        simmetric_distance = len(only_instance) + len(only_cf)
         rule_distance = 0
 
         for key in cat_keys:
             if cf_dict[key] is not fuzzified_X[key]:
                 rule_distance += 1
-
         for key in num_keys:
             rule_distance += self.cf_clause_distance(fuzzy_X[key], fuzzified_X[key], cf_dict[key], alpha_factual)
 
         if alpha_factual:
+            only_instance = [x for x in fuzzy_X_keys if x not in cf_keys]
+            only_cf = [x for x in cf_keys if x not in fuzzy_X_keys]
+            simmetric_distance = len(only_instance) + len(only_cf)
             return tau * simmetric_distance + (1 - tau) * rule_distance
         else:
             return rule_distance
@@ -453,7 +453,7 @@ class FDT:
         distance = skip / len(fuzzy_clause)
 
         if not alpha_factual:
-            distance *= (1 - fuzzy_clause[cf_clause][0])
+            distance *= (1 - fuzzy_clause[cf_clause])
 
         return distance
 
