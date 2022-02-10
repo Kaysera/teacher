@@ -1,12 +1,13 @@
 from .lore_fuzzy import FuzzyLORE
-from ._factual import get_factual_FID3, get_threshold_factual, get_difference_factual
-from ._counterfactual import get_counterfactual_FID3, get_instance_counterfactual, get_factual_counterfactual
+from ._factual import FID3_factual, m_factual, mr_factual, c_factual
+from ._counterfactual import FID3_counterfactual, i_counterfactual, f_counterfactual
 __all__ = [
     "FuzzyLORE",
-    "get_factual_FID3",
-    "get_threshold_factual",
-    "get_difference_factual",
-    "get_counterfactual_FID3",
-    "get_instance_counterfactual",
-    "get_factual_counterfactual"
+    "FID3_factual",
+    "m_factual",
+    "mr_factual",
+    "c_factual",
+    "FID3_counterfactual",
+    "i_counterfactual",
+    "f_counterfactual"
 ]
