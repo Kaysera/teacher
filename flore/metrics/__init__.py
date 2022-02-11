@@ -1,6 +1,8 @@
-from .rule import coverage, precision
+from .rule import coverage, precision, fidelity, rule_fidelity
 
 __all__ = [
     "coverage",
-    "precision"
+    "precision",
+    "fidelity",
+    "rule_fidelity"
 ]
