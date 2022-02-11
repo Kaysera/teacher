@@ -8,7 +8,8 @@ from flore.datasets import load_german, load_beer, load_compas
 from flore.explanation import (FID3_factual, FID3_counterfactual, i_counterfactual,
                                mr_factual, f_counterfactual)
 
-from .test_factual import _get_fuzzy_element, _get_categorical_fuzzy, _fuzzify_dataset, _alpha_factual_robust
+from .test_factual import (_get_fuzzy_element, _get_categorical_fuzzy,
+                           _fuzzify_dataset, _alpha_factual_robust, _get_best_rule)
 import numpy as np
 import random
 
@@ -133,23 +134,6 @@ def _FID3_counterfactual(all_rules, explanation):
     return best_cr, min_rule_distance
 
 
-def _get_best_rule(rules, op, target=None):
-    best_rule = []
-    best_score = 0
-
-    for rule in rules:
-        rule_score = 1
-        if target is None or target == rule[1]:
-            for clause in rule[0]:
-                rule_score = op([rule_score, clause[2]])
-
-            if rule_score > best_score:
-                best_score = rule_score
-                best_rule = rule
-
-    return (best_rule, best_score)
-
-
 def test_counterfactual_id3(set_random):
     dataset = load_compas()
 
@@ -195,8 +179,7 @@ def test_counterfactual_id3(set_random):
     rules = new_id3.to_rule_based_system()
     new_id3_pred = new_id3.predict(instance)[0]
     factual = FID3_factual(f_instance, rules)
-    best_rule = max(factual, key=lambda r: r.matching(f_instance))
-    obt_cf, _ = FID3_counterfactual(best_rule, [rule for rule in rules if rule.consequent != new_id3_pred])
+    obt_cf, _ = FID3_counterfactual(factual, [rule for rule in rules if rule.consequent != new_id3_pred])
 
     for exp_rule, fact_rule in zip(exp_cf, obt_cf):
         for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):

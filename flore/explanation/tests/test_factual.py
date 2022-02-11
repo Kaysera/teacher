@@ -100,6 +100,23 @@ def _fuzzify_dataset(dataframe, fuzzy_set, fuzzify_variable):
     return ndf
 
 
+def _get_best_rule(rules, op, target=None):
+    best_rule = []
+    best_score = 0
+
+    for rule in rules:
+        rule_score = 1
+        if target is None or target == rule[1]:
+            for clause in rule[0]:
+                rule_score = op([rule_score, clause[2]])
+
+            if rule_score > best_score:
+                best_score = rule_score
+                best_rule = rule
+
+    return (best_rule, best_score)
+
+
 def _alpha_factual_avg(explanations):
     avg = reduce(lambda x, y: x + y[1], explanations, 0) / len(explanations)
     first_class_dict, first_matching, first_rule = explanations[0]
@@ -192,6 +209,8 @@ def test_explain_id3(set_random):
     id3_class = ID3(fuzzy_X.columns, X_np, y_np, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
     id3_class.fit(X_np, y_np)
     explanation = id3_class.explainInstance(instance, idx_record2explain, fuzzy_set_test, discrete, verbose=False)
+    operator = min
+    best_rule = _get_best_rule(explanation, operator)[0]
 
     new_id3 = ID3_dev(fuzzy_X.columns, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
     new_id3.fit(X_np, y_np)
@@ -199,7 +218,7 @@ def test_explain_id3(set_random):
     rules = new_id3.to_rule_based_system()
     factual = FID3_factual(f_instance, rules)
 
-    for exp_rule, fact_rule in zip(explanation, factual):
+    for exp_rule, fact_rule in zip([best_rule], [factual]):
         for exp_ante, fact_ante in zip(exp_rule[0], fact_rule.antecedent):
             assert exp_ante[0] == fact_ante[0]
             assert exp_ante[1] == fact_ante[1]

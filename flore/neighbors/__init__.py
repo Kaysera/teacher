@@ -2,9 +2,9 @@ from .neighbor_generator import genetic_neighborhood
 from .gpdatagenerator import calculate_feature_values, generate_data
 from .genetic_algorithm import (get_feature_values, random_init, informed_init,
                                 uniform_crossover, tournament_selection, replacement, genetic_algorithm)
-from ._base_neighborhood import BaseNeighborhood, NotFittedException
+from ._base_neighborhood import BaseNeighborhood, NotFittedError
 from ._simple_neighborhood import SimpleNeighborhood
-from ._fuzzy_neighborhood import FuzzyNeighborhood, NotFuzzifiedException
+from ._fuzzy_neighborhood import FuzzyNeighborhood, NotFuzzifiedError
 from ._lore_neighborhood import LoreNeighborhood
 
 __all__ = [
@@ -22,6 +22,6 @@ __all__ = [
     "SimpleNeighborhood",
     "FuzzyNeighborhood",
     "LoreNeighborhood",
-    "NotFittedException",
-    "NotFuzzifiedException"
+    "NotFittedError",
+    "NotFuzzifiedError"
 ]

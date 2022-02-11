@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class NotFittedException(Exception):
+class NotFittedError(Exception):
     pass
 
 
@@ -24,12 +24,12 @@ class BaseNeighborhood(ABC):
 
     def get_X(self):
         if self._X is None:
-            raise NotFittedException
+            raise NotFittedError
         else:
             return self._X
 
     def get_y(self):
         if self._y is None:
-            raise NotFittedException
+            raise NotFittedError
         else:
             return self._y

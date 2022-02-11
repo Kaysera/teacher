@@ -1,4 +1,4 @@
-from flore.tree import ID3, ID3_dev, FDT, FDT_dev
+from flore.tree import ID3, ID3_dev, FDT, FDT_dev, Rule
 from pytest import fixture, raises
 
 from sklearn import datasets
@@ -66,6 +66,30 @@ def _get_fuzzy_element(fuzzy_X, idx):
     return element
 
 
+def test_rule_equal():
+    r1 = Rule(('ante'), 'conse', 0.5)
+    r2 = Rule(('ante'), 'conse', 0.5)
+    assert r1 == r2
+
+
+def test_rule_different():
+    r1 = Rule(('ante'), 'conse', 0.5)
+    r2 = Rule(('ante'), 'conse', 0.3)
+    assert r1 != r2
+
+
+def test_rule_different_not_rule():
+    r1 = Rule(('ante'), 'conse', 0.5)
+    r2 = 7
+    assert r1 != r2
+
+
+def test_rule_matching():
+    r1 = Rule((('ante1', 'ok'), ('ante2', 'nook')), 'conse', 0.5)
+    fuzzy_instance = {'ante1': {'ok': 0.6, 'nook': 0.4}, 'ante2': {'ok': 0.6, 'nook': 0.4}}
+    assert r1.matching(fuzzy_instance) == 0.4
+
+
 def test_wine_id3(prepare_wine):
     feature_names, X_train, X_test, y_train, y_test = prepare_wine
 
@@ -89,7 +113,7 @@ def test_rules_id3(prepare_wine):
 
     rules = []
     new_id3.tree_._get_rules(new_id3.tree_, rules, [])
-    assert id3.exploreTreeFn() == rules
+    assert id3.exploreTreeFn(verbose=False) == rules
 
 
 def test_rules_fdt(prepare_iris_fdt):

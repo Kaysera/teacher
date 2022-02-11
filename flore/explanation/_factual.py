@@ -2,6 +2,28 @@ from functools import reduce
 import numpy as np
 
 
+def _fired_rules(instance, rule_list, threshold=0.001):
+    """Returns the rules fired by the instance given a threshold
+
+    Parameters
+    ----------
+    instance : dict, {feature: {set_1: pert_1, set_2: pert_2, ...}, ...}
+        Fuzzy representation of the instance with all the features and pertenence
+        degrees to each fuzzy set
+    rule_list : list(Rule)
+        List of candidate rules to form part of the factual
+    threshold : float, optional
+        Activation threshold with which a rule is
+        considered to be fired by the instance, by default 0.01
+
+    Returns
+    -------
+    list(Rule)
+        List of fired rules
+    """
+    return [rule for rule in rule_list if rule.matching(instance) > threshold]
+
+
 def _get_maximum_weight_rules(rule_list):
     """Obtain the maximum weight rules from a given rule list"""
     max_weight = {}
@@ -54,7 +76,8 @@ def FID3_factual(instance, rule_list, threshold=0.01):
     list(Rule)
         List of factual rules
     """
-    return [rule for rule in rule_list if rule.matching(instance) > threshold]
+    fired_rules = _fired_rules(instance, rule_list, threshold)
+    return max(fired_rules, key=lambda rule: rule.matching(instance))
 
 
 def m_factual(instance, rule_list, class_val):
@@ -76,7 +99,7 @@ def m_factual(instance, rule_list, class_val):
     list(Rule)
         List of factual rules
     """
-    fired_rules = FID3_factual(instance, rule_list)
+    fired_rules = _fired_rules(instance, rule_list)
     max_weight_class = _prepare_factual(fired_rules, class_val)
     max_weight_class.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
     avg = reduce(lambda x, y: x + y.matching(instance), fired_rules, 0) / len(fired_rules)
@@ -102,7 +125,7 @@ def mr_factual(instance, rule_list, class_val):
     list(Rule)
         List of factual rules
     """
-    fired_rules = FID3_factual(instance, rule_list)
+    fired_rules = _fired_rules(instance, rule_list)
     max_weight_class = _prepare_factual(fired_rules, class_val)
     max_weight_class.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
     robust_threshold = _robust_threshold(instance, rule_list, class_val)
@@ -142,7 +165,7 @@ def c_factual(instance, rule_list, class_val, lam, beta=None):
     list(Rule)
         List of factual rules
     """
-    fired_rules = FID3_factual(instance, rule_list)
+    fired_rules = _fired_rules(instance, rule_list)
     max_weight_class = _prepare_factual(fired_rules, class_val)
     max_weight_class.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
     factual = [max_weight_class[0]]

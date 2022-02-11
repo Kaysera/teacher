@@ -19,8 +19,15 @@ class Rule:
         antecedents = " AND ".join([f"{feat}: {val}"for (feat, val) in self.antecedent])
         return f'{antecedents} => {self.consequent} (Weight: {self.weight})'
 
+    def __eq__(self, other):
+        if not isinstance(other, Rule):
+            return False
+        return (self.antecedent == other.antecedent and
+                self.consequent == other.consequent and
+                self.weight == other.weight)
+
     def matching(self, fuzzy_instance, t_norm=min):
-        """[summary]
+        """Matching that an instance has with the rule
 
         Parameters
         ----------

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from flore.neighbors import (SimpleNeighborhood, BaseNeighborhood, FuzzyNeighborhood,
-                             LoreNeighborhood, NotFittedException, NotFuzzifiedException)
+                             LoreNeighborhood, NotFittedError, NotFuzzifiedError)
 from flore.datasets import load_beer
 
 from sklearn import datasets
@@ -63,37 +63,68 @@ def prepare_beer(set_random):
             idx_record2explain, df_numerical_columns, df_categorical_columns]
 
 
-def test_not_fitted_exception_x(prepare_iris):
-    with raises(NotFittedException):
-        neighborhood = SimpleNeighborhood(*prepare_iris)
+class MockBaseNeighborhood(BaseNeighborhood):
+    """Mock Base Neighborhood not intended to be used"""
+    def __init__(self):
+        """Mock Initialization of the neighborhood"""
+        super().__init__(None, None, None, None)
+
+    def fit(self):
+        "Mock fit method not intended to be used"
+        self._X = True
+        self._y = True
+        return True
+
+
+class MockFuzzyNeighborhood(FuzzyNeighborhood):
+    "Mock Fuzzy Neighborhood not intended to be used"
+    def __init__(self):
+        """Mock Initialization of the neighborhood"""
+        super().__init__(None, None, None, None)
+
+    def fit(self):
+        "Mock fit method not intended to be used"
+        self._X = True
+        self._y = True
+        return True
+
+
+def test_not_fitted_error_x():
+    with raises(NotFittedError):
+        neighborhood = MockBaseNeighborhood()
         neighborhood.get_X()
 
 
-def test_not_fitted_exception_y(prepare_iris):
-    with raises(NotFittedException):
-        neighborhood = SimpleNeighborhood(*prepare_iris)
+def test_not_fitted_error_y():
+    with raises(NotFittedError):
+        neighborhood = MockBaseNeighborhood()
         neighborhood.get_y()
 
 
-def test_not_fitted_exception_fuzzify(prepare_beer):
-    with raises(NotFittedException):
-        [instance, size, class_name, blackbox, dataset, X_test,
-            idx_record2explain, df_numerical_columns, df_categorical_columns] = prepare_beer
-
-        neighborhood = LoreNeighborhood(instance, size, class_name, blackbox, dataset, X_test, idx_record2explain)
-        neighborhood.fuzzify('equal_width',
-                             sets=3,
-                             class_name=class_name,
-                             df_numerical_columns=df_numerical_columns,
-                             df_categorical_columns=df_categorical_columns)
+def test_not_fitted_error_fuzzify():
+    with raises(NotFittedError):
+        neighborhood = MockFuzzyNeighborhood()
+        neighborhood.fuzzify('equal_width')
 
 
-def test_equal_width_no_sets(prepare_beer):
+def test_not_fuzzified_error_fuzzy_X():
+    with raises(NotFuzzifiedError):
+        neighborhood = MockFuzzyNeighborhood()
+        neighborhood.get_fuzzy_X()
+
+
+def test_not_fuzzified_error_fuzzy_instance():
+    with raises(NotFuzzifiedError):
+        neighborhood = MockFuzzyNeighborhood()
+        neighborhood.get_fuzzy_instance()
+
+
+def test_equal_width_no_sets():
     with raises(ValueError):
-        (instance, size, class_name, blackbox, dataset, X_test,
-         idx_record2explain, df_numerical_columns, df_categorical_columns) = prepare_beer
-
-        neighborhood = LoreNeighborhood(instance, size, class_name, blackbox, dataset, X_test, idx_record2explain)
+        class_name = 'class_name'
+        df_numerical_columns = ['column_1']
+        df_categorical_columns = ['column_2']
+        neighborhood = MockFuzzyNeighborhood()
         neighborhood.fit()
         neighborhood.fuzzify('equal_width',
                              class_name=class_name,
@@ -101,12 +132,12 @@ def test_equal_width_no_sets(prepare_beer):
                              df_categorical_columns=df_categorical_columns)
 
 
-def test_equal_freq_no_sets(prepare_beer):
+def test_equal_freq_no_sets():
     with raises(ValueError):
-        (instance, size, class_name, blackbox, dataset, X_test,
-         idx_record2explain, df_numerical_columns, df_categorical_columns) = prepare_beer
-
-        neighborhood = LoreNeighborhood(instance, size, class_name, blackbox, dataset, X_test, idx_record2explain)
+        class_name = 'class_name'
+        df_numerical_columns = ['column_1']
+        df_categorical_columns = ['column_2']
+        neighborhood = MockFuzzyNeighborhood()
         neighborhood.fit()
         neighborhood.fuzzify('equal_freq',
                              class_name=class_name,
@@ -114,12 +145,11 @@ def test_equal_freq_no_sets(prepare_beer):
                              df_categorical_columns=df_categorical_columns)
 
 
-def test_entropy_no_class_name(prepare_beer):
+def test_entropy_no_class_name():
     with raises(ValueError):
-        (instance, size, class_name, blackbox, dataset, X_test,
-         idx_record2explain, df_numerical_columns, df_categorical_columns) = prepare_beer
-
-        neighborhood = LoreNeighborhood(instance, size, class_name, blackbox, dataset, X_test, idx_record2explain)
+        df_numerical_columns = ['column_1']
+        df_categorical_columns = ['column_2']
+        neighborhood = MockFuzzyNeighborhood()
         neighborhood.fit()
         neighborhood.fuzzify('entropy',
                              sets=3,
@@ -127,35 +157,26 @@ def test_entropy_no_class_name(prepare_beer):
                              df_categorical_columns=df_categorical_columns)
 
 
-def test_entropy_not_fuzzified(prepare_beer):
-    with raises(NotFuzzifiedException):
-        (instance, size, class_name, blackbox, dataset, X_test,
-         idx_record2explain, df_numerical_columns, df_categorical_columns) = prepare_beer
-
-        neighborhood = LoreNeighborhood(instance, size, class_name, blackbox, dataset, X_test, idx_record2explain)
-        neighborhood.get_fuzzy_X()
-
-
-def test_no_numerical_columns(prepare_beer):
+def test_no_numerical_columns():
     with raises(ValueError):
-        (instance, size, class_name, blackbox, dataset, X_test,
-         idx_record2explain, df_numerical_columns, df_categorical_columns) = prepare_beer
-
-        neighborhood = LoreNeighborhood(instance, size, class_name, blackbox, dataset, X_test, idx_record2explain)
+        df_categorical_columns = ['column_2']
+        class_name = 'class_name'
+        neighborhood = MockFuzzyNeighborhood()
         neighborhood.fit()
         neighborhood.fuzzify('entropy',
+                             sets=3,
                              class_name=class_name,
                              df_categorical_columns=df_categorical_columns)
 
 
-def test_no_categorical_columns(prepare_beer):
+def test_no_categorical_columns():
     with raises(ValueError):
-        (instance, size, class_name, blackbox, dataset, X_test,
-         idx_record2explain, df_numerical_columns, df_categorical_columns) = prepare_beer
-
-        neighborhood = LoreNeighborhood(instance, size, class_name, blackbox, dataset, X_test, idx_record2explain)
+        df_numerical_columns = ['column_2']
+        class_name = 'class_name'
+        neighborhood = MockFuzzyNeighborhood()
         neighborhood.fit()
         neighborhood.fuzzify('entropy',
+                             sets=3,
                              class_name=class_name,
                              df_numerical_columns=df_numerical_columns)
 
