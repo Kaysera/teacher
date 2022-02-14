@@ -20,7 +20,7 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
         # EXPECTED PARAMS IN KWARGS: df_numerical_columns, df_categorical_columns, sets,
         #                            fuzzy_labels, class_name, verbose
 
-        if self._X is None or self._y is None:
+        if self._X is None or self._y is None or self._Xy is None:
             raise NotFittedError
 
         fuzzy_points_params = ['df_numerical_columns', 'sets', 'class_name', 'verbose']
@@ -38,7 +38,10 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
         if 'df_numerical_columns' not in kwargs.keys() or 'df_categorical_columns' not in kwargs.keys():
             raise ValueError('Numerical and categorical columns needed to get fuzzy X')
 
-        fuzzy_points = get_fuzzy_points(self._X, get_division, **fuzzy_points_args)
+        if get_division == 'entropy':
+            fuzzy_points = get_fuzzy_points(self._Xy, get_division, **fuzzy_points_args)
+        else:
+            fuzzy_points = get_fuzzy_points(self._X, get_division, **fuzzy_points_args)
         self._fuzzy_X = get_fuzzy_set_dataframe(self._X, get_fuzzy_triangle, fuzzy_points, **fuzzy_set_args)
 
         instance_dict = {self._X.columns[i]: [self.instance[i]] for i in range(len(self.instance))}

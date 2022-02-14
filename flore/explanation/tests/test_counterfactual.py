@@ -195,7 +195,7 @@ def test_i_counterfactual_fdt(prepare_beer_fdt):
     fdt.fit(X_train, y_train)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     other_classes = [cv for cv in all_classes if cv != fdt_predict]
@@ -223,7 +223,7 @@ def test_i_counterfactual_compas_fdt(prepare_german_fdt):
     fdt.fit(X_train, y_train)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     other_classes = [cv for cv in all_classes if cv != fdt_predict]
@@ -251,7 +251,7 @@ def test_f_counterfactual_fdt(prepare_beer_fdt):
     fdt.fit(X_train, y_train)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)

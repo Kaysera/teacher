@@ -27,6 +27,7 @@ class LoreNeighborhood(FuzzyNeighborhood):
         # Generate Neighborhood
         df, Z = genetic_neighborhood(dfZ, x, self.bb, self.dataset, self.size)
 
+        self._Xy = df
         self._X = df.drop(self.class_name, axis=1)
         self._y = self.bb.predict(Z)
         self._y_decoded = df[self.class_name]

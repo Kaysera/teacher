@@ -103,7 +103,7 @@ def m_factual(instance, rule_list, class_val):
     max_weight_class = _prepare_factual(fired_rules, class_val)
     max_weight_class.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
     avg = reduce(lambda x, y: x + y.matching(instance), fired_rules, 0) / len(fired_rules)
-    return [rule for rule in max_weight_class if rule.matching(instance) > avg]
+    return [rule for rule in max_weight_class if rule.matching(instance) >= avg]
 
 
 def mr_factual(instance, rule_list, class_val):

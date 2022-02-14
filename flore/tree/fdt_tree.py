@@ -77,7 +77,11 @@ class TreeFDT:
     def _partial_predict(self, fuzzy_X, mu, tree):
         if tree.value != (0, 0):
             att, value = tree.value
-            new_mu = self.t_norm(mu, fuzzy_X[att][value])
+            try:
+                pert_degree = fuzzy_X[att][value]
+            except KeyError:
+                pert_degree = 0
+            new_mu = self.t_norm(mu, pert_degree)
         else:
             new_mu = mu
         if tree.is_leaf:

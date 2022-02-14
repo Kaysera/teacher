@@ -28,6 +28,8 @@ class Rule:
 
     def matching(self, fuzzy_instance, t_norm=min):
         """Matching that an instance has with the rule
+        If there is some feature or value not existing in the instance,
+        its matching degree is zero
 
         Parameters
         ----------
@@ -36,4 +38,7 @@ class Rule:
         t_norm : function, optional
             Operation to use as tnorm to get the matching, by default min
         """
-        return t_norm([fuzzy_instance[feature][value] for (feature, value) in self.antecedent])
+        try:
+            return t_norm([fuzzy_instance[feature][value] for (feature, value) in self.antecedent])
+        except KeyError:
+            return 0

@@ -123,7 +123,7 @@ def test_rules_fdt(prepare_iris_fdt):
     fdt.fit(X_train, y_train)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     all_rules = set((str(tuple(rule)) for rule in fdt.get_all_rules(all_classes)))
     new_rules = new_fdt.to_rule_based_system()
@@ -143,7 +143,7 @@ def test_iris_fdt(prepare_iris_fdt):
     fdt_score = fdt.score(fuzzy_set_df_test, y_test)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
     np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
@@ -163,7 +163,7 @@ def test_iris_min_examples_fdt(prepare_iris_fdt):
     fdt_score = fdt.score(fuzzy_set_df_test, y_test)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys(), min_num_examples=50)
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
     np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
@@ -183,7 +183,7 @@ def test_iris_max_depth_fdt(prepare_iris_fdt):
     fdt_score = fdt.score(fuzzy_set_df_test, y_test)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys(), max_depth=2)
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
     np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
@@ -203,7 +203,7 @@ def test_iris_max_match_fdt(prepare_iris_fdt):
     fdt_score = fdt.score(fuzzy_set_df_test, y_test)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys(), voting='max_match')
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
     np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))

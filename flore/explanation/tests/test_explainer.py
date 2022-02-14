@@ -1,10 +1,9 @@
 import random
-from pytest import raises
+import pytest
 import numpy as np
-from pytest import fixture
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from flore.explanation import FID3Explainer
+from flore.explanation import FID3Explainer, FDTExplainer
 from flore.datasets import load_compas
 from flore.tree import Rule
 from flore.neighbors import LoreNeighborhood, NotFittedError
@@ -12,7 +11,7 @@ from .._base_explainer import BaseExplainer
 from .._factual_local_explainer import FactualLocalExplainer
 
 
-@fixture
+@pytest.fixture
 def set_random():
     seed = 0
     random.seed(seed)
@@ -20,11 +19,40 @@ def set_random():
     return seed
 
 
+@pytest.fixture
+def prepare_compas(set_random):
+    dataset = load_compas()
+
+    X, y = dataset['X'], dataset['y']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.2, random_state=set_random)
+
+    idx_record2explain = 3
+    instance = X_test[idx_record2explain]
+    size = 300
+    class_name = dataset['class_name']
+    get_division = 'entropy'
+
+    df_numerical_columns = [col for col in dataset['continuous'] if col != class_name]
+    df_categorical_columns = [col for col in dataset['discrete'] if col != class_name]
+
+    blackbox = RandomForestClassifier(n_estimators=20, random_state=set_random)
+    blackbox.fit(X_train, y_train)
+    target = blackbox.predict(instance.reshape(1, -1))
+
+    neighborhood = LoreNeighborhood(instance, size, class_name, blackbox, dataset, X_test, idx_record2explain)
+    neighborhood.fit()
+    neighborhood.fuzzify(get_division,
+                         class_name=class_name,
+                         df_numerical_columns=df_numerical_columns,
+                         df_categorical_columns=df_categorical_columns)
+
+    return [instance, target, neighborhood, df_numerical_columns]
+
+
 class MockBaseExplainer(BaseExplainer):
     """Mock Base Explainer, not intended for use"""
     def fit(self):
         """Mock fit method that does nothing"""
-        return True
 
 
 class MockFactualLocalExplainer(FactualLocalExplainer):
@@ -36,13 +64,13 @@ class MockFactualLocalExplainer(FactualLocalExplainer):
 
 
 def test_explainer_not_fitted():
-    with raises(NotFittedError):
+    with pytest.raises(NotFittedError):
         mbe = MockBaseExplainer()
         mbe.explain()
 
 
 def test_explainer_hit_not_fitted():
-    with raises(NotFittedError):
+    with pytest.raises(NotFittedError):
         mbe = MockFactualLocalExplainer()
         mbe.hit()
 
@@ -90,3 +118,62 @@ def test_FID3Explainer(set_random):
 
     assert factual == expected_fact
     assert counterfactual == expected_cf
+
+
+@pytest.mark.parametrize(
+    "f_method, cf_method, lam, beta, expected_fact, expected_cf",
+    [
+        ('m_factual', 'i_counterfactual', None, None, [Rule((('priors_count', '2'), ('two_year_recid', 1)), 0, 1.0)],
+         [(Rule((('priors_count', '1'), ('days_b_screening_arrest', '1')), 1, 1.0), np.array([0.25]))]),
+        ('mr_factual', 'i_counterfactual', None, None, [Rule((('priors_count', '2'), ('two_year_recid', 1)), 0, 1.0)],
+         [(Rule((('priors_count', '1'), ('days_b_screening_arrest', '1')), 1, 1.0), np.array([0.25]))]),
+        ('c_factual', 'i_counterfactual', 0.9, None, [Rule((('priors_count', '2'), ('two_year_recid', 1)), 0, 1.0)],
+         [(Rule((('priors_count', '1'), ('days_b_screening_arrest', '1')), 1, 1.0), np.array([0.25]))]),
+        ('c_factual', 'i_counterfactual', 0.9, 0.5, [Rule((('priors_count', '2'), ('two_year_recid', 1)), 0, 1.0)],
+         [(Rule((('priors_count', '1'), ('days_b_screening_arrest', '1')), 1, 1.0), np.array([0.25]))]),
+        ('m_factual', 'f_counterfactual', None, None, [Rule((('priors_count', '2'), ('two_year_recid', 1)), 0, 1.0)],
+         [(Rule((('priors_count', '0'),), 1, 1.0), np.array([0.]))]),
+        ('mr_factual', 'f_counterfactual', None, None, [Rule((('priors_count', '2'), ('two_year_recid', 1)), 0, 1.0)],
+         [(Rule((('priors_count', '0'),), 1, 1.0), np.array([0.]))])
+    ]
+    )
+def test_FDTExplainer(prepare_compas, f_method, cf_method, lam, beta, expected_fact, expected_cf):
+    [instance, target, neighborhood, df_numerical_columns] = prepare_compas
+
+    explainer = FDTExplainer()
+    if f_method == 'c_factual':
+        explainer.fit(instance, target, neighborhood, df_numerical_columns, f_method, cf_method, lam=lam, beta=beta)
+    else:
+        explainer.fit(instance, target, neighborhood, df_numerical_columns, f_method, cf_method)
+
+    factual, counterfactual = explainer.explain()
+
+    assert factual == expected_fact
+    assert counterfactual == expected_cf
+
+
+def test_FDTExplainer_invalid_factual(prepare_compas):
+    with pytest.raises(ValueError):
+        [instance, target, neighborhood, df_numerical_columns] = prepare_compas
+        f_method = None
+        cf_method = 'i_counterfactual'
+        explainer = FDTExplainer()
+        explainer.fit(instance, target, neighborhood, df_numerical_columns, f_method, cf_method)
+
+
+def test_FDTExplainer_invalid_counterfactual(prepare_compas):
+    with pytest.raises(ValueError):
+        [instance, target, neighborhood, df_numerical_columns] = prepare_compas
+        f_method = 'm_factual'
+        cf_method = None
+        explainer = FDTExplainer()
+        explainer.fit(instance, target, neighborhood, df_numerical_columns, f_method, cf_method)
+
+
+def test_FDTExplainer_no_lambda(prepare_compas):
+    with pytest.raises(ValueError):
+        [instance, target, neighborhood, df_numerical_columns] = prepare_compas
+        f_method = 'c_factual'
+        cf_method = 'i_counterfactual'
+        explainer = FDTExplainer()
+        explainer.fit(instance, target, neighborhood, df_numerical_columns, f_method, cf_method)

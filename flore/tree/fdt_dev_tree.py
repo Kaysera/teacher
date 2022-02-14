@@ -17,7 +17,7 @@ class FDT_dev(BaseDecisionTree):
         best_f_gain = 0
         best_child_mu = {}
         for feature in tree.features:
-            f_ent = fuzzy_entropy(tree.mu, y.to_numpy())
+            f_ent = fuzzy_entropy(tree.mu, y)
             if verbose:  # pragma: no cover
                 print('------------------------------')
                 print(f'Feature: {feature}')
@@ -28,12 +28,12 @@ class FDT_dev(BaseDecisionTree):
             for value in fuzzy_X[feature]:
                 child_mu[value] = t_norm(tree.mu, fuzzy_X[feature][value])
                 fuzzy_cardinality = child_mu[value].sum()
-                child_f_ent = fuzzy_entropy(child_mu[value], y.to_numpy(), verbose=False)
+                child_f_ent = fuzzy_entropy(child_mu[value], y, verbose=False)
                 if verbose:  # pragma: no cover
                     print('------------------------------')
                     print(f'\tvalue: {value}')
                     # print(f'\tchild_mu: {child_mu[value]}')
-                    print(f'\ty: {y.to_numpy()}')
+                    print(f'\ty: {y}')
                     print(f'\tchild_f_ent: {child_f_ent}')
                 wef += fuzzy_cardinality * child_f_ent
             wef /= crisp_cardinality
@@ -77,7 +77,7 @@ class FDT_dev(BaseDecisionTree):
         att, f_gain, child_mu = self._get_max_f_gain(current_tree, fuzzy_X, y, verbose=False)
         # apply mask to y
         mask = [(x > 0) for x in current_tree.mu]
-        y_masked = y.to_numpy()[mask]
+        y_masked = y[mask]
 
         if self._stop_met(f_gain, y_masked, current_depth):
             current_tree.is_leaf = True

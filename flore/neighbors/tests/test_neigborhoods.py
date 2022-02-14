@@ -71,9 +71,6 @@ class MockBaseNeighborhood(BaseNeighborhood):
 
     def fit(self):
         "Mock fit method not intended to be used"
-        self._X = True
-        self._y = True
-        return True
 
 
 class MockFuzzyNeighborhood(FuzzyNeighborhood):
@@ -86,6 +83,7 @@ class MockFuzzyNeighborhood(FuzzyNeighborhood):
         "Mock fit method not intended to be used"
         self._X = True
         self._y = True
+        self._Xy = True
         return True
 
 

@@ -10,6 +10,7 @@ class BaseNeighborhood(ABC):
     def __init__(self, instance, size, class_name, bb):
         self._X = None
         self._y = None
+        self._Xy = None
         self.instance = instance
         self.size = size
         self.class_name = class_name

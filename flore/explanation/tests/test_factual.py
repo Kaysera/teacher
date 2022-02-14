@@ -232,7 +232,7 @@ def test_m_factual_fdt(prepare_iris_fdt):
     fdt.fit(X_train, y_train)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
@@ -255,7 +255,7 @@ def test_r_factual_fdt(prepare_beer_fdt):
     fdt.fit(X_train, y_train)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
@@ -281,7 +281,7 @@ def test_c_lambda_factual(prepare_iris_fdt):
     fdt.fit(X_train, y_train)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
@@ -305,7 +305,7 @@ def test_c_lambda_factual_complex_fdt(prepare_beer_fdt):
     fdt.fit(X_train, y_train)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
@@ -330,7 +330,7 @@ def test_c_lambda_beta_factual_fdt(prepare_iris_fdt):
     fdt.fit(X_train, y_train)
 
     new_fdt = FDT_dev(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train)
+    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
