@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def coverage(rule, fuzzy_dataset, threshold=0.001):
+def _get_covered_instances(rule, fuzzy_dataset, threshold=0.001):
     first_feat = list(fuzzy_dataset.keys())[0]
     first_val = list(fuzzy_dataset[first_feat].keys())[0]
     ds_len = len(fuzzy_dataset[first_feat][first_val])
@@ -9,28 +9,31 @@ def coverage(rule, fuzzy_dataset, threshold=0.001):
 
     for feat, val in rule.antecedent:
         mu = np.minimum(mu, fuzzy_dataset[feat][val])
-    return np.sum(mu > threshold) / ds_len
+    return (mu > threshold, ds_len)
 
 
-def precision(rule, fuzzy_dataset, y, threshold=0.001):
-    ds_len = len(y)
-    mu = np.ones(ds_len)
+def _get_fuzzy_coverage(rules, fuzzy_dataset, threshold=0.001):
+    covered_instances, ds_len = _get_covered_instances(rules[0], fuzzy_dataset, threshold)
+    for rule in rules:
+        n_covered_instance, _ = _get_covered_instances(rule, fuzzy_dataset, threshold)
+        covered_instances = covered_instances | n_covered_instance
+    return covered_instances, ds_len
 
-    for feat, val in rule.antecedent:
-        mu = np.minimum(mu, fuzzy_dataset[feat][val])
 
-    return np.sum((mu > threshold) & (y == rule.consequent)) / ds_len
+def coverage(rules, fuzzy_dataset, threshold=0.001):
+    covered_instances, ds_len = _get_fuzzy_coverage(rules, fuzzy_dataset, threshold)
+    return np.sum(covered_instances) / ds_len
+
+
+def precision(rules, fuzzy_dataset, y, threshold=0.001):
+    covered_instances, ds_len = _get_fuzzy_coverage(rules, fuzzy_dataset, threshold)
+    return np.sum((covered_instances) & (y == rules[0].consequent)) / ds_len  # All rules have the same consequent
 
 
 def fidelity(y, y_local):
     return np.sum(y == y_local) / len(y)
 
 
-def rule_fidelity(y, y_local, fuzzy_dataset, rule, threshold=0.001):
-    ds_len = len(y)
-    mu = np.ones(ds_len)
-
-    for feat, val in rule.antecedent:
-        mu = np.minimum(mu, fuzzy_dataset[feat][val])
-
-    return np.sum(y[mu > threshold] == y_local[mu > threshold]) / np.sum(mu > threshold)
+def rule_fidelity(y, y_local, fuzzy_dataset, rules, threshold=0.001):
+    covered_instances, ds_len = _get_fuzzy_coverage(rules, fuzzy_dataset, threshold)
+    return np.sum(y[covered_instances] == y_local[covered_instances]) / np.sum(covered_instances)
