@@ -1,5 +1,6 @@
-from flore.tree import ID3, ID3_dev, FDT, Rule
+from flore.tree import ID3, FDT, Rule
 from flore.tree.tests.fdt_legacy_tree import FDT_Legacy
+from flore.tree.tests.id3_legacy_tree import ID3_Legacy
 from pytest import fixture, raises
 
 from sklearn import datasets
@@ -94,10 +95,10 @@ def test_rule_matching():
 def test_wine_id3(prepare_wine):
     feature_names, X_train, X_test, y_train, y_test = prepare_wine
 
-    id3 = ID3(feature_names, X_train.values, y_train)
+    id3 = ID3_Legacy(feature_names, X_train.values, y_train)
     id3.fit(X_train.values, y_train)
 
-    new_id3 = ID3_dev(feature_names)
+    new_id3 = ID3(feature_names)
     new_id3.fit(X_train.values, y_train)
     assert id3.score(X_test.values, y_test) == new_id3.score(X_test.values, y_test)
     assert id3.tree == new_id3.tree_
@@ -106,10 +107,10 @@ def test_wine_id3(prepare_wine):
 def test_rules_id3(prepare_wine):
     feature_names, X_train, X_test, y_train, y_test = prepare_wine
 
-    id3 = ID3(feature_names, X_train.values, y_train)
+    id3 = ID3_Legacy(feature_names, X_train.values, y_train)
     id3.fit(X_train.values, y_train)
 
-    new_id3 = ID3_dev(feature_names)
+    new_id3 = ID3(feature_names)
     new_id3.fit(X_train.values, y_train)
 
     rules = []
@@ -229,7 +230,7 @@ def test_not_instance_tree_fdt(prepare_iris_fdt):
 def test_not_instance_tree_id3(prepare_wine):
     feature_names, X_train, X_test, y_train, y_test = prepare_wine
 
-    new_id3 = ID3_dev(feature_names)
+    new_id3 = ID3(feature_names)
     new_id3.fit(X_train.values, y_train)
 
     assert 10 != new_id3.tree_

@@ -1,6 +1,7 @@
 from functools import reduce
-from flore.tree import ID3, ID3_dev, FDT
+from flore.tree import ID3, FDT
 from flore.tree.tests.fdt_legacy_tree import FDT_Legacy
+from flore.tree.tests.id3_legacy_tree import ID3_Legacy
 from pytest import fixture
 
 from sklearn import datasets
@@ -207,13 +208,13 @@ def test_explain_id3(set_random):
     X_np = fuzzy_X.values
     y_np = y_train.values
 
-    id3_class = ID3(fuzzy_X.columns, X_np, y_np, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
+    id3_class = ID3_Legacy(fuzzy_X.columns, X_np, y_np, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
     id3_class.fit(X_np, y_np)
     explanation = id3_class.explainInstance(instance, idx_record2explain, fuzzy_set_test, discrete, verbose=False)
     operator = min
     best_rule = _get_best_rule(explanation, operator)[0]
 
-    new_id3 = ID3_dev(fuzzy_X.columns, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
+    new_id3 = ID3(fuzzy_X.columns, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
     new_id3.fit(X_np, y_np)
     f_instance = _get_fuzzy_element(fuzzy_set_test, 1)
     rules = new_id3.to_rule_based_system()

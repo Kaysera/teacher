@@ -1,7 +1,7 @@
 from ._factual_local_explainer import FactualLocalExplainer
 from flore.neighbors import LoreNeighborhood
-from flore.tree import ID3_dev
 from flore.explanation import FID3_factual, FID3_counterfactual
+from flore.tree import ID3
 import numpy as np
 
 
@@ -18,7 +18,7 @@ class FID3Explainer(FactualLocalExplainer):
         y_decoded = neighborhood.get_y()
 
         fuzzy_X = self._fuzzify_dataset(X, fuzzy_X)
-        self.local_explainer = ID3_dev(fuzzy_X.columns)
+        self.local_explainer = ID3(fuzzy_X.columns)
 
         self.local_explainer.fit(fuzzy_X.values, y_decoded)
         rules = self.local_explainer.to_rule_based_system()

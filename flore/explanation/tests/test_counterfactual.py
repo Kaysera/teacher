@@ -1,5 +1,6 @@
-from flore.tree import ID3, ID3_dev, FDT
+from flore.tree import ID3, FDT
 from flore.tree.tests.fdt_legacy_tree import FDT_Legacy
+from flore.tree.tests.id3_legacy_tree import ID3_Legacy
 from pytest import fixture
 
 from sklearn.model_selection import train_test_split
@@ -164,7 +165,7 @@ def test_counterfactual_id3(set_random):
     X_np = fuzzy_X.values
     y_np = y_train.values
 
-    id3_class = ID3(fuzzy_X.columns, X_np, y_np, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
+    id3_class = ID3_Legacy(fuzzy_X.columns, X_np, y_np, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
     id3_class.fit(X_np, y_np)
 
     explanation = id3_class.explainInstance(instance, idx_record2explain, fuzzy_set_test, discrete, verbose=False)
@@ -174,7 +175,7 @@ def test_counterfactual_id3(set_random):
     all_rules = id3_class.exploreTreeFn(verbose=False)
     exp_cf, _ = _FID3_counterfactual(all_rules, cf_explanation)
 
-    new_id3 = ID3_dev(fuzzy_X.columns, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
+    new_id3 = ID3(fuzzy_X.columns, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
     new_id3.fit(X_np, y_np)
     f_instance = _get_fuzzy_element(fuzzy_set, idx_record2explain)
     rules = new_id3.to_rule_based_system()
