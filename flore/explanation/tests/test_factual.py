@@ -1,5 +1,6 @@
 from functools import reduce
-from flore.tree import ID3, ID3_dev, FDT, FDT_dev
+from flore.tree import ID3, ID3_dev, FDT
+from flore.tree.tests.fdt_legacy_tree import FDT_Legacy
 from pytest import fixture
 
 from sklearn import datasets
@@ -228,10 +229,10 @@ def test_explain_id3(set_random):
 def test_m_factual_fdt(prepare_iris_fdt):
     fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt = FDT(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
@@ -251,10 +252,10 @@ def test_m_factual_fdt(prepare_iris_fdt):
 def test_r_factual_fdt(prepare_beer_fdt):
     fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes = prepare_beer_fdt
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt = FDT(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
@@ -277,10 +278,10 @@ def test_c_lambda_factual(prepare_iris_fdt):
     fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
     lam = 0.98
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt = FDT(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
@@ -301,10 +302,10 @@ def test_c_lambda_factual_complex_fdt(prepare_beer_fdt):
     fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_beer_fdt
     lam = 0.5
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt = FDT(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
@@ -326,10 +327,10 @@ def test_c_lambda_beta_factual_fdt(prepare_iris_fdt):
     lam = 0.98
     beta = 0.5
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt = FDT(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]

@@ -1,5 +1,5 @@
 from ._factual_local_explainer import FactualLocalExplainer
-from flore.tree import FDT_dev
+from flore.tree import FDT
 from flore.explanation import m_factual, mr_factual, c_factual, i_counterfactual, f_counterfactual
 
 
@@ -34,7 +34,7 @@ class FDTExplainer(FactualLocalExplainer):
         fuzzy_instance = neighborhood.get_fuzzy_instance()
         y = neighborhood.get_y()
 
-        self.local_explainer = FDT_dev(fuzzy_X.keys())
+        self.local_explainer = FDT(fuzzy_X.keys())
         self.local_explainer.fit(fuzzy_X, y)
 
         rules = self.local_explainer.to_rule_based_system()

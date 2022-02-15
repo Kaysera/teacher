@@ -1,4 +1,5 @@
-from flore.tree import ID3, ID3_dev, FDT, FDT_dev, Rule
+from flore.tree import ID3, ID3_dev, FDT, Rule
+from flore.tree.tests.fdt_legacy_tree import FDT_Legacy
 from pytest import fixture, raises
 
 from sklearn import datasets
@@ -119,10 +120,10 @@ def test_rules_id3(prepare_wine):
 def test_rules_fdt(prepare_iris_fdt):
     fuzzy_set_df_train, _, X_train, y_train, _, _, _, all_classes = prepare_iris_fdt
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt = FDT(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     all_rules = set((str(tuple(rule)) for rule in fdt.get_all_rules(all_classes)))
@@ -138,11 +139,11 @@ def test_iris_fdt(prepare_iris_fdt):
 
     fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
     fdt_score = fdt.score(fuzzy_set_df_test, y_test)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt = FDT(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
@@ -158,11 +159,11 @@ def test_iris_min_examples_fdt(prepare_iris_fdt):
 
     fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train, min_num_examples=50)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train, min_num_examples=50)
     fdt.fit(X_train, y_train)
     fdt_score = fdt.score(fuzzy_set_df_test, y_test)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys(), min_num_examples=50)
+    new_fdt = FDT(fuzzy_set_df_train.keys(), min_num_examples=50)
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
@@ -178,11 +179,11 @@ def test_iris_max_depth_fdt(prepare_iris_fdt):
 
     fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train, max_depth=2)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train, max_depth=2)
     fdt.fit(X_train, y_train)
     fdt_score = fdt.score(fuzzy_set_df_test, y_test)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys(), max_depth=2)
+    new_fdt = FDT(fuzzy_set_df_train.keys(), max_depth=2)
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
@@ -198,11 +199,11 @@ def test_iris_max_match_fdt(prepare_iris_fdt):
 
     fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train, voting='max_match')
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train, voting='max_match')
     fdt.fit(X_train, y_train)
     fdt_score = fdt.score(fuzzy_set_df_test, y_test)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys(), voting='max_match')
+    new_fdt = FDT(fuzzy_set_df_train.keys(), voting='max_match')
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
@@ -216,12 +217,12 @@ def test_iris_max_match_fdt(prepare_iris_fdt):
 def test_iris_invalid_voting_fdt(prepare_iris_fdt):
     with raises(ValueError):
         fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
-        FDT_dev(fuzzy_set_df_train.keys(), voting='invalid')
+        FDT(fuzzy_set_df_train.keys(), voting='invalid')
 
 
 def test_not_instance_tree_fdt(prepare_iris_fdt):
     fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt = FDT(fuzzy_set_df_train.keys())
     assert new_fdt.tree_ != 10
 
 

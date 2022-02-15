@@ -8,7 +8,7 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
 
-def test_tree():
+def _tree():
     theory = np.array([0, 0, 3, 3, 7, 7, 9])
     practice = np.array([0, 3, 3, 9, 1, 4, 9])
 
@@ -43,7 +43,7 @@ def test_tree():
     assert prediction == results
 
 
-def test_inference():
+def _inference():
     df = pd.DataFrame(
         [
             [2, 5, False],
@@ -87,7 +87,7 @@ def test_inference():
     np.testing.assert_almost_equal(score, expected_score)
 
 
-def test_iris():
+def _iris():
     iris = datasets.load_iris(as_frame=True)
 
     df_numerical_columns = iris.feature_names
@@ -146,7 +146,7 @@ def test_iris():
     np.testing.assert_almost_equal(score, expected_score)
 
 
-def test_wine():
+def _wine():
     wine = datasets.load_wine(as_frame=True)
 
     df_numerical_columns = wine.feature_names

@@ -1,4 +1,5 @@
-from flore.tree import ID3, ID3_dev, FDT, FDT_dev
+from flore.tree import ID3, ID3_dev, FDT
+from flore.tree.tests.fdt_legacy_tree import FDT_Legacy
 from pytest import fixture
 
 from sklearn.model_selection import train_test_split
@@ -191,10 +192,10 @@ def test_counterfactual_id3(set_random):
 def test_i_counterfactual_fdt(prepare_beer_fdt):
     fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes, df_numerical_columns = prepare_beer_fdt
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt = FDT(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
@@ -219,10 +220,10 @@ def test_i_counterfactual_fdt(prepare_beer_fdt):
 def test_i_counterfactual_compas_fdt(prepare_german_fdt):
     fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes, df_numerical_columns = prepare_german_fdt
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt = FDT(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
@@ -247,10 +248,10 @@ def test_i_counterfactual_compas_fdt(prepare_german_fdt):
 def test_f_counterfactual_fdt(prepare_beer_fdt):
     fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes, df_numerical_columns = prepare_beer_fdt
 
-    fdt = FDT(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT_dev(fuzzy_set_df_train.keys())
+    new_fdt = FDT(fuzzy_set_df_train.keys())
     new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
