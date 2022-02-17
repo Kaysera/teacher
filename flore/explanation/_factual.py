@@ -36,7 +36,7 @@ def _get_maximum_weight_rules(rule_list):
     return max_weight.values()
 
 
-def _prepare_factual(rule_list, class_val):
+def _get_class_maximum_weight_rules(rule_list, class_val):
     max_weight = _get_maximum_weight_rules(rule_list)
     return [rule for rule in max_weight if rule.consequent == class_val]
 
@@ -100,10 +100,10 @@ def m_factual(instance, rule_list, class_val):
         List of factual rules
     """
     fired_rules = _fired_rules(instance, rule_list)
-    max_weight_class = _prepare_factual(fired_rules, class_val)
-    max_weight_class.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
+    class_max_weight = _get_class_maximum_weight_rules(fired_rules, class_val)
+    class_max_weight.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
     avg = reduce(lambda x, y: x + y.matching(instance), fired_rules, 0) / len(fired_rules)
-    return [rule for rule in max_weight_class if rule.matching(instance) >= avg]
+    return [rule for rule in class_max_weight if rule.matching(instance) >= avg]
 
 
 def mr_factual(instance, rule_list, class_val):
@@ -126,13 +126,13 @@ def mr_factual(instance, rule_list, class_val):
         List of factual rules
     """
     fired_rules = _fired_rules(instance, rule_list)
-    max_weight_class = _prepare_factual(fired_rules, class_val)
-    max_weight_class.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
+    class_max_weight = _get_class_maximum_weight_rules(fired_rules, class_val)
+    class_max_weight.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
     robust_threshold = _robust_threshold(instance, rule_list, class_val)
 
     factual = []
     AD_sum = 0
-    for rule in max_weight_class:
+    for rule in class_max_weight:
         if robust_threshold < AD_sum:
             break
         factual.append(rule)
@@ -166,12 +166,12 @@ def c_factual(instance, rule_list, class_val, lam, beta=None):
         List of factual rules
     """
     fired_rules = _fired_rules(instance, rule_list)
-    max_weight_class = _prepare_factual(fired_rules, class_val)
-    max_weight_class.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
-    factual = [max_weight_class[0]]
+    class_max_weight = _get_class_maximum_weight_rules(fired_rules, class_val)
+    class_max_weight.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
+    factual = [class_max_weight[0]]
     prev_matching = factual[0].matching(instance) * factual[0].weight
     AD_sum = prev_matching
-    for rule in max_weight_class[1:]:
+    for rule in class_max_weight[1:]:
         matching = rule.matching(instance) * rule.weight
         factor = prev_matching / matching
         if factor > 1 + lam:

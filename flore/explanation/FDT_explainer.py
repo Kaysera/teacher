@@ -7,7 +7,7 @@ class FDTExplainer(FactualLocalExplainer):
     def __init__(self):
         self.local_explainer = None
         self.factual_method = None
-        self.cf_method = None
+        self.counterfactual_method = None
         super().__init__()
 
     def fit(self, instance, target, neighborhood, df_num_cols, factual, counterfactual, **kwargs):
@@ -23,9 +23,9 @@ class FDTExplainer(FactualLocalExplainer):
             raise ValueError("Factual method invalid")
 
         if counterfactual == 'i_counterfactual':
-            self.cf_method = i_counterfactual
+            self.counterfactual_method = i_counterfactual
         elif counterfactual == 'f_counterfactual':
-            self.cf_method = f_counterfactual
+            self.counterfactual_method = f_counterfactual
         else:
             raise ValueError("Counterfactual method invalid")
 
@@ -41,7 +41,7 @@ class FDTExplainer(FactualLocalExplainer):
         self.exp_value = self.local_explainer.predict(fuzzy_instance)[0]
         fact = self.factual_method(fuzzy_instance, rules, self.exp_value, **kwargs)
         if counterfactual == 'i_counterfactual':
-            cf = self.cf_method(fuzzy_instance, rules, self.exp_value, df_num_cols)
+            cf = self.counterfactual_method(fuzzy_instance, rules, self.exp_value, df_num_cols)
         elif counterfactual == 'f_counterfactual':
-            cf = self.cf_method(fact, fuzzy_instance, rules, self.exp_value, df_num_cols)
+            cf = self.counterfactual_method(fact, fuzzy_instance, rules, self.exp_value, df_num_cols)
         self.explanation = (fact, cf)

@@ -3,21 +3,17 @@ from ._factual import _get_maximum_weight_rules
 
 
 def _compare_rules_FID3(factual, counter_rule):
-    ex = {key: val for key, val in factual.antecedent}
-    cr = {key: val for key, val in counter_rule.antecedent}
+    fact_ante = {key: val for key, val in factual.antecedent}
+    counter_rule_ante = {key: val for key, val in counter_rule.antecedent}
 
     diffs = set([])
 
-    for elem in ex:
-        if elem in cr and ex[elem] == cr[elem]:
-            pass
-        else:
+    for elem in fact_ante:
+        if not (elem in counter_rule_ante and fact_ante[elem] == counter_rule_ante[elem]):
             diffs.add(elem)
 
-    for elem in cr:
-        if elem in ex and ex[elem] == cr[elem]:
-            pass
-        else:
+    for elem in counter_rule_ante:
+        if not (elem in fact_ante and fact_ante[elem] == counter_rule_ante[elem]):
             diffs.add(elem)
     return len(diffs)
 

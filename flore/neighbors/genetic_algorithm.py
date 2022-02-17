@@ -68,7 +68,7 @@ def replacement(old_population, new_individuals, fitness_function):
     return big_population[:len(old_population)]
 
 
-def genetic_algorithm(init_population, cxprob, crossprob, mutprob,
+def genetic_algorithm(init_population, cx_prob, cross_prob, mut_prob,
                       mut_ext_prob, feature_values, tournament_k, fitness_function, rounds):
     population = init_population
     for i in range(rounds):
@@ -77,15 +77,15 @@ def genetic_algorithm(init_population, cxprob, crossprob, mutprob,
 
         # Crossover
         for i in range(len(new_population) - 1):
-            if np.random.random() < crossprob:
-                first, second = uniform_crossover(new_population[i], new_population[i+1], cxprob)
+            if np.random.random() < cross_prob:
+                first, second = uniform_crossover(new_population[i], new_population[i+1], cx_prob)
                 new_population[i] = first
                 new_population[i + 1] = second
 
         # Mutation
         for i in range(len(new_population)):
             if np.random.random() < mut_ext_prob:
-                mut_ind = informed_init(feature_values, new_population[i], mutprob)
+                mut_ind = informed_init(feature_values, new_population[i], mut_prob)
                 new_population[i] = mut_ind
 
         # Replacement

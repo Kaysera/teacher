@@ -23,9 +23,9 @@ class FID3Explainer(FactualLocalExplainer):
         self.local_explainer.fit(fuzzy_X.values, y_decoded)
         rules = self.local_explainer.to_rule_based_system()
         self.exp_value = self.local_explainer.predict(instance.reshape(1, -1))[0]
-        factual = FID3_factual(fuzzy_instance, rules)
-        cf, _ = FID3_counterfactual(factual, [rule for rule in rules if rule.consequent != self.exp_value])
-        self.explanation = (factual, cf)
+        fact = FID3_factual(fuzzy_instance, rules)
+        cf, _ = FID3_counterfactual(fact, [rule for rule in rules if rule.consequent != self.exp_value])
+        self.explanation = (fact, cf)
 
     def _get_categorical_fuzzy(self, var):
         x = [var[k] for k in var]
