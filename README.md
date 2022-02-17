@@ -42,12 +42,12 @@ TBD
 ## Supported Methods
 
 The following list summarizes the models and explainers currently supported
-- Anchors: Future work
-- Bayesian Networks: Future work
-- Fuzzy Factuals and Counterfactuals: Explainer obtained from a fuzzy tree that can be used for global or local explanations
-- LIME: Future work
-- [LORE]: Local explainer generated from a neighborhood
-- SHAP: Future work
+- **Anchors**: Future work
+- **Bayesian Networks**: Future work
+- **Fuzzy Factuals and Counterfactuals**: Explainer obtained from a fuzzy tree that can be used for global or local explanations
+- **LIME**: Future work
+- **LORE**: Local explainer generated from a neighborhood
+- **SHAP**: Future work
   
 ## Metrics
 
