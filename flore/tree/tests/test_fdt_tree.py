@@ -1,14 +1,14 @@
 import numpy as np
 import pandas as pd
 
-from flore.fuzzy import get_fuzzy_points_entropy, get_fuzzy_triangle
+from flore.fuzzy import get_fuzzy_points, get_fuzzy_triangle
 from flore.tree import FDT
 
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
 
-def test_tree():
+def _tree():
     theory = np.array([0, 0, 3, 3, 7, 7, 9])
     practice = np.array([0, 3, 3, 9, 1, 4, 9])
 
@@ -20,8 +20,7 @@ def test_tree():
 
     X = df[df_numerical_columns]
     y = df[class_name]
-
-    fuzzy_points = get_fuzzy_points_entropy(df, df_numerical_columns, class_name)
+    fuzzy_points = get_fuzzy_points(df, 'entropy', df_numerical_columns, class_name=class_name)
 
     # THIS IS GET_FUZZY_SET_DATAFRAME
     fuzzy_set_dataframe = {}
@@ -44,7 +43,7 @@ def test_tree():
     assert prediction == results
 
 
-def test_inference():
+def _inference():
     df = pd.DataFrame(
         [
             [2, 5, False],
@@ -88,7 +87,7 @@ def test_inference():
     np.testing.assert_almost_equal(score, expected_score)
 
 
-def test_iris():
+def _iris():
     iris = datasets.load_iris(as_frame=True)
 
     df_numerical_columns = iris.feature_names
@@ -105,7 +104,7 @@ def test_iris():
     print('Getting fuzzy points')
     print('----------')
 
-    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
+    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
 
     print('----------')
     print('Get fuzzy set train')
@@ -147,7 +146,7 @@ def test_iris():
     np.testing.assert_almost_equal(score, expected_score)
 
 
-def test_wine():
+def _wine():
     wine = datasets.load_wine(as_frame=True)
 
     df_numerical_columns = wine.feature_names
@@ -164,7 +163,7 @@ def test_wine():
     print('Getting fuzzy points')
     print('----------')
 
-    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
+    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
 
     print('----------')
     print('Get fuzzy set train')
@@ -206,7 +205,7 @@ def test_wine():
     np.testing.assert_almost_equal(score, expected_score)
 
 
-def test_explain_all_rules():
+def _explain_all_rules():
     wine = datasets.load_wine(as_frame=True)
 
     df_numerical_columns = wine.feature_names
@@ -223,7 +222,7 @@ def test_explain_all_rules():
     print('Getting fuzzy points')
     print('----------')
 
-    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
+    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
 
     print('----------')
     print('Get fuzzy set train')
@@ -265,12 +264,14 @@ def test_explain_all_rules():
                  (0.6010101010101007, [('flavanoids', '1.75'), ('alcohol', '12.85'), ('proline', '750.0')]),
                  (0.3843843843843843, [('flavanoids', '5.08'), ('alcohol', '12.85')]),
                  (0.3843843843843843, [('flavanoids', '5.08'), ('alcohol', '14.83')]),
-                 (0.1191969887076537, [('flavanoids', '1.75'), ('alcohol', '12.85'), ('proline', '1547.0'), ('alcalinity_of_ash', '10.6')]),
-                 (0.1191969887076537, [('flavanoids', '1.75'), ('alcohol', '12.85'), ('proline', '1547.0'), ('alcalinity_of_ash', '30.0')])]
+                 (0.1191969887076537, [('flavanoids', '1.75'), ('alcohol', '12.85'),
+                                       ('proline', '1547.0'), ('alcalinity_of_ash', '10.6')]),
+                 (0.1191969887076537, [('flavanoids', '1.75'), ('alcohol', '12.85'), ('proline', '1547.0'),
+                                       ('alcalinity_of_ash', '30.0')])]
     assert explanation == all_rules
 
 
-def test_explain_single_rule():
+def _explain_single_rule():
     wine = datasets.load_wine(as_frame=True)
 
     df_numerical_columns = wine.feature_names
@@ -287,7 +288,7 @@ def test_explain_single_rule():
     print('Getting fuzzy points')
     print('----------')
 
-    fuzzy_points = get_fuzzy_points_entropy(df_train, df_numerical_columns, class_name)
+    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
 
     print('----------')
     print('Get fuzzy set train')

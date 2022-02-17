@@ -182,3 +182,48 @@ def load_heloc():
 
     discrete = []
     return generate_dataset(df, columns, class_name, discrete, 'heloc_dataset_v1')
+
+
+def load_beer():
+    # Read Dataset
+    df = pd.read_csv(MODULE_PATH + '/data/beer.csv', delimiter=',')
+
+    # Features Categorization
+    class_name = 'beer_style'
+    df_cols = list(df.columns)
+    df_cols.remove(class_name)
+    new_cols = [class_name] + df_cols
+    df = df[new_cols]
+
+    discrete = []
+    columns = df.columns
+    return generate_dataset(df, columns, class_name, discrete, 'beer')
+
+
+def load_pima():
+    # Read Dataset
+    df = pd.read_csv(MODULE_PATH + '/data/pima-indians-diabetes.csv', delimiter=',')
+
+    # Features Categorization
+    class_name = 'Class'
+    df_cols = list(df.columns)
+    df_cols.remove(class_name)
+    new_cols = [class_name] + df_cols
+    df = df[new_cols]
+
+    discrete = []
+    columns = df.columns
+    return generate_dataset(df, columns, class_name, discrete, 'pima')
+
+
+def load_breast():
+    # Read Dataset
+    df = pd.read_csv(MODULE_PATH + '/data/breast.csv', delimiter=',')
+    del df['id']
+
+    # Features Categorization
+    columns = df.columns
+    class_name = 'diagnosis'
+
+    discrete = []
+    return generate_dataset(df, columns, class_name, discrete, 'breast')
