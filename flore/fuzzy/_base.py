@@ -3,6 +3,8 @@ import numpy as np
 import skfuzzy as fuzz
 import matplotlib.pyplot as plt
 from math import log2, inf, pow
+from .fuzzy_variable import FuzzyVariable
+from .fuzzy_set import FuzzyContinuousSet, FuzzyDiscreteSet
 
 
 def get_equal_width_division(variable, sets):
@@ -350,3 +352,105 @@ def get_fuzzy_set_dataframe(df, gen_fuzzy_set, fuzzy_points, df_numerical_column
             element[value] = (df[column] == value).to_numpy().astype(int)
         fuzzy_set[column] = element
     return fuzzy_set
+
+
+def get_dataset_membership(df, fuzzy_variables, verbose=False):
+    """Get all the fuzzy sets from the columns of a DataFrame, and the pertenence value of
+    each register to each fuzzy set
+
+    Parameters
+    ----------
+    df : pandas.core.frame.DataFrame
+        DataFrame to process
+    TODO: FINISH DOCS
+    verbose : bool, optional
+        Enables verbosity and passes it down, by default False
+
+    Returns
+    -------
+    dict
+        Dictionary with format {key : value} where the key is the name of the column of the DataFrame
+        and the value is the output of the gen_fuzzy_set function for that column
+    """
+    dataset_membership = {}
+    for fuzzy_var in fuzzy_variables:
+        dataset_membership[fuzzy_var.name] = fuzzy_var.membership(df[fuzzy_var.name].to_numpy())
+    return dataset_membership
+
+
+def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, continuous_labels=None, discrete_labels=None):
+    # TODO ESCRIBIR DOCUMENTACION
+    fuzzy_variables = []
+    for name, points in continuous_fuzzy_points.items():
+        if continuous_labels is None or name not in continuous_labels:
+            col_labels = [f'{label}' for label in continuous_fuzzy_points[name]]
+        else:
+            col_labels = continuous_labels[name]
+        fuzzy_variables.append(FuzzyVariable(name, get_fuzzy_continuous_sets(list(zip(col_labels, points)))))
+
+    for name, values in discrete_fuzzy_values.items():
+        if discrete_labels is None or name not in discrete_labels:
+            col_labels = [f'{label}' for label in discrete_fuzzy_values[name]]
+        else:
+            col_labels = discrete_labels[name]
+        fuzzy_variables.append(FuzzyVariable(name, get_fuzzy_discrete_sets(list(zip(col_labels, values)))))
+
+    return fuzzy_variables
+
+
+def get_fuzzy_continuous_sets(divisions, verbose=False):
+    """Function that generates a dictionary with the pertenence to each
+    triangular fuzzy set of a variable of a DataFrame given the peaks of
+    the triangles
+
+    Parameters
+    ----------
+    divisions : list
+        List of tuples with the names of the sets and the peak of the triangle
+        like [('low', 0), ('mid', 2), ('high', 5)]
+    verbose : bool, optional
+        Enables verbosity by displaying the fuzzy sets, by default False
+
+    Returns
+    -------
+    dict
+        Dictionary with the format {key : value} where the key is the name of the set
+        and the value is an array of the pertenence to the set of each value of the
+        variable
+    """
+    fuzzy_sets = []
+    fuzzy_sets.append(FuzzyContinuousSet(divisions[0][0], [divisions[0][1], divisions[0][1], divisions[1][1]]))
+    # First triangle is only half triangle
+
+    for i in range(len(divisions) - 2):
+        fuzzy_sets.append(FuzzyContinuousSet(divisions[i + 1][0], [divisions[i][1],
+                                                                   divisions[i + 1][1], divisions[i + 2][1]]))
+
+    # Last triangle is only half triangle
+    fuzzy_sets.append(FuzzyContinuousSet(divisions[-1][0], [divisions[-2][1], divisions[-1][1], divisions[-1][1]]))
+
+    return fuzzy_sets
+
+
+def get_fuzzy_discrete_sets(divisions, verbose=False):
+    """Function that generates a dictionary with the pertenence to each
+    triangular fuzzy set of a variable of a DataFrame given the peaks of
+    the triangles
+
+    Parameters
+    ----------
+    divisions : list
+        List of tuples with the names of the sets and the peak of the triangle
+        like [('low', 0), ('mid', 2), ('high', 5)]
+    verbose : bool, optional
+        Enables verbosity by displaying the fuzzy sets, by default False
+
+    Returns
+    -------
+    dict
+        Dictionary with the format {key : value} where the key is the name of the set
+        and the value is an array of the pertenence to the set of each value of the
+        variable
+    """
+
+    return [FuzzyDiscreteSet(name, value) for name, value in divisions]
