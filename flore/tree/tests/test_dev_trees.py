@@ -6,7 +6,7 @@ from pytest import fixture, raises
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
-from flore.fuzzy import get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points
+from flore.fuzzy import get_fuzzy_points, get_fuzzy_variables, get_dataset_membership
 import numpy as np
 import random
 
@@ -48,14 +48,13 @@ def prepare_iris_fdt(set_random):
     df_test = iris.frame.loc[X_test.index]
 
     fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
-    fuzzy_set_df_train = get_fuzzy_set_dataframe(df_train, get_fuzzy_triangle, fuzzy_points,
-                                                 df_numerical_columns, df_categorical_columns)
-    fuzzy_set_df_test = get_fuzzy_set_dataframe(df_test, get_fuzzy_triangle, fuzzy_points,
-                                                df_numerical_columns, df_categorical_columns)
-
-    fuzzy_element = _get_fuzzy_element(fuzzy_set_df_test, 27)
+    discrete_fuzzy_values = {col: df_train[col].unique() for col in df_categorical_columns}
+    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
+    df_train_membership = get_dataset_membership(df_train, fuzzy_variables)
+    df_test_membership = get_dataset_membership(df_test, fuzzy_variables)
+    fuzzy_element = _get_fuzzy_element(df_test_membership, 27)
     all_classes = np.unique(iris.target)
-    return [fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
+    return [df_train_membership, df_test_membership, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
 
 
 def _get_fuzzy_element(fuzzy_X, idx):

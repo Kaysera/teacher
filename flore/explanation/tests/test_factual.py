@@ -7,10 +7,11 @@ from pytest import fixture
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
-from flore.fuzzy import get_fuzzy_triangle, get_fuzzy_set_dataframe, get_fuzzy_points
+from flore.fuzzy import get_fuzzy_points, get_fuzzy_variables, get_dataset_membership
 from flore.datasets import load_compas, load_beer
 from flore.explanation import FID3_factual, m_factual, mr_factual, c_factual
 import numpy as np
+import pandas as pd
 import random
 
 
@@ -39,14 +40,13 @@ def prepare_iris_fdt(set_random):
     df_test = iris.frame.loc[X_test.index]
 
     fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
-    fuzzy_set_df_train = get_fuzzy_set_dataframe(df_train, get_fuzzy_triangle, fuzzy_points,
-                                                 df_numerical_columns, df_categorical_columns)
-    fuzzy_set_df_test = get_fuzzy_set_dataframe(df_test, get_fuzzy_triangle, fuzzy_points,
-                                                df_numerical_columns, df_categorical_columns)
-
-    fuzzy_element = _get_fuzzy_element(fuzzy_set_df_test, 27)
+    discrete_fuzzy_values = {col: df_train[col].unique() for col in df_categorical_columns}
+    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
+    df_train_membership = get_dataset_membership(df_train, fuzzy_variables)
+    df_test_membership = get_dataset_membership(df_test, fuzzy_variables)
+    fuzzy_element = _get_fuzzy_element(df_test_membership, 27)
     all_classes = np.unique(iris.target)
-    return [fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
+    return [df_train_membership, df_test_membership, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
 
 
 @fixture
@@ -69,14 +69,14 @@ def prepare_beer_fdt(set_random):
     df_test = df.loc[X_test.index]
 
     fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
-    fuzzy_set_df_train = get_fuzzy_set_dataframe(df_train, get_fuzzy_triangle, fuzzy_points,
-                                                 df_numerical_columns, df_categorical_columns)
-    fuzzy_set_df_test = get_fuzzy_set_dataframe(df_test, get_fuzzy_triangle, fuzzy_points,
-                                                df_numerical_columns, df_categorical_columns)
+    discrete_fuzzy_values = {col: df_train[col].unique() for col in df_categorical_columns}
+    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
+    df_train_membership = get_dataset_membership(df_train, fuzzy_variables)
+    df_test_membership = get_dataset_membership(df_test, fuzzy_variables)
 
-    fuzzy_element = _get_fuzzy_element(fuzzy_set_df_test, 48)
+    fuzzy_element = _get_fuzzy_element(df_test_membership, 48)
     all_classes = dataset['possible_outcomes']
-    return [fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
+    return [df_train_membership, df_test_membership, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
 
 
 def _get_fuzzy_element(fuzzy_X, idx):
@@ -84,7 +84,10 @@ def _get_fuzzy_element(fuzzy_X, idx):
     for feat in fuzzy_X:
         element[feat] = {}
         for fuzzy_set in fuzzy_X[feat]:
-            element[feat][fuzzy_set] = fuzzy_X[feat][fuzzy_set][idx]
+            try:
+                element[feat][str(fuzzy_set)] = pd.to_numeric(fuzzy_X[feat][fuzzy_set][idx])
+            except ValueError:
+                element[feat][str(fuzzy_set)] = fuzzy_X[feat][fuzzy_set][idx]
 
     return element
 
@@ -98,7 +101,10 @@ def _get_categorical_fuzzy(var):
 def _fuzzify_dataset(dataframe, fuzzy_set, fuzzify_variable):
     ndf = dataframe.copy()
     for k in fuzzy_set:
-        ndf[k] = fuzzify_variable(fuzzy_set[k])
+        try:
+            ndf[str(k)] = pd.to_numeric(fuzzify_variable(fuzzy_set[k]))
+        except ValueError:
+            ndf[str(k)] = fuzzify_variable(fuzzy_set[k])
     return ndf
 
 
@@ -198,26 +204,47 @@ def test_explain_id3(set_random):
     continuous = dataset['continuous']
 
     # Dataset Preprocessing
-    instance = X_test.iloc[idx_record2explain]
+    instance = X_train.iloc[idx_record2explain]
 
     fuzzy_points = get_fuzzy_points(X_train, 'equal_width', continuous, len(fuzzy_labels))
-    fuzzy_set = get_fuzzy_set_dataframe(X_train, get_fuzzy_triangle, fuzzy_points, continuous, discrete)
-    fuzzy_set_test = get_fuzzy_set_dataframe(X_test, get_fuzzy_triangle, fuzzy_points, continuous, discrete)
-    fuzzy_X = _fuzzify_dataset(X_train, fuzzy_set, _get_categorical_fuzzy)
+    discrete_fuzzy_values = {col: df[col].unique() for col in discrete}
+    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
+    df_train_membership = get_dataset_membership(X_train, fuzzy_variables)
+    df_test_membership = get_dataset_membership(X_test, fuzzy_variables)
+    fuzzy_X = _fuzzify_dataset(X_train, df_train_membership, _get_categorical_fuzzy)
 
     X_np = fuzzy_X.values
     y_np = y_train.values
 
     id3_class = ID3_Legacy(fuzzy_X.columns, X_np, y_np, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
     id3_class.fit(X_np, y_np)
-    explanation = id3_class.explainInstance(instance, idx_record2explain, fuzzy_set_test, discrete, verbose=False)
+
+    explanation = id3_class.explainInstance(instance, idx_record2explain, df_test_membership, discrete, verbose=False)
+
     operator = min
     best_rule = _get_best_rule(explanation, operator)[0]
 
+    # CONVERTING DISCRETE VALUES TO STRING BECAUSE
+    # ID3 TREE CASTS TO INT IF IT CAN
+    for ante, conse in [best_rule]:
+        for i, clause in enumerate(ante):
+            if clause[0] in discrete:
+                ante[i] = (clause[0], str(clause[1]))
+
     new_id3 = ID3(fuzzy_X.columns, max_depth=5, min_num_examples=10, prunning=True, th=0.00000001)
     new_id3.fit(X_np, y_np)
-    f_instance = _get_fuzzy_element(fuzzy_set_test, 1)
+    f_instance = _get_fuzzy_element(df_train_membership, idx_record2explain)
     rules = new_id3.to_rule_based_system()
+
+    # CONVERTING DISCRETE VALUES TO STRING BECAUSE
+    # ID3 TREE CASTS TO INT IF IT CAN
+    for rule in rules:
+        for i, ante in enumerate(rule.antecedent):
+            if ante[0] in discrete:
+                ante_list = list(rule.antecedent)
+                ante_list[i] = (ante[0], str(ante[1]))
+                rule.antecedent = tuple(ante_list)
+
     factual = FID3_factual(f_instance, rules)
 
     for exp_rule, fact_rule in zip([best_rule], [factual]):

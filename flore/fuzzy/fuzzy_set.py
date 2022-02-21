@@ -32,7 +32,10 @@ class FuzzyDiscreteSet(FuzzySet):
     value: str
 
     def membership(self, variable):
-        return (variable == self.value).astype(int)
+        try:
+            return (variable == self.value).astype(int)
+        except AttributeError:
+            return variable == self.value
 
     def intersection(self, other):
         pass

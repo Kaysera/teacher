@@ -1,5 +1,5 @@
 from abc import ABC
-from flore.fuzzy import get_fuzzy_points, get_fuzzy_set_dataframe, get_fuzzy_triangle
+from flore.fuzzy import get_fuzzy_points, get_dataset_membership, get_fuzzy_variables
 from flore.neighbors import BaseNeighborhood
 from ._base_neighborhood import NotFittedError
 import pandas as pd
@@ -26,9 +26,6 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
         fuzzy_points_params = ['df_numerical_columns', 'sets', 'class_name', 'verbose']
         fuzzy_points_args = {param: kwargs[param] for param in fuzzy_points_params if param in kwargs.keys()}
 
-        fuzzy_set_params = ['df_numerical_columns', 'df_categorical_columns', 'labels', 'verbose']
-        fuzzy_set_args = {param: kwargs[param] for param in fuzzy_set_params if param in kwargs.keys()}
-
         if (get_division == 'equal_width' or get_division == 'equal_freq') and 'sets' not in kwargs.keys():
             raise ValueError('Number of sets needed for division method specified')
 
@@ -42,11 +39,14 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
             fuzzy_points = get_fuzzy_points(self._Xy, get_division, **fuzzy_points_args)
         else:
             fuzzy_points = get_fuzzy_points(self._X, get_division, **fuzzy_points_args)
-        self._fuzzy_X = get_fuzzy_set_dataframe(self._X, get_fuzzy_triangle, fuzzy_points, **fuzzy_set_args)
+
+        discrete_fuzzy_values = {col: self._X[col].unique() for col in kwargs['df_categorical_columns']}
+        fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
+        dataset_membership = get_dataset_membership(self._X, fuzzy_variables)
+        self._fuzzy_X = dataset_membership
 
         instance_dict = {self._X.columns[i]: [self.instance[i]] for i in range(len(self.instance))}
-        self._fuzzy_instance = get_fuzzy_set_dataframe(pd.DataFrame(instance_dict),
-                                                       get_fuzzy_triangle, fuzzy_points, **fuzzy_set_args)
+        self._fuzzy_instance = get_dataset_membership(pd.DataFrame(instance_dict), fuzzy_variables)
 
     def get_fuzzy_X(self):
         if self._fuzzy_X is None:
