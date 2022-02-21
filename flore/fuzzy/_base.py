@@ -308,52 +308,6 @@ def get_fuzzy_triangle(variable, divisions, verbose=False):
     return fuzz_dict
 
 
-def get_fuzzy_set_dataframe(df, gen_fuzzy_set, fuzzy_points, df_numerical_columns,
-                            df_categorical_columns, labels={}, verbose=False):
-    """Get all the fuzzy sets from the columns of a DataFrame, and the pertenence value of
-    each register to each fuzzy set
-
-    Parameters
-    ----------
-    df : pandas.core.frame.DataFrame
-        DataFrame to process
-    gen_fuzzy_set : function
-        Function used to get the fuzzy sets and their degree of pertenence. Currently supported
-        get_fuzzy_triangle
-    fuzzy_points : dict
-        Dict with the name of the columns and the peaks of the triangles (Trapezium not supported)
-        i.e. {'column_one': [1,5,10]}
-    df_numerical_columns : list
-        List with the numerical columns of the DataFrame to fuzzify
-    df_categorical_columns : list
-        List with the categorical columns of the DataFrame to fuzzify
-    labels : dict
-        List with the names of the fuzzy sets for each column
-    verbose : bool, optional
-        Enables verbosity and passes it down, by default False
-
-    Returns
-    -------
-    dict
-        Dictionary with format {key : value} where the key is the name of the column of the DataFrame
-        and the value is the output of the gen_fuzzy_set function for that column
-    """
-    fuzzy_set = {}
-    for column in df_numerical_columns:
-        if column not in labels.keys():
-            col_labels = [f'{label}' for label in fuzzy_points[column]]
-        else:
-            col_labels = labels[column]
-        fuzzy_set[column] = gen_fuzzy_set(df[column].to_numpy(), list(zip(col_labels, fuzzy_points[column])), verbose)
-
-    for column in df_categorical_columns:
-        element = {}
-        for value in df[column].unique():
-            element[value] = (df[column] == value).to_numpy().astype(int)
-        fuzzy_set[column] = element
-    return fuzzy_set
-
-
 def get_dataset_membership(df, fuzzy_variables, verbose=False):
     """Get all the fuzzy sets from the columns of a DataFrame, and the pertenence value of
     each register to each fuzzy set
