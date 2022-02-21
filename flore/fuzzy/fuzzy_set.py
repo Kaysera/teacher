@@ -9,7 +9,15 @@ class FuzzySet(ABC):
 
     @abstractmethod
     def membership(self, variable):
-        pass
+        """Method that takes values of a variable
+        and returns an array with the membership
+        of those values to the Fuzzy Set
+
+        Parameters
+        ----------
+        variable : NumPy array
+            Array with values of the variable
+        """
 
     @abstractmethod
     def intersection(self, other):

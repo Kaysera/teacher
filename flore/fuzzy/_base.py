@@ -33,7 +33,7 @@ def get_equal_width_division(variable, sets):
 
 
 def get_equal_freq_division(variable, sets):
-    """Generate partitions of equal width from a variable
+    """Generate partitions of equal frequency from a variable
 
     Parameters
     ----------
@@ -59,7 +59,7 @@ def get_equal_freq_division(variable, sets):
 
 
 def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0, class_name=None, verbose=False):
-    """Function that obtains the peak of the fuzzy triangles of
+    """Obtain the peak of the fuzzy triangles of
     the continuous variables of a DataFrame
 
     Parameters
@@ -103,8 +103,8 @@ def _fuzzy_partitioning(variable, class_variable, min_point, verbose=False):
         if point != min_point and point != max_point:
             divisions = [('low', min_point), ('mid', point), ('high', max_point)]
             fuzzy_triangle = get_fuzzy_triangle(variable, divisions)
-
             wef = weighted_fuzzy_entropy(fuzzy_triangle, class_variable)
+
             if verbose:  # pragma: no cover
                 print('\t----------------')
                 print(f'\t{divisions}')
@@ -112,6 +112,7 @@ def _fuzzy_partitioning(variable, class_variable, min_point, verbose=False):
                 print(f'\tPoint: {point}')
                 print(f'\tWEF: {wef}')
                 print('\t-----------------')
+
             if wef < best_wef:
                 best_wef = wef
                 best_point = point
@@ -130,6 +131,7 @@ def _fuzzy_partitioning(variable, class_variable, min_point, verbose=False):
     cardinality = len(variable)
     delta = _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable)
     threshold = (log2(cardinality - 1) + delta) / cardinality
+
     if verbose:   # pragma: no cover
         print('-----------------')
         print(f'Pass Threshold: {f_gain >= threshold}')
@@ -227,8 +229,7 @@ def weighted_fuzzy_entropy(fuzzy_triangle, class_variable):
 
 
 def fuzzy_entropy(triangle, class_variable, verbose=False):
-    """Function to compute the fuzzy entropy of a given
-    fuzzy subset
+    """Compute the fuzzy entropy of a given fuzzy subset
 
     Parameters
     ----------
@@ -309,14 +310,15 @@ def get_fuzzy_triangle(variable, divisions, verbose=False):
 
 
 def get_dataset_membership(df, fuzzy_variables, verbose=False):
-    """Get all the fuzzy sets from the columns of a DataFrame, and the pertenence value of
-    each register to each fuzzy set
+    """Obtain the membership of the values of all the columns of a DataFrame to each
+    Fuzzy Set of the different Fuzzy Variables
 
     Parameters
     ----------
     df : pandas.core.frame.DataFrame
         DataFrame to process
-    TODO: FINISH DOCS
+    fuzzy_variables : list[FuzzySet]
+        List of the fuzzy variables to compute the membership
     verbose : bool, optional
         Enables verbosity and passes it down, by default False
 
@@ -324,7 +326,7 @@ def get_dataset_membership(df, fuzzy_variables, verbose=False):
     -------
     dict
         Dictionary with format {key : value} where the key is the name of the column of the DataFrame
-        and the value is the output of the gen_fuzzy_set function for that column
+        and the value is a dictionary with the membership to each fuzzy set of the variable
     """
     dataset_membership = {}
     for fuzzy_var in fuzzy_variables:
@@ -333,7 +335,33 @@ def get_dataset_membership(df, fuzzy_variables, verbose=False):
 
 
 def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, continuous_labels=None, discrete_labels=None):
-    # TODO ESCRIBIR DOCUMENTACION
+    """Build the fuzzy variables given the points of the triangles that
+    define them, as well as the values of the discrete variables
+
+    Parameters
+    ----------
+    continuous_fuzzy_points : dict
+        Dictionary with format {key : [v1, v2, ...]} where key is the
+        name of the continuous variable and v1, v2, ... are the peaks of the triangles
+        of each fuzzy set
+    discrete_fuzzy_values : dict
+        Dictionary with format {key : [v1, v2, ...]} where key is the
+        name of the discrete variable and v1, v2, ... are the unique values that
+        the discrete variable can take
+    continuous_labels : dict, optional
+        Dictionary with format {key : [l1, l2, ...]} where key is the
+        name of the continuous variable and l1, l2, ... are the labels of the fuzzy
+        sets associated to the peaks v1, v2, ...
+    discrete_labels : dict, optional
+        Dictionary with format {key : [l1, l2, ...]} where key is the
+        name of the discrete variable and l1, l2, ... are the labels of the fuzzy
+        sets associated to the values v1, v2, ...
+
+    Returns
+    -------
+    list[FuzzyVariable]
+        List of all the fuzzy variables
+    """
     fuzzy_variables = []
     for name, points in continuous_fuzzy_points.items():
         if continuous_labels is None or name not in continuous_labels:
@@ -352,25 +380,21 @@ def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, continuo
     return fuzzy_variables
 
 
-def get_fuzzy_continuous_sets(divisions, verbose=False):
-    """Function that generates a dictionary with the pertenence to each
-    triangular fuzzy set of a variable of a DataFrame given the peaks of
+def get_fuzzy_continuous_sets(divisions):
+    """Generate a list with the triangular fuzzy sets of
+    a variable of a DataFrame given the peaks of
     the triangles
-    # TODO: FINISH DOCS
+
     Parameters
     ----------
     divisions : list
         List of tuples with the names of the sets and the peak of the triangle
         like [('low', 0), ('mid', 2), ('high', 5)]
-    verbose : bool, optional
-        Enables verbosity by displaying the fuzzy sets, by default False
 
     Returns
     -------
-    dict
-        Dictionary with the format {key : value} where the key is the name of the set
-        and the value is an array of the pertenence to the set of each value of the
-        variable
+    list
+        List with all the Fuzzy Continuous Sets that form a Fuzzy Variable
     """
     fuzzy_sets = []
     fuzzy_sets.append(FuzzyContinuousSet(divisions[0][0], [divisions[0][1], divisions[0][1], divisions[1][1]]))
@@ -386,26 +410,21 @@ def get_fuzzy_continuous_sets(divisions, verbose=False):
     return fuzzy_sets
 
 
-def get_fuzzy_discrete_sets(divisions, verbose=False):
-    """Function that generates a dictionary with the pertenence to each
-    triangular fuzzy set of a variable of a DataFrame given the peaks of
-    the triangles
-    # TODO: FINISH DOCS
+def get_fuzzy_discrete_sets(divisions):
+    """Generate a list with the discrete fuzzy sets of
+    a variable of a DataFrame given the unique values
+    it can take
 
     Parameters
     ----------
     divisions : list
         List of tuples with the names of the sets and the peak of the triangle
         like [('low', 0), ('mid', 2), ('high', 5)]
-    verbose : bool, optional
-        Enables verbosity by displaying the fuzzy sets, by default False
 
     Returns
     -------
-    dict
-        Dictionary with the format {key : value} where the key is the name of the set
-        and the value is an array of the pertenence to the set of each value of the
-        variable
+    list
+        List with all the Fuzzy Discrete Sets that form a Fuzzy Variable
     """
 
     return [FuzzyDiscreteSet(name, value) for name, value in divisions]
