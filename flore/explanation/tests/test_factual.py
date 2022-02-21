@@ -255,13 +255,13 @@ def test_explain_id3(set_random):
 
 
 def test_m_factual_fdt(prepare_iris_fdt):
-    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
+    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys())
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
@@ -278,13 +278,13 @@ def test_m_factual_fdt(prepare_iris_fdt):
 
 
 def test_r_factual_fdt(prepare_beer_fdt):
-    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes = prepare_beer_fdt
+    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, all_classes = prepare_beer_fdt
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys())
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
@@ -303,14 +303,14 @@ def test_r_factual_fdt(prepare_beer_fdt):
 
 
 def test_c_lambda_factual(prepare_iris_fdt):
-    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
+    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
     lam = 0.98
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys())
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
@@ -327,14 +327,14 @@ def test_c_lambda_factual(prepare_iris_fdt):
 
 
 def test_c_lambda_factual_complex_fdt(prepare_beer_fdt):
-    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_beer_fdt
+    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_beer_fdt
     lam = 0.5
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys())
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
@@ -351,15 +351,15 @@ def test_c_lambda_factual_complex_fdt(prepare_beer_fdt):
 
 
 def test_c_lambda_beta_factual_fdt(prepare_iris_fdt):
-    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
+    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
     lam = 0.98
     beta = 0.5
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys())
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)

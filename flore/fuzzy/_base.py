@@ -356,7 +356,7 @@ def get_fuzzy_continuous_sets(divisions, verbose=False):
     """Function that generates a dictionary with the pertenence to each
     triangular fuzzy set of a variable of a DataFrame given the peaks of
     the triangles
-
+    # TODO: FINISH DOCS
     Parameters
     ----------
     divisions : list
@@ -390,6 +390,7 @@ def get_fuzzy_discrete_sets(divisions, verbose=False):
     """Function that generates a dictionary with the pertenence to each
     triangular fuzzy set of a variable of a DataFrame given the peaks of
     the triangles
+    # TODO: FINISH DOCS
 
     Parameters
     ----------

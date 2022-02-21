@@ -118,13 +118,13 @@ def test_rules_id3(prepare_wine):
 
 
 def test_rules_fdt(prepare_iris_fdt):
-    fuzzy_set_df_train, _, X_train, y_train, _, _, _, all_classes = prepare_iris_fdt
+    df_train_membership, _, X_train, y_train, _, _, _, all_classes = prepare_iris_fdt
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys())
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
 
     all_rules = set((str(tuple(rule)) for rule in fdt.get_all_rules(all_classes)))
     new_rules = new_fdt.to_rule_based_system()
@@ -135,19 +135,19 @@ def test_rules_fdt(prepare_iris_fdt):
 
 
 def test_iris_fdt(prepare_iris_fdt):
-    fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
+    df_train_membership, df_test_membership, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
 
-    fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
+    fuzzy_test = [_get_fuzzy_element(df_test_membership, i) for i in range(len(X_test.index))]
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
-    fdt_score = fdt.score(fuzzy_set_df_test, y_test)
+    fdt_score = fdt.score(df_test_membership, y_test)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys())
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
-    np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
+    np.testing.assert_almost_equal(fdt.predict(df_test_membership), new_fdt.predict(fuzzy_test))
 
     assert fdt.predict(fuzzy_element) == new_fdt.predict(fuzzy_element)
     assert new_fdt_score == fdt_score
@@ -155,19 +155,19 @@ def test_iris_fdt(prepare_iris_fdt):
 
 
 def test_iris_min_examples_fdt(prepare_iris_fdt):
-    fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
+    df_train_membership, df_test_membership, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
 
-    fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
+    fuzzy_test = [_get_fuzzy_element(df_test_membership, i) for i in range(len(X_test.index))]
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train, min_num_examples=50)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership, min_num_examples=50)
     fdt.fit(X_train, y_train)
-    fdt_score = fdt.score(fuzzy_set_df_test, y_test)
+    fdt_score = fdt.score(df_test_membership, y_test)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys(), min_num_examples=50)
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys(), min_num_examples=50)
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
-    np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
+    np.testing.assert_almost_equal(fdt.predict(df_test_membership), new_fdt.predict(fuzzy_test))
 
     assert fdt.predict(fuzzy_element) == new_fdt.predict(fuzzy_element)
     assert new_fdt_score == fdt_score
@@ -175,19 +175,19 @@ def test_iris_min_examples_fdt(prepare_iris_fdt):
 
 
 def test_iris_max_depth_fdt(prepare_iris_fdt):
-    fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
+    df_train_membership, df_test_membership, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
 
-    fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
+    fuzzy_test = [_get_fuzzy_element(df_test_membership, i) for i in range(len(X_test.index))]
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train, max_depth=2)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership, max_depth=2)
     fdt.fit(X_train, y_train)
-    fdt_score = fdt.score(fuzzy_set_df_test, y_test)
+    fdt_score = fdt.score(df_test_membership, y_test)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys(), max_depth=2)
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys(), max_depth=2)
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
-    np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
+    np.testing.assert_almost_equal(fdt.predict(df_test_membership), new_fdt.predict(fuzzy_test))
 
     assert fdt.predict(fuzzy_element) == new_fdt.predict(fuzzy_element)
     assert new_fdt_score == fdt_score
@@ -195,19 +195,19 @@ def test_iris_max_depth_fdt(prepare_iris_fdt):
 
 
 def test_iris_max_match_fdt(prepare_iris_fdt):
-    fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
+    df_train_membership, df_test_membership, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
 
-    fuzzy_test = [_get_fuzzy_element(fuzzy_set_df_test, i) for i in range(len(X_test.index))]
+    fuzzy_test = [_get_fuzzy_element(df_test_membership, i) for i in range(len(X_test.index))]
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train, voting='max_match')
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership, voting='max_match')
     fdt.fit(X_train, y_train)
-    fdt_score = fdt.score(fuzzy_set_df_test, y_test)
+    fdt_score = fdt.score(df_test_membership, y_test)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys(), voting='max_match')
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys(), voting='max_match')
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
     new_fdt_score = new_fdt.score(fuzzy_test, y_test)
 
-    np.testing.assert_almost_equal(fdt.predict(fuzzy_set_df_test), new_fdt.predict(fuzzy_test))
+    np.testing.assert_almost_equal(fdt.predict(df_test_membership), new_fdt.predict(fuzzy_test))
 
     assert fdt.predict(fuzzy_element) == new_fdt.predict(fuzzy_element)
     assert new_fdt_score == fdt_score
@@ -216,13 +216,13 @@ def test_iris_max_match_fdt(prepare_iris_fdt):
 
 def test_iris_invalid_voting_fdt(prepare_iris_fdt):
     with raises(ValueError):
-        fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
-        FDT(fuzzy_set_df_train.keys(), voting='invalid')
+        df_train_membership, df_test_membership, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
+        FDT(df_train_membership.keys(), voting='invalid')
 
 
 def test_not_instance_tree_fdt(prepare_iris_fdt):
-    fuzzy_set_df_train, fuzzy_set_df_test, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
-    new_fdt = FDT(fuzzy_set_df_train.keys())
+    df_train_membership, df_test_membership, X_train, y_train, X_test, y_test, fuzzy_element, _ = prepare_iris_fdt
+    new_fdt = FDT(df_train_membership.keys())
     assert new_fdt.tree_ != 10
 
 

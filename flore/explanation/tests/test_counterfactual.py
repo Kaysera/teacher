@@ -210,13 +210,13 @@ def test_counterfactual_id3(set_random):
 
 
 def test_i_counterfactual_fdt(prepare_beer_fdt):
-    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes, df_numerical_columns = prepare_beer_fdt
+    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, all_classes, df_numerical_columns = prepare_beer_fdt
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys())
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     other_classes = [cv for cv in all_classes if cv != fdt_predict]
@@ -237,14 +237,15 @@ def test_i_counterfactual_fdt(prepare_beer_fdt):
     assert exp_cf_dict == obt_cf_dict
 
 
-def test_i_counterfactual_compas_fdt(prepare_german_fdt):
-    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes, df_numerical_columns = prepare_german_fdt
+def test_i_counterfactual_german_fdt(prepare_german_fdt):
+    (df_train_membership, _, X_train, y_train, _, _,
+     fuzzy_element, all_classes, df_numerical_columns) = prepare_german_fdt
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys())
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     other_classes = [cv for cv in all_classes if cv != fdt_predict]
@@ -266,13 +267,13 @@ def test_i_counterfactual_compas_fdt(prepare_german_fdt):
 
 
 def test_f_counterfactual_fdt(prepare_beer_fdt):
-    fuzzy_set_df_train, _, X_train, y_train, _, _, fuzzy_element, all_classes, df_numerical_columns = prepare_beer_fdt
+    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, all_classes, df_numerical_columns = prepare_beer_fdt
 
-    fdt = FDT_Legacy(fuzzy_set_df_train.keys(), fuzzy_set_df_train)
+    fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(fuzzy_set_df_train.keys())
-    new_fdt.fit(fuzzy_set_df_train, y_train.to_numpy())
+    new_fdt = FDT(df_train_membership.keys())
+    new_fdt.fit(df_train_membership, y_train.to_numpy())
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)

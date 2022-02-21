@@ -42,8 +42,7 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
 
         discrete_fuzzy_values = {col: self._X[col].unique() for col in kwargs['df_categorical_columns']}
         fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
-        dataset_membership = get_dataset_membership(self._X, fuzzy_variables)
-        self._fuzzy_X = dataset_membership
+        self._fuzzy_X = get_dataset_membership(self._X, fuzzy_variables)
 
         instance_dict = {self._X.columns[i]: [self.instance[i]] for i in range(len(self.instance))}
         self._fuzzy_instance = get_dataset_membership(pd.DataFrame(instance_dict), fuzzy_variables)

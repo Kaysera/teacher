@@ -179,14 +179,14 @@ def test_get_dataset_membership():
 
     dataset_membership = get_dataset_membership(df, fuzzy_variables)
 
-    expected_fuzzy_set = {'one': {'low': np.array([1, 0.6, 0]),
-                                  'mid': np.array([0, 0.4, 0]),
-                                  'high': np.array([0, 0., 1.])},
-                          'two': {'0': np.array([0.75, 0, 0]),
-                                  '5': np.array([0.25, 1, 0.25]),
-                                  '10': np.array([0, 0, 0.75])},
-                          'three': {'six': np.array([1, 0, 0]),
-                                    'nine': np.array([0, 1, 0]),
-                                    'ninety': np.array([0, 0, 1])}}
+    expected_dataset_membership = {'one': {'low': np.array([1, 0.6, 0]),
+                                           'mid': np.array([0, 0.4, 0]),
+                                           'high': np.array([0, 0., 1.])},
+                                   'two': {'0': np.array([0.75, 0, 0]),
+                                           '5': np.array([0.25, 1, 0.25]),
+                                           '10': np.array([0, 0, 0.75])},
+                                   'three': {'six': np.array([1, 0, 0]),
+                                             'nine': np.array([0, 1, 0]),
+                                             'ninety': np.array([0, 0, 1])}}
 
-    assert_equal(dataset_membership, expected_fuzzy_set)
+    assert_equal(dataset_membership, expected_dataset_membership)
