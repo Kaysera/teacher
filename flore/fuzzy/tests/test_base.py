@@ -4,8 +4,8 @@ from pytest import raises
 import pandas as pd
 
 from flore.fuzzy import (get_equal_width_division, get_equal_freq_division, get_fuzzy_points,
-                         get_fuzzy_triangle, get_fuzzy_set_dataframe,
-                         fuzzy_entropy, weighted_fuzzy_entropy)
+                         get_fuzzy_triangle,
+                         fuzzy_entropy, weighted_fuzzy_entropy, get_dataset_membership, get_fuzzy_variables)
 
 from .._base import _get_delta_point, _fuzzy_partitioning
 
@@ -83,41 +83,6 @@ def test_get_fuzzy_triangle():
                                   'very high': np.array([0., 0., 0.25])})
 
 
-def test_get_fuzzy_set_dataframe():
-    df = pd.DataFrame(
-        [
-            [0, 1.25, 'six'],
-            [2, 5, 'nine'],
-            [10, 8.75, 'ninety']
-        ],
-        columns=['one', 'two', 'three']
-    )
-    fuzzy_points = {
-        'one': [0, 5, 10],
-        'two': [0, 5, 10]
-    }
-    fuzzy_labels = {
-        'one': ['low', 'mid', 'high']
-    }
-    df_numerical_columns = ['one', 'two']
-    df_categorical_columns = ['three']
-
-    fuzzy_set_dataframe = get_fuzzy_set_dataframe(df, get_fuzzy_triangle, fuzzy_points,
-                                                  df_numerical_columns, df_categorical_columns, fuzzy_labels)
-
-    expected_fuzzy_set = {'one': {'low': np.array([1, 0.6, 0]),
-                                  'mid': np.array([0, 0.4, 0]),
-                                  'high': np.array([0, 0., 1.])},
-                          'two': {'0': np.array([0.75, 0, 0]),
-                                  '5': np.array([0.25, 1, 0.25]),
-                                  '10': np.array([0, 0, 0.75])},
-                          'three': {'six': np.array([1, 0, 0]),
-                                    'nine': np.array([0, 1, 0]),
-                                    'ninety': np.array([0, 0, 1])}}
-
-    assert_equal(fuzzy_set_dataframe, expected_fuzzy_set)
-
-
 def test_fuzzy_entropy():
     variable = np.array([1.25, 3.75, 5])
     three_divisions = [('low', 0), ('mid', 5), ('high', 10)]
@@ -187,3 +152,41 @@ def test_get_fuzzy_points_entropy():
                              'petal width (cm)': [0.1, 0.6, 1.0, 1.7, 2.5]}
 
     assert fuzzy_points_generic == expected_fuzzy_points
+
+
+def test_get_dataset_membership():
+    df = pd.DataFrame(
+        [
+            [0, 1.25, 'six'],
+            [2, 5, 'nine'],
+            [10, 8.75, 'ninety']
+        ],
+        columns=['one', 'two', 'three']
+    )
+    fuzzy_points = {
+        'one': [0, 5, 10],
+        'two': [0, 5, 10]
+    }
+    fuzzy_labels = {
+        'one': ['low', 'mid', 'high']
+    }
+
+    df_categorical_columns = ['three']
+
+    discrete_fuzzy_values = {col: df[col].unique() for col in df_categorical_columns}
+
+    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, fuzzy_labels)
+
+    dataset_membership = get_dataset_membership(df, fuzzy_variables)
+
+    expected_dataset_membership = {'one': {'low': np.array([1, 0.6, 0]),
+                                           'mid': np.array([0, 0.4, 0]),
+                                           'high': np.array([0, 0., 1.])},
+                                   'two': {'0': np.array([0.75, 0, 0]),
+                                           '5': np.array([0.25, 1, 0.25]),
+                                           '10': np.array([0, 0, 0.75])},
+                                   'three': {'six': np.array([1, 0, 0]),
+                                             'nine': np.array([0, 1, 0]),
+                                             'ninety': np.array([0, 0, 1])}}
+
+    assert_equal(dataset_membership, expected_dataset_membership)

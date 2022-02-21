@@ -105,16 +105,16 @@ def test_not_fitted_error_fuzzify():
         neighborhood.fuzzify('equal_width')
 
 
-def test_not_fuzzified_error_fuzzy_X():
+def test_not_fuzzified_error_X_membership():
     with raises(NotFuzzifiedError):
         neighborhood = MockFuzzyNeighborhood()
-        neighborhood.get_fuzzy_X()
+        neighborhood.get_X_membership()
 
 
-def test_not_fuzzified_error_fuzzy_instance():
+def test_not_fuzzified_error_instance_membership():
     with raises(NotFuzzifiedError):
         neighborhood = MockFuzzyNeighborhood()
-        neighborhood.get_fuzzy_instance()
+        neighborhood.get_instance_membership()
 
 
 def test_equal_width_no_sets():
@@ -244,8 +244,8 @@ def test_lore_neighborhood(prepare_beer):
                          df_numerical_columns=df_numerical_columns,
                          df_categorical_columns=df_categorical_columns)
 
-    neighborhood_fuzzy_X = neighborhood.get_fuzzy_X()
-    expected_fuzzy_X = {
+    neighborhood_X_membership = neighborhood.get_X_membership()
+    expected_X_membership = {
         'color': {'9.0': np.array([1., 1., 1., 1., 1., 1., 1., 0., 1.]),
                   '12.236': np.array([0., 0., 0., 0., 0., 0., 0., 0., 0.]),
                   '15.472': np.array([0., 0., 0., 0., 0., 0., 0., 0., 0.])},
@@ -255,7 +255,8 @@ def test_lore_neighborhood(prepare_beer):
                      '0.08': np.array([0.96296296, 0.96296296, 0., 0., 0.96296296, 0., 0., 0., 0.96296296]),
                      '0.107': np.array([0.03703704, 0.03703704, 0., 1., 0.03703704, 0., 0., 0., 0.03703704])}}
 
-    for key in neighborhood_fuzzy_X.keys():
-        var = neighborhood_fuzzy_X[key]
+    for key in neighborhood_X_membership.keys():
+        var = neighborhood_X_membership[key]
         for fuzzy_set in var.keys():
-            np.testing.assert_almost_equal(neighborhood_fuzzy_X[key][fuzzy_set], expected_fuzzy_X[key][fuzzy_set])
+            np.testing.assert_almost_equal(neighborhood_X_membership[key][fuzzy_set],
+                                           expected_X_membership[key][fuzzy_set])

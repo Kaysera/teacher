@@ -30,18 +30,18 @@ class FDTExplainer(FactualLocalExplainer):
             raise ValueError("Counterfactual method invalid")
 
         self.target = target
-        fuzzy_X = neighborhood.get_fuzzy_X()
-        fuzzy_instance = neighborhood.get_fuzzy_instance()
+        X_membership = neighborhood.get_X_membership()
+        instance_membership = neighborhood.get_instance_membership()
         y = neighborhood.get_y()
 
-        self.local_explainer = FDT(fuzzy_X.keys())
-        self.local_explainer.fit(fuzzy_X, y)
+        self.local_explainer = FDT(X_membership.keys())
+        self.local_explainer.fit(X_membership, y)
 
         rules = self.local_explainer.to_rule_based_system()
-        self.exp_value = self.local_explainer.predict(fuzzy_instance)[0]
-        fact = self.factual_method(fuzzy_instance, rules, self.exp_value, **kwargs)
+        self.exp_value = self.local_explainer.predict(instance_membership)[0]
+        fact = self.factual_method(instance_membership, rules, self.exp_value, **kwargs)
         if counterfactual == 'i_counterfactual':
-            cf = self.counterfactual_method(fuzzy_instance, rules, self.exp_value, df_num_cols)
+            cf = self.counterfactual_method(instance_membership, rules, self.exp_value, df_num_cols)
         elif counterfactual == 'f_counterfactual':
-            cf = self.counterfactual_method(fact, fuzzy_instance, rules, self.exp_value, df_num_cols)
+            cf = self.counterfactual_method(fact, instance_membership, rules, self.exp_value, df_num_cols)
         self.explanation = (fact, cf)
