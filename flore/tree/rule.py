@@ -26,19 +26,19 @@ class Rule:
                 self.consequent == other.consequent and
                 self.weight == other.weight)
 
-    def matching(self, fuzzy_instance, t_norm=min):
+    def matching(self, instance_membership, t_norm=min):
         """Matching that an instance has with the rule
         If there is some feature or value not existing in the instance,
         its matching degree is zero
 
         Parameters
         ----------
-        instance : dict
-            Instance in fuzzy format {feature: {value: pertenence degree}}
+        instance_membership : dict
+            Membership of the instance with the format {feature: {value: pertenence degree}}
         t_norm : function, optional
             Operation to use as tnorm to get the matching, by default min
         """
         try:
-            return t_norm([fuzzy_instance[feature][value] for (feature, value) in self.antecedent])
+            return t_norm([instance_membership[feature][value] for (feature, value) in self.antecedent])
         except KeyError:
             return 0

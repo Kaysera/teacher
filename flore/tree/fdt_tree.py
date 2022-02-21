@@ -62,10 +62,10 @@ class TreeFDT:
                 max_match[key] = np.maximum(max_match[key], (leaf[0][key] * leaf[1]))
         return max_match
 
-    def predict(self, fuzzy_X):
+    def predict(self, X_membership):
         # Get the length of the array to predict
         X_size = 1
-        leaf_values = self._partial_predict(fuzzy_X, np.ones(X_size), self)
+        leaf_values = self._partial_predict(X_membership, np.ones(X_size), self)
         agg_vote = self._voting_method(leaf_values)
         # all_classes = [(key, agg_vote[key]) for key in agg_vote]
         n_all_classes = [(key, agg_vote[key][0]) for key in agg_vote]
@@ -75,11 +75,11 @@ class TreeFDT:
         classes_list = max(n_all_classes, key=lambda a: a[1])[0]
         return classes_list
 
-    def _partial_predict(self, fuzzy_X, mu, tree):
+    def _partial_predict(self, X_membership, mu, tree):
         if tree.value != (0, 0):
             att, value = tree.value
             try:
-                pert_degree = fuzzy_X[att][value]
+                pert_degree = X_membership[att][value]
             except KeyError:
                 pert_degree = 0
             new_mu = self.t_norm(mu, pert_degree)
@@ -88,7 +88,7 @@ class TreeFDT:
         if tree.is_leaf:
             return [(tree.class_value, new_mu)]
         else:
-            return np.concatenate([self._partial_predict(fuzzy_X, new_mu, child) for child in tree.childlist])
+            return np.concatenate([self._partial_predict(X_membership, new_mu, child) for child in tree.childlist])
 
     def to_rule_based_system(self, th=0.0001, verbose=False):
         rules = self._get_rules(self, [], th, verbose)
@@ -123,7 +123,7 @@ class FDT(BaseDecisionTree):
         self.tree_ = TreeFDT(set(features), t_norm, voting)
         self.fuzzy_threshold = fuzzy_threshold
 
-    def _get_max_f_gain(self, tree, fuzzy_X, y, t_norm=np.minimum, verbose=False):
+    def _get_max_f_gain(self, tree, X_membership, y, t_norm=np.minimum, verbose=False):
         best_att = ''
         best_f_gain = 0
         best_child_mu = {}
@@ -136,8 +136,8 @@ class FDT(BaseDecisionTree):
             child_mu = {}
             wef = 0  # Weighted Fuzzy Entropy
             crisp_cardinality = tree.mu.sum()
-            for value in fuzzy_X[feature]:
-                child_mu[value] = t_norm(tree.mu, fuzzy_X[feature][value])
+            for value in X_membership[feature]:
+                child_mu[value] = t_norm(tree.mu, X_membership[feature][value])
                 fuzzy_cardinality = child_mu[value].sum()
                 child_f_ent = fuzzy_entropy(child_mu[value], y, verbose=False)
                 if verbose:  # pragma: no cover
@@ -179,13 +179,13 @@ class FDT(BaseDecisionTree):
         # EACH LEAF HAS A DICTIONARY WITH A WEIGHT PER CLASS VALUE
         return cv
 
-    def fit(self, fuzzy_X, y):
+    def fit(self, X_membership, y):
         self.tree_.mu = np.ones(len(y))
-        self._partial_fit(fuzzy_X, y, self.tree_, 0)
+        self._partial_fit(X_membership, y, self.tree_, 0)
 
-    def _partial_fit(self, fuzzy_X, y, current_tree, current_depth):
+    def _partial_fit(self, X_membership, y, current_tree, current_depth):
         current_tree.level = current_depth
-        att, f_gain, child_mu = self._get_max_f_gain(current_tree, fuzzy_X, y, verbose=False)
+        att, f_gain, child_mu = self._get_max_f_gain(current_tree, X_membership, y, verbose=False)
         # apply mask to y
         mask = [(x > 0) for x in current_tree.mu]
         y_masked = y[mask]
@@ -196,7 +196,7 @@ class FDT(BaseDecisionTree):
             return
 
         current_tree.is_leaf = False
-        for value in fuzzy_X[att]:
+        for value in X_membership[att]:
             new_features = current_tree.features.copy()
             new_features.remove(att)
             child = TreeFDT(new_features)
@@ -204,4 +204,4 @@ class FDT(BaseDecisionTree):
             child.mu = child_mu[value]
             if child.mu.sum() > 0:
                 current_tree.childlist.append(child)
-                self._partial_fit(fuzzy_X, y, child, current_depth + 1)
+                self._partial_fit(X_membership, y, child, current_depth + 1)

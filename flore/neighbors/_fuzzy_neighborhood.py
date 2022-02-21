@@ -12,8 +12,8 @@ class NotFuzzifiedError(Exception):
 class FuzzyNeighborhood(BaseNeighborhood, ABC):
 
     def __init__(self, instance, size, class_name, bb):
-        self._fuzzy_X = None
-        self._fuzzy_instance = None
+        self._X_membership = None
+        self._instance_membership = None
         super().__init__(instance, size, class_name, bb)
 
     def fuzzify(self, get_division, **kwargs):
@@ -42,19 +42,19 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
 
         discrete_fuzzy_values = {col: self._X[col].unique() for col in kwargs['df_categorical_columns']}
         fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
-        self._fuzzy_X = get_dataset_membership(self._X, fuzzy_variables)
+        self._X_membership = get_dataset_membership(self._X, fuzzy_variables)
 
         instance_dict = {self._X.columns[i]: [self.instance[i]] for i in range(len(self.instance))}
-        self._fuzzy_instance = get_dataset_membership(pd.DataFrame(instance_dict), fuzzy_variables)
+        self._instance_membership = get_dataset_membership(pd.DataFrame(instance_dict), fuzzy_variables)
 
-    def get_fuzzy_X(self):
-        if self._fuzzy_X is None:
+    def get_X_membership(self):
+        if self._X_membership is None:
             raise NotFuzzifiedError
         else:
-            return self._fuzzy_X
+            return self._X_membership
 
-    def get_fuzzy_instance(self):
-        if self._fuzzy_instance is None:
+    def get_instance_membership(self):
+        if self._instance_membership is None:
             raise NotFuzzifiedError
         else:
-            return self._fuzzy_instance
+            return self._instance_membership

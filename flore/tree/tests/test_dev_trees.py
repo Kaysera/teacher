@@ -87,8 +87,8 @@ def test_rule_different_not_rule():
 
 def test_rule_matching():
     r1 = Rule((('ante1', 'ok'), ('ante2', 'nook')), 'conse', 0.5)
-    fuzzy_instance = {'ante1': {'ok': 0.6, 'nook': 0.4}, 'ante2': {'ok': 0.6, 'nook': 0.4}}
-    assert r1.matching(fuzzy_instance) == 0.4
+    instance_membership = {'ante1': {'ok': 0.6, 'nook': 0.4}, 'ante2': {'ok': 0.6, 'nook': 0.4}}
+    assert r1.matching(instance_membership) == 0.4
 
 
 def test_wine_id3(prepare_wine):
