@@ -9,7 +9,7 @@ class FuzzySet(ABC):
 
     @abstractmethod
     def membership(self, variable):
-        """Method that takes values of a variable
+        """Take the values of a variable
         and returns an array with the membership
         of those values to the Fuzzy Set
 
@@ -21,7 +21,24 @@ class FuzzySet(ABC):
 
     @abstractmethod
     def intersection(self, other):
-        pass
+        """Intersect two fuzzy sets of the same
+        type
+
+        Parameters
+        ----------
+        other : FuzzySet
+            Set to intersect with the current object
+
+        Returns
+        -------
+        float
+            Degree of intersection
+
+        Raises
+        ------
+        ValueError
+            If the set is not of the same subtype
+        """
 
 
 @dataclass

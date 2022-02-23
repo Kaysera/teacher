@@ -1,16 +1,53 @@
 import numpy as np
 from numpy.testing import assert_equal, assert_almost_equal
-from pytest import raises
+from pytest import raises, fixture
 import pandas as pd
 
 from flore.fuzzy import (get_equal_width_division, get_equal_freq_division, get_fuzzy_points,
                          get_fuzzy_triangle,
-                         fuzzy_entropy, weighted_fuzzy_entropy, get_dataset_membership, get_fuzzy_variables)
+                         fuzzy_entropy, weighted_fuzzy_entropy, get_dataset_membership, get_fuzzy_variables,
+                         FuzzyContinuousSet, FuzzyDiscreteSet, FuzzyVariable)
 
 from .._base import _get_delta_point, _fuzzy_partitioning
 
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
+
+
+@fixture
+def toy_dataset():
+    df = pd.DataFrame(
+        [
+            [0, 7, 'six'],
+            [2, 9, 'nine'],
+            [10, 10, 'ninety']
+        ],
+        columns=['one', 'two', 'three']
+    )
+
+    df_numerical_columns = ['one', 'two']
+    sets = 3
+    return df, df_numerical_columns, sets
+
+
+@fixture
+def toy_fuzzy_variables(toy_dataset):
+    df, df_numerical_columns, sets = toy_dataset
+    fuzzy_points = {
+        'one': [0, 5, 10],
+        'two': [0, 5, 10]
+    }
+    continuous_labels = {
+        'one': ['low', 'mid', 'high']
+    }
+
+    discrete_labels = {
+        'three': ['six', 'nine', 'ninety']
+    }
+
+    df_categorical_columns = ['three']
+    discrete_fuzzy_values = {col: df[col].unique() for col in df_categorical_columns}
+    return df, fuzzy_points, continuous_labels, discrete_labels, discrete_fuzzy_values
 
 
 def test_get_equal_width_division():
@@ -29,18 +66,8 @@ def test_get_equal_freq_division():
     assert parts_five == [0, 0, 2, 8.5, 10]
 
 
-def test_get_fuzzy_points():
-    df = pd.DataFrame(
-        [
-            [0, 7, 'six'],
-            [2, 9, 'nine'],
-            [10, 10, 'ninety']
-        ],
-        columns=['one', 'two', 'three']
-    )
-
-    df_numerical_columns = ['one', 'two']
-    sets = 3
+def test_get_fuzzy_points(toy_dataset):
+    df, df_numerical_columns, sets = toy_dataset
 
     width_points = get_fuzzy_points(df, 'equal_width', df_numerical_columns, sets=sets)
     freq_points = get_fuzzy_points(df, 'equal_freq', df_numerical_columns, sets=sets)
@@ -49,20 +76,9 @@ def test_get_fuzzy_points():
     assert freq_points == {'one': [0, 2, 10], 'two': [7, 9, 10]}
 
 
-def test_get_fuzzy_points_unsupported_division():
+def test_get_fuzzy_points_unsupported_division(toy_dataset):
+    df, df_numerical_columns, sets = toy_dataset
     with raises(ValueError):
-        df = pd.DataFrame(
-            [
-                [0, 7, 'six'],
-                [2, 9, 'nine'],
-                [10, 10, 'ninety']
-            ],
-            columns=['one', 'two', 'three']
-        )
-
-        df_numerical_columns = ['one', 'two']
-        sets = 3
-
         get_fuzzy_points(df, 'None', df_numerical_columns, sets=sets)
 
 
@@ -154,37 +170,50 @@ def test_get_fuzzy_points_entropy():
     assert fuzzy_points_generic == expected_fuzzy_points
 
 
-def test_get_dataset_membership():
-    df = pd.DataFrame(
-        [
-            [0, 1.25, 'six'],
-            [2, 5, 'nine'],
-            [10, 8.75, 'ninety']
-        ],
-        columns=['one', 'two', 'three']
-    )
-    fuzzy_points = {
-        'one': [0, 5, 10],
-        'two': [0, 5, 10]
-    }
-    fuzzy_labels = {
-        'one': ['low', 'mid', 'high']
-    }
+def test_get_fuzzy_variables(toy_fuzzy_variables):
+    _, fuzzy_points, continuous_labels, discrete_labels, discrete_fuzzy_values = toy_fuzzy_variables
 
-    df_categorical_columns = ['three']
+    fuzzy_vars_labels = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, continuous_labels, discrete_labels)
+    fuzzy_vars_no_labels = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
 
-    discrete_fuzzy_values = {col: df[col].unique() for col in df_categorical_columns}
+    expected_fuzzy_vars_labels = [
+        FuzzyVariable(name='one', fuzzy_sets=[FuzzyContinuousSet(name='low', fuzzy_points=[0, 0, 5]),
+                                              FuzzyContinuousSet(name='mid', fuzzy_points=[0, 5, 10]),
+                                              FuzzyContinuousSet(name='high', fuzzy_points=[5, 10, 10])]),
+        FuzzyVariable(name='two', fuzzy_sets=[FuzzyContinuousSet(name='0', fuzzy_points=[0, 0, 5]),
+                                              FuzzyContinuousSet(name='5', fuzzy_points=[0, 5, 10]),
+                                              FuzzyContinuousSet(name='10', fuzzy_points=[5, 10, 10])]),
+        FuzzyVariable(name='three', fuzzy_sets=[FuzzyDiscreteSet(name='six', value='six'),
+                                                FuzzyDiscreteSet(name='nine', value='nine'),
+                                                FuzzyDiscreteSet(name='ninety', value='ninety')])
+    ]
 
-    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, fuzzy_labels)
+    expected_fuzzy_vars_no_labels = [
+        FuzzyVariable(name='one', fuzzy_sets=[FuzzyContinuousSet(name='0', fuzzy_points=[0, 0, 5]),
+                                              FuzzyContinuousSet(name='5', fuzzy_points=[0, 5, 10]),
+                                              FuzzyContinuousSet(name='10', fuzzy_points=[5, 10, 10])]),
+        FuzzyVariable(name='two', fuzzy_sets=[FuzzyContinuousSet(name='0', fuzzy_points=[0, 0, 5]),
+                                              FuzzyContinuousSet(name='5', fuzzy_points=[0, 5, 10]),
+                                              FuzzyContinuousSet(name='10', fuzzy_points=[5, 10, 10])]),
+        FuzzyVariable(name='three', fuzzy_sets=[FuzzyDiscreteSet(name='six', value='six'),
+                                                FuzzyDiscreteSet(name='nine', value='nine'),
+                                                FuzzyDiscreteSet(name='ninety', value='ninety')])
+    ]
 
+    assert fuzzy_vars_labels == expected_fuzzy_vars_labels
+    assert fuzzy_vars_no_labels == expected_fuzzy_vars_no_labels
+
+
+def test_get_dataset_membership(toy_fuzzy_variables):
+    df, fuzzy_points, continuous_labels, _, discrete_fuzzy_values = toy_fuzzy_variables
+    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, continuous_labels)
     dataset_membership = get_dataset_membership(df, fuzzy_variables)
-
     expected_dataset_membership = {'one': {'low': np.array([1, 0.6, 0]),
                                            'mid': np.array([0, 0.4, 0]),
                                            'high': np.array([0, 0., 1.])},
-                                   'two': {'0': np.array([0.75, 0, 0]),
-                                           '5': np.array([0.25, 1, 0.25]),
-                                           '10': np.array([0, 0, 0.75])},
+                                   'two': {'0': np.array([0, 0, 0]),
+                                           '5': np.array([0.6, 0.2, 0]),
+                                           '10': np.array([0.4, 0.8, 1])},
                                    'three': {'six': np.array([1, 0, 0]),
                                              'nine': np.array([0, 1, 0]),
                                              'ninety': np.array([0, 0, 1])}}
