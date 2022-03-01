@@ -94,7 +94,7 @@ class FuzzyDiscreteSet(FuzzySet):
         try:
             return (variable == self.value).astype(int)
         except AttributeError:
-            return variable == self.value
+            return int(variable == self.value)
 
     def intersection(self, other):
         if not isinstance(other, FuzzyDiscreteSet):

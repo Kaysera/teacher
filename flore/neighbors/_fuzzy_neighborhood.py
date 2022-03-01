@@ -14,6 +14,7 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
     def __init__(self, instance, size, class_name, bb):
         self._X_membership = None
         self._instance_membership = None
+        self._fuzzy_variables = None
         super().__init__(instance, size, class_name, bb)
 
     def fuzzify(self, get_division, **kwargs):
@@ -58,3 +59,9 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
             raise NotFuzzifiedError
         else:
             return self._instance_membership
+
+    def get_fuzzy_variables(self):
+        if self._fuzzy_variables is None:
+            raise NotFuzzifiedError
+        else:
+            return self._fuzzy_variables
