@@ -63,7 +63,7 @@ def test_precision():
     y = np.array(['conse', 'conse', 'noconse'])
 
     rule = Rule((('feat1', 'val1'), ('feat2', 'val1'), ('feat3', 'val1')), 'conse', 0.5)
-    np.testing.assert_almost_equal(precision([rule], dataset_membership, y), 0.3333333333333)
+    np.testing.assert_almost_equal(precision([rule], dataset_membership, y), 0.5)
 
 
 def test_fidelity():
