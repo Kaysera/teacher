@@ -4,6 +4,7 @@ import pandas as pd
 from flore.neighbors import (SimpleNeighborhood, BaseNeighborhood, FuzzyNeighborhood,
                              LoreNeighborhood, NotFittedError, NotFuzzifiedError)
 from flore.datasets import load_beer
+from flore.fuzzy import FuzzyContinuousSet, FuzzyVariable
 
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
@@ -115,6 +116,12 @@ def test_not_fuzzified_error_instance_membership():
     with raises(NotFuzzifiedError):
         neighborhood = MockFuzzyNeighborhood()
         neighborhood.get_instance_membership()
+
+
+def test_not_fuzzified_error_fuzzy_variables():
+    with raises(NotFuzzifiedError):
+        neighborhood = MockFuzzyNeighborhood()
+        neighborhood.get_fuzzy_variables()
 
 
 def test_equal_width_no_sets():
@@ -260,3 +267,18 @@ def test_lore_neighborhood(prepare_beer):
         for fuzzy_set in var.keys():
             np.testing.assert_almost_equal(neighborhood_X_membership[key][fuzzy_set],
                                            expected_X_membership[key][fuzzy_set])
+
+    expected_fuzzy_vars = [
+        FuzzyVariable(name='color', fuzzy_sets=[FuzzyContinuousSet(name='9.0', fuzzy_points=[9.0, 9.0, 12.236]),
+                                                FuzzyContinuousSet(name='12.236', fuzzy_points=[9.0, 12.236, 15.472]),
+                                                FuzzyContinuousSet(name='15.472',
+                                                                   fuzzy_points=[12.236, 15.472, 15.472])]),
+        FuzzyVariable(name='bitterness', fuzzy_sets=[FuzzyContinuousSet(name='25.0', fuzzy_points=[25.0, 25.0, 25.0]),
+                                                     FuzzyContinuousSet(name='25.0', fuzzy_points=[25.0, 25.0, 25.025]),
+                                                     FuzzyContinuousSet(name='25.025',
+                                                                        fuzzy_points=[25.0, 25.025, 25.025])]),
+        FuzzyVariable(name='strength', fuzzy_sets=[FuzzyContinuousSet(name='0.053', fuzzy_points=[0.053, 0.053, 0.08]),
+                                                   FuzzyContinuousSet(name='0.08', fuzzy_points=[0.053, 0.08, 0.107]),
+                                                   FuzzyContinuousSet(name='0.107', fuzzy_points=[0.08, 0.107, 0.107])])
+    ]
+    assert neighborhood.get_fuzzy_variables() == expected_fuzzy_vars
