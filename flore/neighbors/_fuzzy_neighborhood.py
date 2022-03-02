@@ -36,10 +36,21 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
         if 'df_numerical_columns' not in kwargs.keys() or 'df_categorical_columns' not in kwargs.keys():
             raise ValueError('Numerical and categorical columns needed to get fuzzy X')
 
+        th = 0.00001  # THRESHOLD TO AVOID PARTITIONS WITH ONLY ONE VALUE
+
+        # GET POINT VARIABLES
+        point_vars = set([])
+        for num in kwargs['df_numerical_columns']:
+            if self._X[num].std() < th:
+                point_vars.add(num)
+        fuzzy_points_args['point_variables'] = point_vars
+
         if get_division == 'entropy':
             fuzzy_points = get_fuzzy_points(self._Xy, get_division, **fuzzy_points_args)
         else:
             fuzzy_points = get_fuzzy_points(self._X, get_division, **fuzzy_points_args)
+
+        print(fuzzy_points)
 
         discrete_fuzzy_values = {col: self._X[col].unique() for col in kwargs['df_categorical_columns']}
         self._fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)

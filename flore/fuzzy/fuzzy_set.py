@@ -44,6 +44,7 @@ class FuzzySet(ABC):
 @dataclass
 class FuzzyContinuousSet(FuzzySet):
     fuzzy_points: list
+    point_set: bool = False
 
     def membership(self, variable):
         return fuzz.trimf(variable, self.fuzzy_points)
