@@ -58,12 +58,24 @@ def test_get_equal_width_division():
     assert parts_five == [0, 2.5, 5, 7.5, 10]
 
 
+def test_valueerror_get_equal_width_division():
+    with raises(ValueError):
+        array = np.array([2, 2])
+        get_equal_width_division(array, 3)
+
+
 def test_get_equal_freq_division():
     array = np.array([0, 0, 0, 0, 0, 1, 1, 2, 5, 6, 8, 9, 10, 10, 10])
     parts_three = get_equal_freq_division(array, 3)
     parts_five = get_equal_freq_division(array, 5)
     assert parts_three == [0, 2, 10]
     assert parts_five == [0, 0, 2, 8.5, 10]
+
+
+def test_valueerror_get_equal_freq_division():
+    with raises(ValueError):
+        array = np.array([2, 2])
+        get_equal_freq_division(array, 3)
 
 
 def test_get_fuzzy_points(toy_dataset):
