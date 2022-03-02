@@ -11,7 +11,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 
 import random
-import pytest
 from pytest import raises, fixture
 
 
@@ -205,7 +204,6 @@ def test_simple_neighborhood(prepare_iris):
     np.testing.assert_equal(expected_y, neighborhood_y)
 
 
-@pytest.mark.xfail(reason="LORE neighborhood can generate all equals neighbors")
 def test_lore_neighborhood(prepare_beer):
     (instance, size, class_name, blackbox, dataset, X_test,
      idx_record2explain, df_numerical_columns, df_categorical_columns) = prepare_beer
@@ -258,8 +256,7 @@ def test_lore_neighborhood(prepare_beer):
         'color': {'9.0': np.array([1., 1., 1., 1., 1., 1., 1., 0., 1.]),
                   '12.236': np.array([0., 0., 0., 0., 0., 0., 0., 0., 0.]),
                   '15.472': np.array([0., 0., 0., 0., 0., 0., 0., 0., 0.])},
-        'bitterness': {'25.0': np.array([1., 1., 1., 1., 1., 1., 1., 1., 1.]),
-                       '25.025': np.array([0., 0., 0., 0., 0., 0., 0., 0., 0.])},
+        'bitterness': {'25.0': np.array([1., 1., 1., 1., 1., 1., 1., 1., 1.])},
         'strength': {'0.053': np.array([0., 0., 1., 0., 0., 1., 1., 1., 0.]),
                      '0.08': np.array([0.96296296, 0.96296296, 0., 0., 0.96296296, 0., 0., 0., 0.96296296]),
                      '0.107': np.array([0.03703704, 0.03703704, 0., 1., 0.03703704, 0., 0., 0., 0.03703704])}}
@@ -275,12 +272,12 @@ def test_lore_neighborhood(prepare_beer):
                                                 FuzzyContinuousSet(name='12.236', fuzzy_points=[9.0, 12.236, 15.472]),
                                                 FuzzyContinuousSet(name='15.472',
                                                                    fuzzy_points=[12.236, 15.472, 15.472])]),
-        FuzzyVariable(name='bitterness', fuzzy_sets=[FuzzyContinuousSet(name='25.0', fuzzy_points=[25.0, 25.0, 25.0]),
-                                                     FuzzyContinuousSet(name='25.0', fuzzy_points=[25.0, 25.0, 25.025]),
-                                                     FuzzyContinuousSet(name='25.025',
-                                                                        fuzzy_points=[25.0, 25.025, 25.025])]),
+        FuzzyVariable(name='bitterness', fuzzy_sets=[FuzzyContinuousSet(name='25.0', fuzzy_points=[25.0, 25.0, 25.0],
+                                                                        point_set=True)]),
         FuzzyVariable(name='strength', fuzzy_sets=[FuzzyContinuousSet(name='0.053', fuzzy_points=[0.053, 0.053, 0.08]),
                                                    FuzzyContinuousSet(name='0.08', fuzzy_points=[0.053, 0.08, 0.107]),
-                                                   FuzzyContinuousSet(name='0.107', fuzzy_points=[0.08, 0.107, 0.107])])
+                                                   FuzzyContinuousSet(name='0.107',
+                                                                      fuzzy_points=[0.08, 0.107, 0.107])]),
     ]
+    print(neighborhood.get_fuzzy_variables())
     assert neighborhood.get_fuzzy_variables() == expected_fuzzy_vars
