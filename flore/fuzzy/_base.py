@@ -22,6 +22,9 @@ def get_equal_width_division(variable, sets):
     array
         Points of division between the partitions
     """
+    th = 0.00001  # THRESHOLD TO AVOID PARTITIONS WITH ONLY ONE VALUE
+    if np.std(variable) < th:
+        raise ValueError(f"There is only one unique value in {variable} and cannot be partitioned")
     try:
         cut = pd.cut(variable, sets - 1)
         sol = [cat.left for cat in cut.categories] + [cut.categories[-1].right]
@@ -47,6 +50,9 @@ def get_equal_freq_division(variable, sets):
     array
         Points of division between the partitions
     """
+    th = 0.00001  # THRESHOLD TO AVOID PARTITIONS WITH ONLY ONE VALUE
+    if np.std(variable) < th:
+        raise ValueError(f"There is only one unique value in {variable} and cannot be partitioned")
     try:
         qcut = pd.qcut(variable, sets - 1)
         sol = [cat.left for cat in qcut.categories] + [qcut.categories[-1].right]
@@ -58,7 +64,8 @@ def get_equal_freq_division(variable, sets):
     return sol
 
 
-def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0, class_name=None, verbose=False):
+def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0,
+                     class_name=None, point_variables=None, verbose=False):
     """Obtain the peak of the fuzzy triangles of
     the continuous variables of a DataFrame
 
@@ -74,6 +81,12 @@ def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0, class_name
     sets : int
         Number of fuzzy sets that the variable will
         be divided into
+    class_name : str, None by default
+        Name of the class variable necessary for 'entropy'
+        division
+    point_variables : set, None by default
+        Set of the variables to be considered point variables
+        to return a list with the point value
 
     Returns
     -------
@@ -82,7 +95,9 @@ def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0, class_name
     """
     fuzzy_points = {}
     for column in df_numerical_columns:
-        if get_divisions == 'equal_freq':
+        if point_variables and column in point_variables:
+            fuzzy_points[column] = df[column].unique()
+        elif get_divisions == 'equal_freq':
             fuzzy_points[column] = get_equal_freq_division(df[column].to_numpy(), sets)
         elif get_divisions == 'equal_width':
             fuzzy_points[column] = get_equal_width_division(df[column].to_numpy(), sets)
@@ -380,7 +395,20 @@ def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, continuo
     return fuzzy_variables
 
 
-def get_fuzzy_continuous_sets(divisions):
+def _point_set(divisions):
+    """Generate a FuzzyContinuousSet of a single point
+    with all three values the same
+
+    Parameters
+    ----------
+    divisions : tuple
+        Tuple with the name of the set and the peak of the triangle
+        like ('low', 0)
+    """
+    return [FuzzyContinuousSet(divisions[0], [divisions[1], divisions[1], divisions[1]], point_set=True)]
+
+
+def get_fuzzy_continuous_sets(divisions, point_set_method='point_set'):
     """Generate a list with the triangular fuzzy sets of
     a variable of a DataFrame given the peaks of
     the triangles
@@ -390,12 +418,22 @@ def get_fuzzy_continuous_sets(divisions):
     divisions : list
         List of tuples with the names of the sets and the peak of the triangle
         like [('low', 0), ('mid', 2), ('high', 5)]
+    point_set_method : str, 'point_set' by default
+        Name of the method to generate the point sets.
+        Defaults to `point_set`
 
     Returns
     -------
     list
         List with all the Fuzzy Continuous Sets that form a Fuzzy Variable
     """
+    # WE FIRST CHECK IF IT IS A POINT VALUE
+    if len(divisions) == 1:
+        if point_set_method == 'point_set':
+            return _point_set(divisions[0])
+        else:
+            raise ValueError(f'Point set method {point_set_method} is not valid')
+
     fuzzy_sets = []
     fuzzy_sets.append(FuzzyContinuousSet(divisions[0][0], [divisions[0][1], divisions[0][1], divisions[1][1]]))
     # First triangle is only half triangle
