@@ -57,7 +57,7 @@ The following list summarizes the metrics and scores that can be extracted from 
 - **Coverage**: How many instances are covered by the rules forming the explanation
 - **Precision**: How many of the instances covered by the rules forming the explanation are properly classified
 
-### Local neighborhood metrics
+### Local neighborhood metrics (To be implemented)
 - **Fidelity**: How good is the local explainer at mimicking the global classifier in the neighborhood
 - **L-fidelity**: How good is the local explainer at mimicking the global classifier in the instances of the neighborhood covered by the factual explanation
 - **Cl-fidelity**: How good is the local explainer at mimicking the global classifier in the instances of the neighborhood covered by the counterfactual explanation
