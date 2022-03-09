@@ -9,4 +9,4 @@ install_requires = [
     'imblearn'
 ]
 
-setup(name="flore", packages=find_packages())
+setup(name="teacher", packages=find_packages())
