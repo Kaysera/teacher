@@ -1,7 +1,19 @@
+"""Methods to generate a factual explanation"""
+
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Standard library
 from functools import reduce
+
+# Third party
 import numpy as np
 
 
+# =============================================================================
+# Functions
+# =============================================================================
 def _fired_rules(instance, rule_list, threshold=0.001):
     """Returns the rules fired by the instance given a threshold
 
@@ -37,6 +49,7 @@ def _get_maximum_weight_rules(rule_list):
 
 
 def _get_class_maximum_weight_rules(rule_list, class_val):
+    """Obtain the maximum weight rules with consequent `class_val` from a given rule list"""
     max_weight = _get_maximum_weight_rules(rule_list)
     return [rule for rule in max_weight if rule.consequent == class_val]
 
