@@ -33,7 +33,7 @@ class FactualLocalExplainer(BaseExplainer):
         return nlp_exp
 
     def hit(self):
-        """Returns `True` if the explanation corresponds with the 
+        """Returns `True` if the explanation corresponds with the
         expected prediction
 
         Returns
