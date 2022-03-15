@@ -1,7 +1,19 @@
+"""Base Explainer"""
+
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Standard library
 from abc import ABC, abstractmethod
+
+# Local application
 from teacher.neighbors import NotFittedError
 
 
+# =============================================================================
+# Classes
+# =============================================================================
 class BaseExplainer(ABC):
     def __init__(self):
         self.explanation = None

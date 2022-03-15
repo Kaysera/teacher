@@ -1,8 +1,19 @@
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Third party
 import numpy as np
+
+# Local application
 from ._factual import _get_maximum_weight_rules
 
 
+# =============================================================================
+# Functions
+# =============================================================================
 def _compare_rules_FID3(factual, counter_rule):
+    """Compare two rules according to the `FID3` algorithm"""
     fact_ante = {key: val for key, val in factual.antecedent}
     counter_rule_ante = {key: val for key, val in counter_rule.antecedent}
 
@@ -19,6 +30,9 @@ def _compare_rules_FID3(factual, counter_rule):
 
 
 def _cf_dist_instance(cf_rule, instance, df_numerical_columns):
+    """Distance from a tentative counterfactual rule to an instance 
+    according to the formula found in [ref]
+    """
     fuzzified_instance = {feat: max(fuzz_sets, key=lambda x: fuzz_sets[x]) for feat, fuzz_sets in instance.items()}
     cf_dict = {key: val for key, val in cf_rule.antecedent}
     num_keys = [x for x in df_numerical_columns if x in fuzzified_instance and x in cf_dict]
@@ -31,6 +45,9 @@ def _cf_dist_instance(cf_rule, instance, df_numerical_columns):
 
 
 def _cf_dist_rule(cf_rule, rule, instance, df_numerical_columns, tau=0.5):
+    """Distance from a tentative counterfactual rule to a rule 
+    according to the formula found in [ref]
+    """
     rule_dict = {key: val for key, val in rule.antecedent}
     cf_dict = {key: val for key, val in cf_rule.antecedent}
     num_keys = [x for x in df_numerical_columns if x in rule_dict and x in cf_dict]
@@ -46,6 +63,7 @@ def _cf_dist_rule(cf_rule, rule, instance, df_numerical_columns, tau=0.5):
 
 
 def _get_categorical_cf_distance(fuzzy_element, cf_dict, df_numerical_columns):
+    """Distance between the categorical elements of a fuzzy rule"""
     common_keys = set([])
     common_keys.update([x for x in fuzzy_element if x in cf_dict])
     common_keys.update([x for x in cf_dict if x in fuzzy_element])
@@ -73,6 +91,23 @@ def _literal_distance(fuzzy_clause, fuzzy_value, cf_value):
 
 
 def FID3_counterfactual(factual, counter_rules):
+    """Returns a list that contains the counterfactual
+    for each of the different class values not predicted,
+    as the rule with the most equal literals to the rule
+
+    Parameters
+    ----------
+    factual : Rule
+        List of rules that correspond to a factual explanation of the
+        instance for the class value `class_val`
+    counter_rules : list(Rule)
+        List of candidate rules to form part of the counterfactual
+
+    Returns
+    -------
+    list(Rule)
+        List of counterfactual rules
+    """
     min_rule_distance = np.inf
     best_cr = []
     for counter_rule in counter_rules:
