@@ -32,17 +32,17 @@ def generate_dataset(df, columns, class_name, discrete, name):
         Dataset as a dictionary with the following elements:
             name : Name of the dataset
             df : Pandas DataFrame with the original data
-            columns : list of the columns of the dataframe
+            columns : list of the columns of the DataFrame
             class_name : name of the class variable
             possible_outcomes : list with all the values of the class column
             type_features : dict with all the variables grouped by type
             features_type : dict with the type of each feature
             discrete : list with all the columns to be considered to have discrete values
             continuous : list with all the columns to be considered to have continuous values
-            idx_features : dict with the column name of each column once arranged in a numpy array
+            idx_features : dict with the column name of each column once arranged in a NumPy array
             label_encoder : label encoder for the discrete values
-            X : numpy array with all the columns except for the class
-            y : numpy array with the class column
+            X : NumPy array with all the columns except for the class
+            y : NumPy array with the class column
     """
     possible_outcomes = list(df[class_name].unique())
 
@@ -83,7 +83,7 @@ def load_german():
     Returns
     -------
     dataset : dict
-        Returns a dataset as formatted in generate_dataset()
+        Returns a dataset as formatted in `generate_dataset()`
     """
 
     # Read Dataset
@@ -104,7 +104,7 @@ def load_adult():
     Returns
     -------
     dataset : dict
-        Returns a dataset as formatted in generate_dataset()
+        Returns a dataset as formatted in `generate_dataset()`
     """
 
     # Read Dataset
@@ -129,6 +129,13 @@ def load_adult():
 
 
 def load_compas():
+    """Loads and returns the COMPAS scores dataset
+
+    Returns
+    -------
+    dataset : dict
+        Returns a dataset as formatted in `generate_dataset()`
+    """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/compas-scores-two-years.csv', delimiter=',', skipinitialspace=True)
 
@@ -173,6 +180,13 @@ def load_compas():
 
 
 def load_heloc():
+    """Loads and returns the HELOC dataset
+
+    Returns
+    -------
+    dataset : dict
+        Returns a dataset as formatted in `generate_dataset()`
+    """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/heloc_dataset_v1.csv', delimiter=',')
 
@@ -185,6 +199,13 @@ def load_heloc():
 
 
 def load_beer():
+    """Loads and returns the beer dataset
+
+    Returns
+    -------
+    dataset : dict
+        Returns a dataset as formatted in `generate_dataset()`
+    """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/beer.csv', delimiter=',')
 
@@ -201,6 +222,13 @@ def load_beer():
 
 
 def load_pima():
+    """Loads and returns the pima indians dataset
+
+    Returns
+    -------
+    dataset : dict
+        Returns a dataset as formatted in `generate_dataset()`
+    """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/pima-indians-diabetes.csv', delimiter=',')
 
@@ -217,6 +245,13 @@ def load_pima():
 
 
 def load_breast():
+    """Loads and returns the breast cancer dataset
+
+    Returns
+    -------
+    dataset : dict
+        Returns a dataset as formatted in `generate_dataset()`
+    """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/breast.csv', delimiter=',')
     del df['id']
