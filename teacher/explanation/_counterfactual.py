@@ -30,7 +30,7 @@ def _compare_rules_FID3(factual, counter_rule):
 
 
 def _cf_dist_instance(cf_rule, instance, df_numerical_columns):
-    """Distance from a tentative counterfactual rule to an instance 
+    """Distance from a tentative counterfactual rule to an instance
     according to the formula found in [ref]
     """
     fuzzified_instance = {feat: max(fuzz_sets, key=lambda x: fuzz_sets[x]) for feat, fuzz_sets in instance.items()}
@@ -45,7 +45,7 @@ def _cf_dist_instance(cf_rule, instance, df_numerical_columns):
 
 
 def _cf_dist_rule(cf_rule, rule, instance, df_numerical_columns, tau=0.5):
-    """Distance from a tentative counterfactual rule to a rule 
+    """Distance from a tentative counterfactual rule to a rule
     according to the formula found in [ref]
     """
     rule_dict = {key: val for key, val in rule.antecedent}
