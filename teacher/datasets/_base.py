@@ -1,14 +1,35 @@
+"""
+This module gathers the different datasets used to run the experiments, as well
+as a function to take a new generic dataset and return it in a format understandable
+by the library
+"""
 
-# Standard imports
+
+# =============================================================================
+# Imports
+# =============================================================================
+
+
+# Standard
 from os.path import dirname
 
-# Third party imports
-from teacher.utils import recognize_features_type, set_discrete_continuous, label_encode
+# Third party
 import pandas as pd
 import numpy as np
 
+# Local application
+from teacher.utils import recognize_features_type, set_discrete_continuous, label_encode
+
+
+# =============================================================================
+# Constants
+# =============================================================================
 MODULE_PATH = dirname(__file__)
 
+
+# =============================================================================
+# Functions
+# =============================================================================
 
 def generate_dataset(df, columns, class_name, discrete, name):
     """Generate the dataset suitable for LORE usage
