@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from math import log2, inf, pow
 from .fuzzy_variable import FuzzyVariable
 from .fuzzy_set import FuzzyContinuousSet, FuzzyDiscreteSet
-
+from sklearn.utils import check_array, check_X_y
 
 def get_equal_width_division(variable, sets):
     """Generate partitions of equal width from a variable
@@ -110,34 +110,41 @@ def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0,
 
 
 def fuzzy_points_np(division_method, num_dict, X, y=None, sets=0,
-                    point_variables=None, verbose=False):
+                    point_variables=None, debug=False):
     """Obtain the peak of the fuzzy triangles of
     the continuous variables of a DataFrame
 
     Parameters
     ----------
-    df : pandas.core.frame.DataFrame
-        DataFrame from which to obtain the fuzzy points
-    get_divisions : string
+    division_method : string
         Function used to get the divisions. Currently
         supported: 'equal_freq', 'equal_width', 'entropy'
-    df_numerical_columns : list
-        List with the columns to get the fuzzy points
+    num_dict : dict
+        Dictionary with the numerical columns of the dataste
+        and their indices in the format {index: column}
+    X : array-like, of shape (n_samples, n_features)
+        The training input samples.
+    y : array-like of shape (n_samples,)
+        The target values (class labels) as integers or strings.
     sets : int
         Number of fuzzy sets that the variable will
         be divided into
-    class_name : str, None by default
-        Name of the class variable necessary for 'entropy'
-        division
     point_variables : set, None by default
         Set of the variables to be considered point variables
         to return a list with the point value
+    debug : boolean, False by default
 
     Returns
     -------
     dict
         Dictionary with the format {key : [points]}
     """
+
+    if y is not None:
+        X, y = check_X_y(X, y)
+    else:
+        X = check_array(X)
+
     fuzzy_points = {}
     for column in num_dict:
         if point_variables and column in point_variables:
@@ -148,7 +155,7 @@ def fuzzy_points_np(division_method, num_dict, X, y=None, sets=0,
             fuzzy_points[num_dict[column]] = get_equal_width_division(X[:,column], sets)
         elif division_method == 'entropy':
             fuzzy_points[num_dict[column]] = _fuzzy_partitioning(X[:,column], y,
-                                                       np.min(X[:,column]), verbose)
+                                                       np.min(X[:,column]), debug)
         else:
             raise ValueError('Division method not supported')
     return fuzzy_points
