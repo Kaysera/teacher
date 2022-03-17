@@ -7,6 +7,7 @@ from .fuzzy_variable import FuzzyVariable
 from .fuzzy_set import FuzzyContinuousSet, FuzzyDiscreteSet
 from sklearn.utils import check_array, check_X_y
 
+
 def get_equal_width_division(variable, sets):
     """Generate partitions of equal width from a variable
 
@@ -150,12 +151,12 @@ def fuzzy_points_np(division_method, num_dict, X, y=None, sets=0,
         if point_variables and column in point_variables:
             fuzzy_points[num_dict[column]] = np.unique(X[:, column])
         elif division_method == 'equal_freq':
-            fuzzy_points[num_dict[column]] = get_equal_freq_division(X[:,column], sets)
+            fuzzy_points[num_dict[column]] = get_equal_freq_division(X[:, column], sets)
         elif division_method == 'equal_width':
-            fuzzy_points[num_dict[column]] = get_equal_width_division(X[:,column], sets)
+            fuzzy_points[num_dict[column]] = get_equal_width_division(X[:, column], sets)
         elif division_method == 'entropy':
-            fuzzy_points[num_dict[column]] = _fuzzy_partitioning(X[:,column], y,
-                                                       np.min(X[:,column]), debug)
+            fuzzy_points[num_dict[column]] = _fuzzy_partitioning(X[:, column], y,
+                                                                 np.min(X[:, column]), debug)
         else:
             raise ValueError('Division method not supported')
     return fuzzy_points

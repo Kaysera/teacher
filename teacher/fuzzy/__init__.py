@@ -16,7 +16,7 @@ __all__ = [
     "get_fuzzy_points",
     "get_fuzzy_triangle",
     "fuzzy_entropy",
-    "fuzzy_points_np"
+    "fuzzy_points_np",
     "weighted_fuzzy_entropy",
     "get_dataset_membership",
     "get_fuzzy_variables",
