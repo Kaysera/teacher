@@ -109,6 +109,51 @@ def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0,
     return fuzzy_points
 
 
+def fuzzy_points_np(division_method, num_dict, X, y=None, sets=0,
+                    point_variables=None, verbose=False):
+    """Obtain the peak of the fuzzy triangles of
+    the continuous variables of a DataFrame
+
+    Parameters
+    ----------
+    df : pandas.core.frame.DataFrame
+        DataFrame from which to obtain the fuzzy points
+    get_divisions : string
+        Function used to get the divisions. Currently
+        supported: 'equal_freq', 'equal_width', 'entropy'
+    df_numerical_columns : list
+        List with the columns to get the fuzzy points
+    sets : int
+        Number of fuzzy sets that the variable will
+        be divided into
+    class_name : str, None by default
+        Name of the class variable necessary for 'entropy'
+        division
+    point_variables : set, None by default
+        Set of the variables to be considered point variables
+        to return a list with the point value
+
+    Returns
+    -------
+    dict
+        Dictionary with the format {key : [points]}
+    """
+    fuzzy_points = {}
+    for column in num_dict:
+        if point_variables and column in point_variables:
+            fuzzy_points[num_dict[column]] = np.unique(X[:, column])
+        elif division_method == 'equal_freq':
+            fuzzy_points[num_dict[column]] = get_equal_freq_division(X[:,column], sets)
+        elif division_method == 'equal_width':
+            fuzzy_points[num_dict[column]] = get_equal_width_division(X[:,column], sets)
+        elif division_method == 'entropy':
+            fuzzy_points[num_dict[column]] = _fuzzy_partitioning(X[:,column], y,
+                                                       np.min(X[:,column]), verbose)
+        else:
+            raise ValueError('Division method not supported')
+    return fuzzy_points
+
+
 def _fuzzy_partitioning(variable, class_variable, min_point, verbose=False):
     max_point = variable.max()
     best_point = 0
