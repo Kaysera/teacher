@@ -402,6 +402,33 @@ def get_dataset_membership(df, fuzzy_variables, verbose=False):
     return dataset_membership
 
 
+def dataset_membership_np(X, fuzzy_variables):
+    """Obtain the membership of the values of all the columns of a DataFrame to each
+    Fuzzy Set of the different Fuzzy Variables
+
+    Parameters
+    ----------
+    X : array-like, of shape (n_samples, n_features)
+        The input samples of which to obtain the membership.
+    fuzzy_variables : list[FuzzySet]
+        List of the fuzzy variables to compute the membership. Must be
+        ordered according to the features of X.
+
+    Returns
+    -------
+    dict
+        Dictionary with format {key : value} where the key is the name of the column of the DataFrame
+        and the value is a dictionary with the membership to each fuzzy set of the variable
+    """
+
+    X = check_array(X)
+
+    dataset_membership = {}
+    for i, fuzzy_var in enumerate(fuzzy_variables):
+        dataset_membership[fuzzy_var.name] = fuzzy_var.membership(X[:, i])
+    return dataset_membership
+
+
 def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, continuous_labels=None, discrete_labels=None):
     """Build the fuzzy variables given the points of the triangles that
     define them, as well as the values of the discrete variables

@@ -6,6 +6,7 @@ from ._base import (get_equal_width_division,
                     fuzzy_entropy,
                     weighted_fuzzy_entropy,
                     get_dataset_membership,
+                    dataset_membership_np,
                     get_fuzzy_variables)
 from .fuzzy_set import FuzzyDiscreteSet, FuzzyContinuousSet
 from .fuzzy_variable import FuzzyVariable
@@ -19,6 +20,7 @@ __all__ = [
     "fuzzy_points_np",
     "weighted_fuzzy_entropy",
     "get_dataset_membership",
+    "dataset_membership_np",
     "get_fuzzy_variables",
     "FuzzyDiscreteSet",
     "FuzzyContinuousSet",
