@@ -2,7 +2,7 @@ from collections import defaultdict
 import numpy as np
 
 
-def _aggregated_vote(self, all_classes):
+def _aggregated_vote(all_classes):
     agg_vote = defaultdict(lambda: np.zeros(len(all_classes[0][1])))
     for leaf in all_classes:
         for key in leaf[0]:
@@ -10,7 +10,7 @@ def _aggregated_vote(self, all_classes):
     return agg_vote
 
 
-def _maximum_matching(self, all_classes):
+def _maximum_matching(all_classes):
     max_match = defaultdict(lambda: np.zeros(len(all_classes[0][1])))
     for leaf in all_classes:
         for key in leaf[0]:
