@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from sklearn.utils import check_array, check_X_y
 import numpy as np
 
 
@@ -24,12 +25,11 @@ class BaseDecisionTree(ABC):
         """
 
     def predict(self, X):
-        if isinstance(X, (list, np.ndarray)):
-            return np.array([self.tree_.predict(x) for x in X])
-        else:
-            return np.array([self.tree_.predict(X)])
+        X = check_array(X)
+        return np.array([self.tree_.predict(x) for x in X])
 
     def score(self, X, y):
+        X, y = check_X_y(X, y)
         return np.sum(self.predict(X) == y)/y.shape[0]
 
     def to_rule_based_system(self, verbose=False):

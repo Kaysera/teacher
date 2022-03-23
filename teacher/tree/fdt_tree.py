@@ -170,7 +170,8 @@ class TreeFDT_np:
         if tree.value is not None:
             att, value = tree.value
             try:
-                pert_degree = self.fuzzy_variable[value].membership(X[att])
+                fuzzy_set = tree.fuzzy_variable.fuzzy_sets[value]
+                pert_degree = fuzzy_set.membership(np.array([X[att]]))
             except KeyError:
                 pert_degree = 0
             new_mu = self.t_norm(mu, pert_degree)
