@@ -81,7 +81,7 @@ def prepare_beer_fdt(set_random):
     df_train_membership = dataset_membership(X_train, fuzzy_variables)
     df_test_membership = dataset_membership(X_test, fuzzy_variables)
 
-    fuzzy_element_idx = 48
+    fuzzy_element_idx = 73
     fuzzy_element = _get_fuzzy_element(df_test_membership, fuzzy_element_idx)
     all_classes = dataset['possible_outcomes']
     return [df_train_membership, df_test_membership, X_train, y_train,
@@ -346,7 +346,7 @@ def test_c_lambda_factual(prepare_iris_fdt):
 def test_c_lambda_factual_complex_fdt(prepare_beer_fdt):
     (df_train_membership, _, X_train, y_train,
      X_test, _, fuzzy_element, fuzzy_element_idx, _, _, fuzzy_variables) = prepare_beer_fdt
-    lam = 0.5
+    lam = 0
 
     fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)

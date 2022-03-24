@@ -94,7 +94,7 @@ def dataset_membership(X, fuzzy_variables):
 
 
 def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, order,
-                        continuous_labels=None, discrete_labels=None):
+                        continuous_labels=None, discrete_labels=None, point_set_method='point_set'):
     """Build the fuzzy variables given the points of the triangles that
     define them, as well as the values of the discrete variables
 
@@ -119,6 +119,9 @@ def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, order,
         Dictionary with format {key : [l1, l2, ...]} where key is the
         name of the discrete variable and l1, l2, ... are the labels of the fuzzy
         sets associated to the values v1, v2, ...
+    point_set : str, 'point_set' by default
+        Name of the method to generate the point sets.
+        Defaults to `point_set`
 
     Returns
     -------
@@ -131,7 +134,8 @@ def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, order,
             col_labels = [f'{label}' for label in continuous_fuzzy_points[name]]
         else:
             col_labels = continuous_labels[name]
-        fuzzy_variables[order[name]] = FuzzyVariable(name, get_fuzzy_continuous_sets(list(zip(col_labels, points))))
+        fuzzy_variables[order[name]] = FuzzyVariable(name, get_fuzzy_continuous_sets(list(zip(col_labels, points)),
+                                                                                     point_set_method=point_set_method))
 
     for name, values in discrete_fuzzy_values.items():
         if discrete_labels is None or name not in discrete_labels:

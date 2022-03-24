@@ -56,6 +56,12 @@ def test_get_fuzzy_points(toy_dataset):
     assert freq_points == {'one': [0, 2, 10], 'two': [7, 9, 10]}
 
 
+def test_get_fuzzy_points_bad_method(toy_dataset):
+    with raises(ValueError):
+        df, df_numerical_columns, sets = toy_dataset
+        get_fuzzy_points('None', df_numerical_columns, df[df_numerical_columns], sets=sets)
+
+
 def test_get_fuzzy_points_unsupported_division(toy_dataset):
     df, df_numerical_columns, sets = toy_dataset
     with raises(ValueError):
@@ -86,6 +92,16 @@ def test_get_fuzzy_points_entropy():
                              'petal width (cm)': [0.1, 0.6, 1.0, 1.7, 2.5]}
 
     assert fuzzy_points_generic == expected_fuzzy_points
+
+
+def test_get_fuzzy_variables_wrong_point_set_method(toy_fuzzy_variables):
+    with raises(ValueError):
+        _, _, continuous_labels, _, _ = toy_fuzzy_variables
+
+        ordered_dict = {'one': 0}
+        fuzzy_points = {'one': [1]}
+        get_fuzzy_variables(fuzzy_points, {}, ordered_dict,
+                            continuous_labels, {}, point_set_method='None')
 
 
 def test_get_fuzzy_variables(toy_fuzzy_variables):
