@@ -3,6 +3,18 @@ from sklearn.utils import check_array
 from teacher.tree import FDT
 from teacher.explanation import m_factual, mr_factual, c_factual, i_counterfactual, f_counterfactual
 
+FACTUAL_METHODS = {
+    'm_factual': m_factual,
+    'mr_factual': mr_factual,
+    'c_factual': c_factual
+}
+
+
+COUNTERFACTUAL_METHODS = {
+    'i_counterfactual': i_counterfactual,
+    'f_counterfactual': f_counterfactual
+}
+
 
 class FDTExplainer(FactualLocalExplainer):
     def __init__(self):
@@ -13,23 +25,17 @@ class FDTExplainer(FactualLocalExplainer):
 
     def fit(self, instance, target, neighborhood, df_num_cols, factual, counterfactual, **kwargs):
         instance = check_array(instance)
-        if factual == 'm_factual':
-            self.factual_method = m_factual
-        elif factual == 'mr_factual':
-            self.factual_method = mr_factual
-        elif factual == 'c_factual':
-            self.factual_method = c_factual
-            if 'lam' not in kwargs:
-                raise ValueError("Lambda parameter (lam) needed")
-        else:
-            raise ValueError("Factual method invalid")
+        try:
+            self.factual_method = FACTUAL_METHODS[factual]
+            if factual == 'c_factual' and 'lam' not in kwargs:
+                raise ValueError("Lambda parameter (lam) needed for factual {factual}")
+        except KeyError:
+            raise ValueError(f"Factual method '{factual}' invalid")
 
-        if counterfactual == 'i_counterfactual':
-            self.counterfactual_method = i_counterfactual
-        elif counterfactual == 'f_counterfactual':
-            self.counterfactual_method = f_counterfactual
-        else:
-            raise ValueError("Counterfactual method invalid")
+        try:
+            self.counterfactual_method = COUNTERFACTUAL_METHODS[counterfactual]
+        except KeyError:
+            raise ValueError(f"Counterfactual method '{counterfactual}' invalid")
 
         self.target = target
         fuzzy_variables = neighborhood.get_fuzzy_variables()
