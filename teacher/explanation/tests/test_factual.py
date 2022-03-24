@@ -7,7 +7,7 @@ from pytest import fixture
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
-from teacher.fuzzy import get_fuzzy_points, get_fuzzy_variables, get_dataset_membership
+from teacher.fuzzy import get_fuzzy_variables, fuzzy_points_np, dataset_membership_np
 from teacher.datasets import load_compas, load_beer
 from teacher.explanation import FID3_factual, m_factual, mr_factual, c_factual
 import numpy as np
@@ -29,24 +29,29 @@ def prepare_iris_fdt(set_random):
 
     df_numerical_columns = iris.feature_names
     df_categorical_columns = []
-    class_name = 'target'
 
     X_train, X_test, y_train, y_test = train_test_split(iris.data,
                                                         iris.target,
                                                         test_size=0.33,
                                                         random_state=set_random)
 
-    df_train = iris.frame.loc[X_train.index]
-    df_test = iris.frame.loc[X_test.index]
+    X_num = X_train
+    num_cols = X_num.columns
+    fuzzy_points = fuzzy_points_np('entropy', num_cols, X_num, y_train)
 
-    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
-    discrete_fuzzy_values = {col: df_train[col].unique() for col in df_categorical_columns}
-    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
-    df_train_membership = get_dataset_membership(df_train, fuzzy_variables)
-    df_test_membership = get_dataset_membership(df_test, fuzzy_variables)
-    fuzzy_element = _get_fuzzy_element(df_test_membership, 27)
+    discrete_fuzzy_values = {col: X_train[col].unique() for col in df_categorical_columns}
+    fuzzy_variables_order = {col: i for i, col in enumerate(X_train.columns)}
+    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, fuzzy_variables_order)
+
+    df_train_membership = dataset_membership_np(X_train, fuzzy_variables)
+    df_test_membership = dataset_membership_np(X_test, fuzzy_variables)
+
+    fuzzy_element_idx = 48
+    fuzzy_element = _get_fuzzy_element(df_test_membership, fuzzy_element_idx)
+
     all_classes = np.unique(iris.target)
-    return [df_train_membership, df_test_membership, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
+    return [df_train_membership, df_test_membership, X_train, y_train,
+            X_test, y_test, fuzzy_element, fuzzy_element_idx, all_classes, df_numerical_columns, fuzzy_variables]
 
 
 @fixture
@@ -65,18 +70,22 @@ def prepare_beer_fdt(set_random):
     df_categorical_columns.remove(class_name)
     df_numerical_columns = dataset['continuous']
 
-    df_train = df.loc[X_train.index]
-    df_test = df.loc[X_test.index]
+    X_num = X_train[dataset['continuous']]
+    num_cols = X_num.columns
+    fuzzy_points = fuzzy_points_np('entropy', num_cols, X_num, y_train)
 
-    fuzzy_points = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
-    discrete_fuzzy_values = {col: df_train[col].unique() for col in df_categorical_columns}
-    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
-    df_train_membership = get_dataset_membership(df_train, fuzzy_variables)
-    df_test_membership = get_dataset_membership(df_test, fuzzy_variables)
+    discrete_fuzzy_values = {col: df[col].unique() for col in df_categorical_columns}
+    fuzzy_variables_order = {col: i for i, col in enumerate(X.columns)}
+    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, fuzzy_variables_order)
 
-    fuzzy_element = _get_fuzzy_element(df_test_membership, 48)
+    df_train_membership = dataset_membership_np(X_train, fuzzy_variables)
+    df_test_membership = dataset_membership_np(X_test, fuzzy_variables)
+
+    fuzzy_element_idx = 48
+    fuzzy_element = _get_fuzzy_element(df_test_membership, fuzzy_element_idx)
     all_classes = dataset['possible_outcomes']
-    return [df_train_membership, df_test_membership, X_train, y_train, X_test, y_test, fuzzy_element, all_classes]
+    return [df_train_membership, df_test_membership, X_train, y_train,
+            X_test, y_test, fuzzy_element, fuzzy_element_idx, all_classes, df_numerical_columns, fuzzy_variables]
 
 
 def _get_fuzzy_element(fuzzy_X, idx):
@@ -201,16 +210,21 @@ def test_explain_id3(set_random):
 
     discrete = dataset['discrete']
     discrete.remove(class_name)
-    continuous = dataset['continuous']
 
     # Dataset Preprocessing
     instance = X_train.iloc[idx_record2explain]
 
-    fuzzy_points = get_fuzzy_points(X_train, 'equal_width', continuous, len(fuzzy_labels))
+    X_num = X_train[dataset['continuous']]
+    num_cols = X_num.columns
+    fuzzy_points = fuzzy_points_np('equal_width', num_cols, X_num, sets=len(fuzzy_labels))
+
     discrete_fuzzy_values = {col: df[col].unique() for col in discrete}
-    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
-    df_train_membership = get_dataset_membership(X_train, fuzzy_variables)
-    df_test_membership = get_dataset_membership(X_test, fuzzy_variables)
+    fuzzy_variables_order = {col: i for i, col in enumerate(X.columns)}
+    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, fuzzy_variables_order)
+
+    df_train_membership = dataset_membership_np(X_train, fuzzy_variables)
+    df_test_membership = dataset_membership_np(X_test, fuzzy_variables)
+
     fuzzy_X = _fuzzify_dataset(X_train, df_train_membership, _get_categorical_fuzzy)
 
     X_np = fuzzy_X.values
@@ -255,19 +269,20 @@ def test_explain_id3(set_random):
 
 
 def test_m_factual_fdt(prepare_iris_fdt):
-    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
+    (df_train_membership, _, X_train, y_train,
+     X_test, _, fuzzy_element, fuzzy_element_idx, _, _, fuzzy_variables) = prepare_iris_fdt
 
     fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(df_train_membership.keys())
-    new_fdt.fit(df_train_membership, y_train.to_numpy())
+    new_fdt = FDT(fuzzy_variables)
+    new_fdt.fit(X_train, y_train)
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
     expect_m_factual = _alpha_factual_avg(predicted_best_rules)
 
-    new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
+    new_fdt_predict = new_fdt.predict(X_test.iloc[fuzzy_element_idx].to_numpy().reshape(1, -1))
     rules = new_fdt.to_rule_based_system()
     ob_m_factual = m_factual(fuzzy_element, rules, new_fdt_predict)
 
@@ -278,13 +293,14 @@ def test_m_factual_fdt(prepare_iris_fdt):
 
 
 def test_r_factual_fdt(prepare_beer_fdt):
-    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, all_classes = prepare_beer_fdt
+    (df_train_membership, _, X_train, y_train,
+     X_test, _, fuzzy_element, fuzzy_element_idx, all_classes, _, fuzzy_variables) = prepare_beer_fdt
 
     fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(df_train_membership.keys())
-    new_fdt.fit(df_train_membership, y_train.to_numpy())
+    new_fdt = FDT(fuzzy_variables)
+    new_fdt.fit(X_train, y_train)
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
@@ -292,7 +308,7 @@ def test_r_factual_fdt(prepare_beer_fdt):
     fdt_rob_thres = fdt.robust_threshold(fuzzy_element, other_classes)
     expect_r_factual = _alpha_factual_robust(predicted_best_rules, fdt_rob_thres)
 
-    new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
+    new_fdt_predict = new_fdt.predict(X_test.iloc[fuzzy_element_idx].to_numpy().reshape(1, -1))
     rules = new_fdt.to_rule_based_system()
     ob_r_factual = mr_factual(fuzzy_element, rules, new_fdt_predict)
 
@@ -303,20 +319,21 @@ def test_r_factual_fdt(prepare_beer_fdt):
 
 
 def test_c_lambda_factual(prepare_iris_fdt):
-    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
+    (df_train_membership, _, X_train, y_train,
+     X_test, _, fuzzy_element, fuzzy_element_idx, _, _, fuzzy_variables) = prepare_iris_fdt
     lam = 0.98
 
     fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(df_train_membership.keys())
-    new_fdt.fit(df_train_membership, y_train.to_numpy())
+    new_fdt = FDT(fuzzy_variables)
+    new_fdt.fit(X_train, y_train)
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
     expect_c_factual = _alpha_factual_factor(predicted_best_rules, lam)
 
-    new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
+    new_fdt_predict = new_fdt.predict(X_test.iloc[fuzzy_element_idx].to_numpy().reshape(1, -1))
     rules = new_fdt.to_rule_based_system()
     ob_c_factual = c_factual(fuzzy_element, rules, new_fdt_predict, lam)
 
@@ -327,20 +344,21 @@ def test_c_lambda_factual(prepare_iris_fdt):
 
 
 def test_c_lambda_factual_complex_fdt(prepare_beer_fdt):
-    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_beer_fdt
+    (df_train_membership, _, X_train, y_train,
+     X_test, _, fuzzy_element, fuzzy_element_idx, _, _, fuzzy_variables) = prepare_beer_fdt
     lam = 0.5
 
     fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(df_train_membership.keys())
-    new_fdt.fit(df_train_membership, y_train.to_numpy())
+    new_fdt = FDT(fuzzy_variables)
+    new_fdt.fit(X_train, y_train)
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
     expect_c_factual = _alpha_factual_factor(predicted_best_rules, lam)
 
-    new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
+    new_fdt_predict = new_fdt.predict(X_test.iloc[fuzzy_element_idx].to_numpy().reshape(1, -1))
     rules = new_fdt.to_rule_based_system()
     ob_c_factual = c_factual(fuzzy_element, rules, new_fdt_predict, lam)
 
@@ -351,21 +369,22 @@ def test_c_lambda_factual_complex_fdt(prepare_beer_fdt):
 
 
 def test_c_lambda_beta_factual_fdt(prepare_iris_fdt):
-    df_train_membership, _, X_train, y_train, _, _, fuzzy_element, _ = prepare_iris_fdt
+    (df_train_membership, _, X_train, y_train,
+     X_test, _, fuzzy_element, fuzzy_element_idx, _, _, fuzzy_variables) = prepare_iris_fdt
     lam = 0.98
     beta = 0.5
 
     fdt = FDT_Legacy(df_train_membership.keys(), df_train_membership)
     fdt.fit(X_train, y_train)
 
-    new_fdt = FDT(df_train_membership.keys())
-    new_fdt.fit(df_train_membership, y_train.to_numpy())
+    new_fdt = FDT(fuzzy_variables)
+    new_fdt.fit(X_train, y_train)
 
     fdt_predict = fdt.predict(fuzzy_element)[0]
     predicted_best_rules = fdt.explain(fuzzy_element, fdt_predict)
     expect_c_factual = _alpha_factual_factor_sum(predicted_best_rules, lam, beta)
 
-    new_fdt_predict = new_fdt.predict(fuzzy_element)[0]
+    new_fdt_predict = new_fdt.predict(X_test.iloc[fuzzy_element_idx].to_numpy().reshape(1, -1))
     rules = new_fdt.to_rule_based_system()
     ob_c_factual = c_factual(fuzzy_element, rules, new_fdt_predict, lam, beta)
 

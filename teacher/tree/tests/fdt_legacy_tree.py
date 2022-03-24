@@ -2,14 +2,120 @@ from functools import reduce
 import numpy as np
 from teacher.fuzzy import fuzzy_entropy
 from collections import defaultdict
-from ..fdt_tree import TreeFDT
+from .. import _voting
+from ..rule import Rule
+
+
+# =============================================================================
+# Constants
+# =============================================================================
+
+
+VOTING_METHODS = {
+    "agg_vote": _voting._aggregated_vote,
+    "max_match": _voting._maximum_matching
+}
+
+
+class TreeFDT_legacy:
+    def __init__(self, features, t_norm=np.minimum, voting='agg_vote'):
+        self.is_leaf = True
+        self.childlist = []
+        self.features = features
+        self.class_value = -1
+        self.level = -1
+        self.value = (0, 0)
+        self.mu = []
+        self.t_norm = t_norm
+        try:
+            self._voting_method = VOTING_METHODS[voting]
+        except KeyError:
+            raise ValueError(f'{voting} voting method not implemented')
+
+    def __str__(self):  # pragma: no cover
+        output = '\t' * self.level
+        if(self.is_leaf):
+            output += 'Class value: ' + str(self.class_value)
+        else:
+            output += 'Feature ' + str(self.value)
+            for child in self.childlist:
+                output += '\n'
+                output += '\t' * self.level
+                output += 'Feature ' + str(child.value)
+                output += '\n' + str(child)
+            output += '\n' + '\t' * self.level
+        return output
+
+    def __eq__(self, other):
+        if not isinstance(other, TreeFDT_legacy):
+            return False
+        return (self.is_leaf == other.is_leaf and
+                self.childlist == other.childlist and
+                self.features == other.features and
+                self.class_value == other.class_value and
+                self.level == other.level and
+                self.value == other.value and
+                np.array_equal(self.mu, other.mu))
+
+    def predict(self, X_membership):
+        # Get the length of the array to predict
+        X_size = 1
+        leaf_values = self._partial_predict(X_membership, np.ones(X_size), self)
+        agg_vote = self._voting_method(leaf_values)
+        # all_classes = [(key, agg_vote[key]) for key in agg_vote]
+        n_all_classes = [(key, agg_vote[key][0]) for key in agg_vote]
+        # TODO: REHACER AGG_VOTE PARA QUE EN VEZ DE ('one', [1]) SEA ('one', 1)
+        # INPUT: all_classes = [('one', [1,2,3,4]), ('two', [4,3,2,1]), ('three', [0,0,0,9])]
+        # OUTPUT: ['two', 'two', 'one', 'three']
+        classes_list = max(n_all_classes, key=lambda a: a[1])[0]
+        return classes_list
+
+    def _partial_predict(self, X_membership, mu, tree):
+        if tree.value != (0, 0):
+            att, value = tree.value
+            try:
+                pert_degree = X_membership[att][value]
+            except KeyError:
+                pert_degree = 0
+            new_mu = self.t_norm(mu, pert_degree)
+        else:
+            new_mu = mu
+        if tree.is_leaf:
+            return [(tree.class_value, new_mu)]
+        else:
+            return np.concatenate([self._partial_predict(X_membership, new_mu, child) for child in tree.childlist])
+
+    def to_rule_based_system(self, th=0.0001, verbose=False):
+        rules = self._get_rules(self, [], th, verbose)
+        return [Rule(antecedent, consequent, weight) for (antecedent, consequent, weight) in rules]
+
+    def _get_rules(self, tree, rule, th=0.0001, verbose=False):
+        if tree.value != (0, 0):
+            att, value = tree.value
+            clause = (att, value)
+            new_rule = rule + [clause]
+        else:
+            new_rule = rule
+
+        if tree.is_leaf:
+            if verbose:  # pragma: no cover
+                for leaf_class, weight in tree.class_value.items():
+                    if weight > th:
+                        print(f'{new_rule} => Class value: {leaf_class} (Weight: {weight})')
+            return [(new_rule, leaf_class, weight) for leaf_class, weight in tree.class_value.items() if weight > th]
+        else:
+            current_rules = []
+            for child in tree.childlist:
+                child_rules = self._get_rules(child, new_rule, th, verbose)
+                current_rules += child_rules
+            return current_rules
 
 
 class FDT_Legacy:
     def __init__(self, features, fuzzy_set_df, fuzzy_threshold=0.0001,
                  th=0.0001, max_depth=10, min_num_examples=1, prunning=True, voting='agg_vote'):
         self.max_depth = max_depth
-        self.tree = TreeFDT(set(features))
+        self.tree = TreeFDT_legacy(set(features))
         self.min_num_examples = min_num_examples
         self.prunning = prunning
         self.th = th
@@ -100,7 +206,7 @@ class FDT_Legacy:
         for value in self.fuzzy_set_df[att]:
             new_features = current_tree.features.copy()
             new_features.remove(att)
-            child = TreeFDT(new_features)
+            child = TreeFDT_legacy(new_features)
             child.value = (att, value)
             child.mu = child_mu[value]
             if child.mu.sum() > 0:

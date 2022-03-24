@@ -150,18 +150,6 @@ def test_equal_freq_no_sets():
                              df_categorical_columns=df_categorical_columns)
 
 
-def test_entropy_no_class_name():
-    with raises(ValueError):
-        df_numerical_columns = ['column_1']
-        df_categorical_columns = ['column_2']
-        neighborhood = MockFuzzyNeighborhood()
-        neighborhood.fit()
-        neighborhood.fuzzify('entropy',
-                             sets=3,
-                             df_numerical_columns=df_numerical_columns,
-                             df_categorical_columns=df_categorical_columns)
-
-
 def test_no_numerical_columns():
     with raises(ValueError):
         df_categorical_columns = ['column_2']

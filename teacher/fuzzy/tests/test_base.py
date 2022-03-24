@@ -185,8 +185,10 @@ def test_get_fuzzy_points_entropy():
 def test_get_fuzzy_variables(toy_fuzzy_variables):
     _, fuzzy_points, continuous_labels, discrete_labels, discrete_fuzzy_values = toy_fuzzy_variables
 
-    fuzzy_vars_labels = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, continuous_labels, discrete_labels)
-    fuzzy_vars_no_labels = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values)
+    ordered_dict = {'one': 0, 'two': 1, 'three': 2}
+    fuzzy_vars_labels = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, ordered_dict,
+                                            continuous_labels, discrete_labels)
+    fuzzy_vars_no_labels = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, ordered_dict)
 
     expected_fuzzy_vars_labels = [
         FuzzyVariable(name='one', fuzzy_sets=[FuzzyContinuousSet(name='low', fuzzy_points=[0, 0, 5]),
@@ -218,7 +220,8 @@ def test_get_fuzzy_variables(toy_fuzzy_variables):
 
 def test_get_dataset_membership(toy_fuzzy_variables):
     df, fuzzy_points, continuous_labels, _, discrete_fuzzy_values = toy_fuzzy_variables
-    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, continuous_labels)
+    ordered_dict = {'one': 0, 'two': 1, 'three': 2}
+    fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, ordered_dict, continuous_labels)
     dataset_membership = get_dataset_membership(df, fuzzy_variables)
     expected_dataset_membership = {'one': {'low': np.array([1, 0.6, 0]),
                                            'mid': np.array([0, 0.4, 0]),

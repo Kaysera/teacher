@@ -25,11 +25,11 @@ class BaseDecisionTree(ABC):
         """
 
     def predict(self, X):
-        X = check_array(X)
+        X = check_array(X, dtype=['float64', 'object'])
         return np.array([self.tree_.predict(x) for x in X])
 
     def score(self, X, y):
-        X, y = check_X_y(X, y)
+        X, y = check_X_y(X, y, dtype=['float64', 'object'])
         return np.sum(self.predict(X) == y)/y.shape[0]
 
     def to_rule_based_system(self, verbose=False):

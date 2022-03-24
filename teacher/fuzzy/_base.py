@@ -65,6 +65,7 @@ def get_equal_freq_division(variable, sets):
     return sol
 
 
+# DEPRECATE
 def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0,
                      class_name=None, point_variables=None, verbose=False):
     """Obtain the peak of the fuzzy triangles of
@@ -110,7 +111,7 @@ def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0,
     return fuzzy_points
 
 
-def fuzzy_points_np(division_method, num_dict, X, y=None, sets=0,
+def fuzzy_points_np(division_method, df_numerical_columns, X, y=None, sets=0,
                     point_variables=None, debug=False):
     """Obtain the peak of the fuzzy triangles of
     the continuous variables of a DataFrame
@@ -120,11 +121,11 @@ def fuzzy_points_np(division_method, num_dict, X, y=None, sets=0,
     division_method : string
         Function used to get the divisions. Currently
         supported: 'equal_freq', 'equal_width', 'entropy'
-    num_dict : dict
-        Dictionary with the numerical columns of the dataste
-        and their indices in the format {index: column}
+    df_numerical_columns : list
+        List with the ordered numerical columns of the input
+        samples.
     X : array-like, of shape (n_samples, n_features)
-        The training input samples.
+        The training input samples. Must only have numerical columns.
     y : array-like of shape (n_samples,)
         The target values (class labels) as integers or strings.
     sets : int
@@ -147,16 +148,15 @@ def fuzzy_points_np(division_method, num_dict, X, y=None, sets=0,
         X = check_array(X)
 
     fuzzy_points = {}
-    for column in num_dict:
+    for i, column in enumerate(df_numerical_columns):
         if point_variables and column in point_variables:
-            fuzzy_points[num_dict[column]] = np.unique(X[:, column])
+            fuzzy_points[column] = np.unique(X[:, i])
         elif division_method == 'equal_freq':
-            fuzzy_points[num_dict[column]] = get_equal_freq_division(X[:, column], sets)
+            fuzzy_points[column] = get_equal_freq_division(X[:, i], sets)
         elif division_method == 'equal_width':
-            fuzzy_points[num_dict[column]] = get_equal_width_division(X[:, column], sets)
+            fuzzy_points[column] = get_equal_width_division(X[:, i], sets)
         elif division_method == 'entropy':
-            fuzzy_points[num_dict[column]] = _fuzzy_partitioning(X[:, column], y,
-                                                                 np.min(X[:, column]), debug)
+            fuzzy_points[column] = _fuzzy_partitioning(X[:, i], y, np.min(X[:, i]), debug)
         else:
             raise ValueError('Division method not supported')
     return fuzzy_points
@@ -377,6 +377,7 @@ def get_fuzzy_triangle(variable, divisions, verbose=False):
     return fuzz_dict
 
 
+# DEPRECATE
 def get_dataset_membership(df, fuzzy_variables, verbose=False):
     """Obtain the membership of the values of all the columns of a DataFrame to each
     Fuzzy Set of the different Fuzzy Variables
@@ -421,7 +422,7 @@ def dataset_membership_np(X, fuzzy_variables):
         and the value is a dictionary with the membership to each fuzzy set of the variable
     """
 
-    X = check_array(X)
+    X = check_array(X, dtype=['float64', 'object'])
 
     dataset_membership = {}
     for i, fuzzy_var in enumerate(fuzzy_variables):
@@ -429,7 +430,8 @@ def dataset_membership_np(X, fuzzy_variables):
     return dataset_membership
 
 
-def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, continuous_labels=None, discrete_labels=None):
+def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, order,
+                        continuous_labels=None, discrete_labels=None):
     """Build the fuzzy variables given the points of the triangles that
     define them, as well as the values of the discrete variables
 
@@ -443,6 +445,9 @@ def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, continuo
         Dictionary with format {key : [v1, v2, ...]} where key is the
         name of the discrete variable and v1, v2, ... are the unique values that
         the discrete variable can take
+    order : dict
+        Dictionary with the format {name : position} where each name is the label
+        of the fuzzy variable and the position relative to an input dataset
     continuous_labels : dict, optional
         Dictionary with format {key : [l1, l2, ...]} where key is the
         name of the continuous variable and l1, l2, ... are the labels of the fuzzy
@@ -455,22 +460,22 @@ def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, continuo
     Returns
     -------
     list[FuzzyVariable]
-        List of all the fuzzy variables
+        Ordered list of all the fuzzy variables
     """
-    fuzzy_variables = []
+    fuzzy_variables = [None] * len(order)
     for name, points in continuous_fuzzy_points.items():
         if continuous_labels is None or name not in continuous_labels:
             col_labels = [f'{label}' for label in continuous_fuzzy_points[name]]
         else:
             col_labels = continuous_labels[name]
-        fuzzy_variables.append(FuzzyVariable(name, get_fuzzy_continuous_sets(list(zip(col_labels, points)))))
+        fuzzy_variables[order[name]] = FuzzyVariable(name, get_fuzzy_continuous_sets(list(zip(col_labels, points))))
 
     for name, values in discrete_fuzzy_values.items():
         if discrete_labels is None or name not in discrete_labels:
             col_labels = [f'{label}' for label in discrete_fuzzy_values[name]]
         else:
             col_labels = discrete_labels[name]
-        fuzzy_variables.append(FuzzyVariable(name, get_fuzzy_discrete_sets(list(zip(col_labels, values)))))
+        fuzzy_variables[order[name]] = FuzzyVariable(name, get_fuzzy_discrete_sets(list(zip(col_labels, values))))
 
     return fuzzy_variables
 
