@@ -7,7 +7,7 @@ from pytest import fixture
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 
-from teacher.fuzzy import get_fuzzy_variables, fuzzy_points_np, dataset_membership_np
+from teacher.fuzzy import get_fuzzy_variables, get_fuzzy_points, dataset_membership
 from teacher.datasets import load_compas, load_beer
 from teacher.explanation import FID3_factual, m_factual, mr_factual, c_factual
 import numpy as np
@@ -37,14 +37,14 @@ def prepare_iris_fdt(set_random):
 
     X_num = X_train
     num_cols = X_num.columns
-    fuzzy_points = fuzzy_points_np('entropy', num_cols, X_num, y_train)
+    fuzzy_points = get_fuzzy_points('entropy', num_cols, X_num, y_train)
 
     discrete_fuzzy_values = {col: X_train[col].unique() for col in df_categorical_columns}
     fuzzy_variables_order = {col: i for i, col in enumerate(X_train.columns)}
     fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, fuzzy_variables_order)
 
-    df_train_membership = dataset_membership_np(X_train, fuzzy_variables)
-    df_test_membership = dataset_membership_np(X_test, fuzzy_variables)
+    df_train_membership = dataset_membership(X_train, fuzzy_variables)
+    df_test_membership = dataset_membership(X_test, fuzzy_variables)
 
     fuzzy_element_idx = 48
     fuzzy_element = _get_fuzzy_element(df_test_membership, fuzzy_element_idx)
@@ -72,14 +72,14 @@ def prepare_beer_fdt(set_random):
 
     X_num = X_train[dataset['continuous']]
     num_cols = X_num.columns
-    fuzzy_points = fuzzy_points_np('entropy', num_cols, X_num, y_train)
+    fuzzy_points = get_fuzzy_points('entropy', num_cols, X_num, y_train)
 
     discrete_fuzzy_values = {col: df[col].unique() for col in df_categorical_columns}
     fuzzy_variables_order = {col: i for i, col in enumerate(X.columns)}
     fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, fuzzy_variables_order)
 
-    df_train_membership = dataset_membership_np(X_train, fuzzy_variables)
-    df_test_membership = dataset_membership_np(X_test, fuzzy_variables)
+    df_train_membership = dataset_membership(X_train, fuzzy_variables)
+    df_test_membership = dataset_membership(X_test, fuzzy_variables)
 
     fuzzy_element_idx = 48
     fuzzy_element = _get_fuzzy_element(df_test_membership, fuzzy_element_idx)
@@ -216,14 +216,14 @@ def test_explain_id3(set_random):
 
     X_num = X_train[dataset['continuous']]
     num_cols = X_num.columns
-    fuzzy_points = fuzzy_points_np('equal_width', num_cols, X_num, sets=len(fuzzy_labels))
+    fuzzy_points = get_fuzzy_points('equal_width', num_cols, X_num, sets=len(fuzzy_labels))
 
     discrete_fuzzy_values = {col: df[col].unique() for col in discrete}
     fuzzy_variables_order = {col: i for i, col in enumerate(X.columns)}
     fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, fuzzy_variables_order)
 
-    df_train_membership = dataset_membership_np(X_train, fuzzy_variables)
-    df_test_membership = dataset_membership_np(X_test, fuzzy_variables)
+    df_train_membership = dataset_membership(X_train, fuzzy_variables)
+    df_test_membership = dataset_membership(X_test, fuzzy_variables)
 
     fuzzy_X = _fuzzify_dataset(X_train, df_train_membership, _get_categorical_fuzzy)
 

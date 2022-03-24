@@ -1,5 +1,5 @@
 from abc import ABC
-from teacher.fuzzy import get_fuzzy_variables, fuzzy_points_np, dataset_membership_np
+from teacher.fuzzy import get_fuzzy_variables, get_fuzzy_points, dataset_membership
 from teacher.neighbors import BaseNeighborhood
 from ._base_neighborhood import NotFittedError
 import pandas as pd
@@ -44,15 +44,15 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
 
         X_num = self._X[kwargs['df_numerical_columns']]
         num_cols = X_num.columns
-        fuzzy_points = fuzzy_points_np(get_division, num_cols, X_num, self._y, **fuzzy_points_args)
+        fuzzy_points = get_fuzzy_points(get_division, num_cols, X_num, self._y, **fuzzy_points_args)
 
         discrete_fuzzy_values = {col: self._X[col].unique() for col in kwargs['df_categorical_columns']}
         fuzzy_variables_order = {col: i for i, col in enumerate(self._X.columns)}
         self._fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, fuzzy_variables_order)
-        self._X_membership = dataset_membership_np(self._X, self._fuzzy_variables)
+        self._X_membership = dataset_membership(self._X, self._fuzzy_variables)
 
         instance_dict = {self._X.columns[i]: [self.instance[i]] for i in range(len(self.instance))}
-        self._instance_membership = dataset_membership_np(pd.DataFrame(instance_dict), self._fuzzy_variables)
+        self._instance_membership = dataset_membership(pd.DataFrame(instance_dict), self._fuzzy_variables)
 
     def get_X_membership(self):
         if self._X_membership is None:

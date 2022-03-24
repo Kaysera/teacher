@@ -1,5 +1,5 @@
 import numpy as np
-from teacher.fuzzy import fuzzy_entropy, dataset_membership_np
+from teacher.fuzzy import fuzzy_entropy, dataset_membership
 from sklearn.utils import check_X_y
 
 from .base_decision_tree import BaseDecisionTree
@@ -185,7 +185,7 @@ class FDT(BaseDecisionTree):
 
     def fit(self, X, y):
         X, y = check_X_y(X, y, dtype=['float64', 'object'])
-        X_membership = dataset_membership_np(X, self.fuzzy_variables)
+        X_membership = dataset_membership(X, self.fuzzy_variables)
         self.tree_.mu = np.ones(len(y))
         self._partial_fit(X_membership, y, self.tree_, self.features, 0)
 

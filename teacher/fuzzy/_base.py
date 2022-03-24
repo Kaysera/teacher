@@ -65,54 +65,8 @@ def get_equal_freq_division(variable, sets):
     return sol
 
 
-# DEPRECATE
-def get_fuzzy_points(df, get_divisions, df_numerical_columns, sets=0,
-                     class_name=None, point_variables=None, verbose=False):
-    """Obtain the peak of the fuzzy triangles of
-    the continuous variables of a DataFrame
-
-    Parameters
-    ----------
-    df : pandas.core.frame.DataFrame
-        DataFrame from which to obtain the fuzzy points
-    get_divisions : string
-        Function used to get the divisions. Currently
-        supported: 'equal_freq', 'equal_width', 'entropy'
-    df_numerical_columns : list
-        List with the columns to get the fuzzy points
-    sets : int
-        Number of fuzzy sets that the variable will
-        be divided into
-    class_name : str, None by default
-        Name of the class variable necessary for 'entropy'
-        division
-    point_variables : set, None by default
-        Set of the variables to be considered point variables
-        to return a list with the point value
-
-    Returns
-    -------
-    dict
-        Dictionary with the format {key : [points]}
-    """
-    fuzzy_points = {}
-    for column in df_numerical_columns:
-        if point_variables and column in point_variables:
-            fuzzy_points[column] = df[column].unique()
-        elif get_divisions == 'equal_freq':
-            fuzzy_points[column] = get_equal_freq_division(df[column].to_numpy(), sets)
-        elif get_divisions == 'equal_width':
-            fuzzy_points[column] = get_equal_width_division(df[column].to_numpy(), sets)
-        elif get_divisions == 'entropy':
-            fuzzy_points[column] = _fuzzy_partitioning(df[column].to_numpy(), df[class_name].to_numpy(),
-                                                       df[column].min(), verbose)
-        else:
-            raise ValueError('Division method not supported')
-    return fuzzy_points
-
-
-def fuzzy_points_np(division_method, df_numerical_columns, X, y=None, sets=0,
-                    point_variables=None, debug=False):
+def get_fuzzy_points(division_method, df_numerical_columns, X, y=None, sets=0,
+                     point_variables=None, debug=False):
     """Obtain the peak of the fuzzy triangles of
     the continuous variables of a DataFrame
 
@@ -377,33 +331,7 @@ def get_fuzzy_triangle(variable, divisions, verbose=False):
     return fuzz_dict
 
 
-# DEPRECATE
-def get_dataset_membership(df, fuzzy_variables, verbose=False):
-    """Obtain the membership of the values of all the columns of a DataFrame to each
-    Fuzzy Set of the different Fuzzy Variables
-
-    Parameters
-    ----------
-    df : pandas.core.frame.DataFrame
-        DataFrame to process
-    fuzzy_variables : list[FuzzySet]
-        List of the fuzzy variables to compute the membership
-    verbose : bool, optional
-        Enables verbosity and passes it down, by default False
-
-    Returns
-    -------
-    dict
-        Dictionary with format {key : value} where the key is the name of the column of the DataFrame
-        and the value is a dictionary with the membership to each fuzzy set of the variable
-    """
-    dataset_membership = {}
-    for fuzzy_var in fuzzy_variables:
-        dataset_membership[fuzzy_var.name] = fuzzy_var.membership(df[fuzzy_var.name].to_numpy())
-    return dataset_membership
-
-
-def dataset_membership_np(X, fuzzy_variables):
+def dataset_membership(X, fuzzy_variables):
     """Obtain the membership of the values of all the columns of a DataFrame to each
     Fuzzy Set of the different Fuzzy Variables
 

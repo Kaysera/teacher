@@ -5,7 +5,7 @@ import pandas as pd
 
 from teacher.fuzzy import (get_equal_width_division, get_equal_freq_division, get_fuzzy_points,
                            get_fuzzy_triangle,
-                           fuzzy_entropy, weighted_fuzzy_entropy, get_dataset_membership, get_fuzzy_variables,
+                           fuzzy_entropy, weighted_fuzzy_entropy, dataset_membership, get_fuzzy_variables,
                            FuzzyContinuousSet, FuzzyDiscreteSet, FuzzyVariable)
 
 from .._base import _get_delta_point, _fuzzy_partitioning
@@ -81,8 +81,8 @@ def test_valueerror_get_equal_freq_division():
 def test_get_fuzzy_points(toy_dataset):
     df, df_numerical_columns, sets = toy_dataset
 
-    width_points = get_fuzzy_points(df, 'equal_width', df_numerical_columns, sets=sets)
-    freq_points = get_fuzzy_points(df, 'equal_freq', df_numerical_columns, sets=sets)
+    width_points = get_fuzzy_points('equal_width', df_numerical_columns, df[df_numerical_columns], sets=sets)
+    freq_points = get_fuzzy_points('equal_freq', df_numerical_columns, df[df_numerical_columns], sets=sets)
 
     assert width_points == {'one': [0, 5, 10], 'two': [7, 8.5, 10]}
     assert freq_points == {'one': [0, 2, 10], 'two': [7, 9, 10]}
@@ -162,17 +162,14 @@ def test_fuzzy_partitioning():
 def test_get_fuzzy_points_entropy():
     iris = datasets.load_iris(as_frame=True)
 
-    class_name = 'target'
-
     X_train, X_test, y_train, y_test = train_test_split(iris.data,
                                                         iris.target,
                                                         test_size=0.33,
                                                         random_state=42)
 
-    df_train = iris.frame.loc[X_train.index]
     df_numerical_columns = iris.feature_names
 
-    fuzzy_points_generic = get_fuzzy_points(df_train, 'entropy', df_numerical_columns, class_name=class_name)
+    fuzzy_points_generic = get_fuzzy_points('entropy', df_numerical_columns, X_train, y_train)
 
     expected_fuzzy_points = {'sepal length (cm)': [4.3, 5.7, 7.7],
                              'sepal width (cm)': [2.0, 4.2],
@@ -222,7 +219,7 @@ def test_get_dataset_membership(toy_fuzzy_variables):
     df, fuzzy_points, continuous_labels, _, discrete_fuzzy_values = toy_fuzzy_variables
     ordered_dict = {'one': 0, 'two': 1, 'three': 2}
     fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, ordered_dict, continuous_labels)
-    dataset_membership = get_dataset_membership(df, fuzzy_variables)
+    df_membership = dataset_membership(df, fuzzy_variables)
     expected_dataset_membership = {'one': {'low': np.array([1, 0.6, 0]),
                                            'mid': np.array([0, 0.4, 0]),
                                            'high': np.array([0, 0., 1.])},
@@ -233,4 +230,4 @@ def test_get_dataset_membership(toy_fuzzy_variables):
                                              'nine': np.array([0, 1, 0]),
                                              'ninety': np.array([0, 0, 1])}}
 
-    assert_equal(dataset_membership, expected_dataset_membership)
+    assert_equal(df_membership, expected_dataset_membership)
