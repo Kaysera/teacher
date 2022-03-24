@@ -1,71 +1,68 @@
 import numpy as np
-from teacher.fuzzy import fuzzy_entropy
-from collections import defaultdict
+from teacher.fuzzy import fuzzy_entropy, dataset_membership
+from sklearn.utils import check_X_y
 
 from .base_decision_tree import BaseDecisionTree
 from .rule import Rule
+from . import _voting
+
+
+# =============================================================================
+# Constants
+# =============================================================================
+
+
+VOTING_METHODS = {
+    "agg_vote": _voting._aggregated_vote,
+    "max_match": _voting._maximum_matching
+}
 
 
 class TreeFDT:
-    def __init__(self, features, t_norm=np.minimum, voting='agg_vote'):
+    def __init__(self, fuzzy_variable, t_norm=np.minimum, voting='agg_vote'):
         self.is_leaf = True
         self.childlist = []
-        self.features = features
         self.class_value = -1
         self.level = -1
-        self.value = (0, 0)
+        self.value = None
+        self.fuzzy_variable = fuzzy_variable
         self.mu = []
         self.t_norm = t_norm
-        if voting == 'agg_vote':
-            self._voting_method = self._aggregated_vote
-        elif voting == 'max_match':
-            self._voting_method = self._maximum_matching
-        else:
-            raise ValueError('Voting method not implemented')
+        try:
+            self._voting_method = VOTING_METHODS[voting]
+        except KeyError:
+            raise ValueError(f'{voting} voting method not implemented')
 
     def __str__(self):  # pragma: no cover
         output = '\t' * self.level
+        try:
+            output += 'Feature ' + str(self.fuzzy_variable.name) + ' '
+            output += str(self.fuzzy_variable.fuzzy_sets[self.value[1]].name) + '\n'
+        except Exception:  # TODO CHANGE FOR PROPER EXCEPTION
+            output += 'Root \n'
         if(self.is_leaf):
-            output += 'Class value: ' + str(self.class_value)
+            output += '\t' * self.level + 'Class value: ' + str(self.class_value)
         else:
-            output += 'Feature ' + str(self.value)
             for child in self.childlist:
-                output += '\n'
-                output += '\t' * self.level
-                output += 'Feature ' + str(child.value)
-                output += '\n' + str(child)
+                # output += '\t' * self.level
+                # output += 'Feature ' + str(child.fuzzy_variable.name) + ' ' + str(child.fuzzy_variable.fuzzy_sets)
+                # output += 'Feature ' + str(child.fuzzy_variable.fuzzy_sets[child.value[1]])
+                output += str(child)
             output += '\n' + '\t' * self.level
-        return output
+        return output + '\n'
 
     def __eq__(self, other):
         if not isinstance(other, TreeFDT):
             return False
         return (self.is_leaf == other.is_leaf and
                 self.childlist == other.childlist and
-                self.features == other.features and
                 self.class_value == other.class_value and
                 self.level == other.level and
                 self.value == other.value and
                 np.array_equal(self.mu, other.mu))
 
-    def _aggregated_vote(self, all_classes):
-        agg_vote = defaultdict(lambda: np.zeros(len(all_classes[0][1])))
-        for leaf in all_classes:
-            for key in leaf[0]:
-                agg_vote[key] += leaf[0][key] * leaf[1]
-        return agg_vote
-
-    def _maximum_matching(self, all_classes):
-        max_match = defaultdict(lambda: np.zeros(len(all_classes[0][1])))
-        for leaf in all_classes:
-            for key in leaf[0]:
-                max_match[key] = np.maximum(max_match[key], (leaf[0][key] * leaf[1]))
-        return max_match
-
-    def predict(self, X_membership):
-        # Get the length of the array to predict
-        X_size = 1
-        leaf_values = self._partial_predict(X_membership, np.ones(X_size), self)
+    def predict(self, X):
+        leaf_values = self._partial_predict(X, 1, self)
         agg_vote = self._voting_method(leaf_values)
         # all_classes = [(key, agg_vote[key]) for key in agg_vote]
         n_all_classes = [(key, agg_vote[key][0]) for key in agg_vote]
@@ -75,11 +72,12 @@ class TreeFDT:
         classes_list = max(n_all_classes, key=lambda a: a[1])[0]
         return classes_list
 
-    def _partial_predict(self, X_membership, mu, tree):
-        if tree.value != (0, 0):
+    def _partial_predict(self, X, mu, tree):
+        if tree.value is not None:
             att, value = tree.value
             try:
-                pert_degree = X_membership[att][value]
+                fuzzy_set = tree.fuzzy_variable.fuzzy_sets[value]
+                pert_degree = fuzzy_set.membership(np.array([X[att]]))
             except KeyError:
                 pert_degree = 0
             new_mu = self.t_norm(mu, pert_degree)
@@ -88,16 +86,18 @@ class TreeFDT:
         if tree.is_leaf:
             return [(tree.class_value, new_mu)]
         else:
-            return np.concatenate([self._partial_predict(X_membership, new_mu, child) for child in tree.childlist])
+            return np.concatenate([self._partial_predict(X, new_mu, child) for child in tree.childlist])
 
     def to_rule_based_system(self, th=0.0001, verbose=False):
         rules = self._get_rules(self, [], th, verbose)
         return [Rule(antecedent, consequent, weight) for (antecedent, consequent, weight) in rules]
 
     def _get_rules(self, tree, rule, th=0.0001, verbose=False):
-        if tree.value != (0, 0):
+        if tree.value is not None:
             att, value = tree.value
-            clause = (att, value)
+            fuzzy_var_name = tree.fuzzy_variable.name
+            fuzzy_set_name = tree.fuzzy_variable.fuzzy_sets[value].name
+            clause = (fuzzy_var_name, fuzzy_set_name)
             new_rule = rule + [clause]
         else:
             new_rule = rule
@@ -117,17 +117,21 @@ class TreeFDT:
 
 
 class FDT(BaseDecisionTree):
-    def __init__(self, features, fuzzy_threshold=0.0001,
+    def __init__(self, fuzzy_variables, fuzzy_threshold=0.0001,
                  th=0.0001, max_depth=10, min_num_examples=1, prunning=True, t_norm=np.minimum, voting='agg_vote'):
-        super().__init__(features, th, max_depth, min_num_examples, prunning)
-        self.tree_ = TreeFDT(set(features), t_norm, voting)
+
+        features = [fuzzy_var.name for fuzzy_var in fuzzy_variables]
+        self.features_dict = {feat: i for i, feat in enumerate(features)}
+        self.fuzzy_variables = fuzzy_variables
+        super().__init__(set(features), th, max_depth, min_num_examples, prunning)
+        self.tree_ = TreeFDT(None, t_norm, voting)
         self.fuzzy_threshold = fuzzy_threshold
 
-    def _get_max_f_gain(self, tree, X_membership, y, t_norm=np.minimum, verbose=False):
+    def _get_max_f_gain(self, tree, features, X_membership, y, t_norm=np.minimum, verbose=False):
         best_att = ''
         best_f_gain = 0
         best_child_mu = {}
-        for feature in tree.features:
+        for feature in features:
             f_ent = fuzzy_entropy(tree.mu, y)
             if verbose:  # pragma: no cover
                 print('------------------------------')
@@ -179,13 +183,15 @@ class FDT(BaseDecisionTree):
         # EACH LEAF HAS A DICTIONARY WITH A WEIGHT PER CLASS VALUE
         return cv
 
-    def fit(self, X_membership, y):
+    def fit(self, X, y):
+        X, y = check_X_y(X, y, dtype=['float64', 'object'])
+        X_membership = dataset_membership(X, self.fuzzy_variables)
         self.tree_.mu = np.ones(len(y))
-        self._partial_fit(X_membership, y, self.tree_, 0)
+        self._partial_fit(X_membership, y, self.tree_, self.features, 0)
 
-    def _partial_fit(self, X_membership, y, current_tree, current_depth):
+    def _partial_fit(self, X_membership, y, current_tree, current_features, current_depth):
         current_tree.level = current_depth
-        att, f_gain, child_mu = self._get_max_f_gain(current_tree, X_membership, y, verbose=False)
+        att, f_gain, child_mu = self._get_max_f_gain(current_tree, current_features, X_membership, y, verbose=False)
         # apply mask to y
         mask = [(x > 0) for x in current_tree.mu]
         y_masked = y[mask]
@@ -196,12 +202,12 @@ class FDT(BaseDecisionTree):
             return
 
         current_tree.is_leaf = False
-        for value in X_membership[att]:
-            new_features = current_tree.features.copy()
+        for i, value in enumerate(X_membership[att]):
+            new_features = current_features.copy()
             new_features.remove(att)
-            child = TreeFDT(new_features)
-            child.value = (att, value)
+            child = TreeFDT(self.fuzzy_variables[self.features_dict[att]])
+            child.value = (self.features_dict[att], i)
             child.mu = child_mu[value]
             if child.mu.sum() > 0:
                 current_tree.childlist.append(child)
-                self._partial_fit(X_membership, y, child, current_depth + 1)
+                self._partial_fit(X_membership, y, child, new_features, current_depth + 1)

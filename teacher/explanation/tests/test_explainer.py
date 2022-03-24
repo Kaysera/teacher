@@ -45,7 +45,7 @@ def prepare_compas(set_random):
                          class_name=class_name,
                          df_numerical_columns=df_numerical_columns,
                          df_categorical_columns=df_categorical_columns)
-
+    instance = instance.reshape(1, -1)
     return [instance, target, neighborhood, df_numerical_columns]
 
 
