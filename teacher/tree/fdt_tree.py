@@ -65,7 +65,7 @@ class TreeFDT:
         leaf_values = self._partial_predict(X, 1, self)
         agg_vote = self._voting_method(leaf_values)
         # all_classes = [(key, agg_vote[key]) for key in agg_vote]
-        n_all_classes = [(key, agg_vote[key][0]) for key in agg_vote]
+        n_all_classes = [(key, agg_vote[key]) for key in agg_vote]
         # TODO: REHACER AGG_VOTE PARA QUE EN VEZ DE ('one', [1]) SEA ('one', 1)
         # INPUT: all_classes = [('one', [1,2,3,4]), ('two', [4,3,2,1]), ('three', [0,0,0,9])]
         # OUTPUT: ['two', 'two', 'one', 'three']
@@ -80,7 +80,7 @@ class TreeFDT:
                 pert_degree = fuzzy_set.membership(np.array([X[att]]))
             except KeyError:
                 pert_degree = 0
-            new_mu = self.t_norm(mu, pert_degree)
+            new_mu = self.t_norm(mu, pert_degree)[0]
         else:
             new_mu = mu
         if tree.is_leaf:
