@@ -1,5 +1,4 @@
 import numpy as np
-from ._factual import _get_maximum_weight_rules
 
 
 def _compare_rules_FID3(factual, counter_rule):
@@ -110,8 +109,7 @@ def i_counterfactual(instance, rule_list, class_val, df_numerical_columns):
         List of counterfactual rules
     """
     counterfactual = []
-    max_weight_rules = _get_maximum_weight_rules(rule_list)
-    counter_rules = [rule for rule in max_weight_rules if rule.consequent != class_val]
+    counter_rules = [rule for rule in rule_list if rule.consequent != class_val]
     for class_val in np.unique([rule.consequent for rule in counter_rules]):
         possible_cf = [(rule, _cf_dist_instance(rule, instance, df_numerical_columns))
                        for rule in counter_rules if rule.consequent == class_val]
@@ -149,8 +147,7 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
         List of counterfactual rules
     """
     counterfactual = []
-    max_weight_rules = _get_maximum_weight_rules(rule_list)
-    counter_rules = [rule for rule in max_weight_rules if rule.consequent != class_val]
+    counter_rules = [rule for rule in rule_list if rule.consequent != class_val]
     for class_val in np.unique([rule.consequent for rule in counter_rules]):
         possible_cf = []
         for cf_rule in (rule for rule in counter_rules if rule.consequent == class_val):
