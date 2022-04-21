@@ -62,14 +62,17 @@ class TreeFDT:
                 np.array_equal(self.mu, other.mu))
 
     def predict(self, X):
-        leaf_values = self._partial_predict(X, 1, self)
+        leaf_values = self._partial_predict(X, np.ones(len(X)), self)
         agg_vote = self._voting_method(leaf_values)
         # all_classes = [(key, agg_vote[key]) for key in agg_vote]
         n_all_classes = [(key, agg_vote[key]) for key in agg_vote]
         # TODO: REHACER AGG_VOTE PARA QUE EN VEZ DE ('one', [1]) SEA ('one', 1)
         # INPUT: all_classes = [('one', [1,2,3,4]), ('two', [4,3,2,1]), ('three', [0,0,0,9])]
         # OUTPUT: ['two', 'two', 'one', 'three']
-        classes_list = max(n_all_classes, key=lambda a: a[1])[0]
+        # classes_list = max(n_all_classes, key=lambda a: a[1])[0]
+        weight_array = np.array([ac[1] for ac in n_all_classes])
+        best_class = np.argmax(weight_array, axis=0)
+        classes_list = [n_all_classes[idx][0] for idx in best_class]
         return classes_list
 
     def _partial_predict(self, X, mu, tree):
