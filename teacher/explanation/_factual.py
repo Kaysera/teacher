@@ -162,7 +162,7 @@ def c_factual(instance, rule_list, class_val, lam, beta=None):
         matching = rule.matching(instance) * rule.weight
         factor = prev_matching / matching
         if factor > 1 + lam:
-            if beta is None or beta >= AD_sum:
+            if beta is None or beta <= AD_sum:
                 break
 
         prev_matching = matching
