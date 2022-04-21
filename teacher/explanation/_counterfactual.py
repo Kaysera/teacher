@@ -68,7 +68,7 @@ def _weighted_literal_distance(fuzzy_clause, fuzzy_value, cf_value):
 def _literal_distance(fuzzy_clause, fuzzy_value, cf_value):
     """Distance between two fuzzy sets of a fuzzy variable"""
     skip = abs(list(fuzzy_clause).index(fuzzy_value) - list(fuzzy_clause).index(cf_value))
-    distance = skip / len(fuzzy_clause)
+    distance = skip / (len(fuzzy_clause) - 1)
     return distance
 
 
