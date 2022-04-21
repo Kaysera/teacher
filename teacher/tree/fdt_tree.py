@@ -80,14 +80,14 @@ class TreeFDT:
             att, value = tree.value
             try:
                 fuzzy_set = tree.fuzzy_variable.fuzzy_sets[value]
-                pert_degree = fuzzy_set.membership(np.array([X[att]]))
+                pert_degree = fuzzy_set.membership(X[:, att])
             except KeyError:
                 pert_degree = 0
-            new_mu = self.t_norm(mu, pert_degree)[0]
+            new_mu = self.t_norm(mu, pert_degree)
         else:
             new_mu = mu
         if tree.is_leaf:
-            return [(tree.class_value, new_mu)]
+            return np.array([(tree.class_value, new_mu)], dtype=object)
         else:
             return np.concatenate([self._partial_predict(X, new_mu, child) for child in tree.childlist])
 
