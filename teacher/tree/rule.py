@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+
 class Rule:
     def __init__(self, antecedent, consequent, weight):
         """Constructor of rules
@@ -42,6 +45,31 @@ class Rule:
             return t_norm([instance_membership[feature][value] for (feature, value) in self.antecedent])
         except KeyError:
             return 0
+
+    @staticmethod
+    def weighted_vote(rule_list, instance_membership):
+        """Use the weighted vote inference method to return the consequent
+        associated to an instance and a rule list given the instance membership
+
+        Parameters
+        ----------
+        rule_list : list of Rule
+            List with the rules that will be taken into account for the
+            weighted vote method
+        instance_membership : dict
+            Membership of the instance with the format
+            {feature: {value: pertenence degree}}
+
+        Returns
+        -------
+        string or number
+            consequent associated with the instance and the rule list
+        """
+        conse_dict = defaultdict(lambda: 0)
+        for rule in rule_list:
+            AD = rule.matching(instance_membership) * rule.weight
+            conse_dict[rule.consequent] += AD
+        return max(conse_dict, key=lambda conse: conse_dict[conse])
 
     @staticmethod
     def map_rule_variables(rule, origin_fuzzy_variables, dest_fuzzy_variables):

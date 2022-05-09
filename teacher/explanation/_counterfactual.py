@@ -1,4 +1,7 @@
+from copy import deepcopy
+
 import numpy as np
+from teacher.tree import Rule
 
 
 def _compare_rules_FID3(factual, counter_rule):
@@ -87,7 +90,7 @@ def FID3_counterfactual(factual, counter_rules):
     return best_cr, min_rule_distance
 
 
-def i_counterfactual(instance, rule_list, class_val, df_numerical_columns):
+def i_counterfactual(instance, rule_list, class_val, df_numerical_columns, new=False):
     """Returns a list that contains the counterfactual with respect to the instance
     for each of the different class values not predicted, as explained in [ref]
 
@@ -108,17 +111,23 @@ def i_counterfactual(instance, rule_list, class_val, df_numerical_columns):
     list(Rule)
         List of counterfactual rules
     """
-    counterfactual = []
     counter_rules = [rule for rule in rule_list if rule.consequent != class_val]
-    for class_val in np.unique([rule.consequent for rule in counter_rules]):
-        possible_cf = [(rule, _cf_dist_instance(rule, instance, df_numerical_columns))
-                       for rule in counter_rules if rule.consequent == class_val]
-        counterfactual.append((min(possible_cf, key=lambda rule: rule[1])))
+    possible_cf = [(rule, _cf_dist_instance(rule, instance, df_numerical_columns))
+                   for rule in counter_rules]
+    sorted_cf = sorted(possible_cf, key=lambda rule: rule[1])
+    if not new:
+        return sorted_cf
 
-    return counterfactual
+    for cf in sorted_cf:
+        new_instance, changes = _apply_changes(cf[0], instance)
+        new_class_val = Rule.weighted_vote(rule_list, new_instance)
+        if new_class_val != class_val:
+            return changes
+
+    return None
 
 
-def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_columns, tau=0.5):
+def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_columns, tau=0.5, new=False):
     """Returns a list that contains the counterfactual with respect to the factual
     for each of the different class values not predicted, as explained in [ref]
 
@@ -148,14 +157,37 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
     """
     counterfactual = []
     counter_rules = [rule for rule in rule_list if rule.consequent != class_val]
-    for class_val in np.unique([rule.consequent for rule in counter_rules]):
-        possible_cf = []
-        for cf_rule in (rule for rule in counter_rules if rule.consequent == class_val):
-            cf_dist = 0
-            for fact_rule in factual:
-                AD = fact_rule.matching(instance) * fact_rule.weight
-                cf_dist += (1 - AD) * _cf_dist_rule(cf_rule, fact_rule, instance, df_numerical_columns, tau)
-            possible_cf.append((cf_rule, cf_dist))
-        counterfactual.append((min(possible_cf, key=lambda rule: rule[1])))
+    for cf_rule in counter_rules:
+        cf_dist = 0
+        for fact_rule in factual:
+            AD = fact_rule.matching(instance)
+            cf_dist += AD * _cf_dist_rule(cf_rule, fact_rule, instance, df_numerical_columns, tau)
+        if cf_dist > 0:
+            counterfactual.append((cf_rule, cf_dist))
+    sorted_cf = sorted(counterfactual, key=lambda rule: rule[1])
+    if not new:
+        return sorted_cf
+    for cf in sorted_cf:
+        new_instance, changes = _apply_changes(cf[0], instance)
+        new_class_val = Rule.weighted_vote(rule_list, new_instance)
+        if new_class_val != class_val:
+            return changes
 
-    return counterfactual
+    return None
+
+
+def _apply_changes(rule, instance):
+    changes = set([])
+    rule_changes = {a[0]: a[1] for a in rule.antecedent}
+    new_instance = deepcopy(instance)
+    for fuzzy_var in new_instance:
+        max_pert_value = max(new_instance[fuzzy_var], key=lambda fuzzy_set: new_instance[fuzzy_var][fuzzy_set])
+        if fuzzy_var in rule_changes and max_pert_value != rule_changes[fuzzy_var]:
+            changes.add((fuzzy_var, rule_changes[fuzzy_var]))
+            for fuzzy_set in new_instance[fuzzy_var]:
+                if fuzzy_set == rule_changes[fuzzy_var]:
+                    new_instance[fuzzy_var][fuzzy_set] = 1
+                else:
+                    new_instance[fuzzy_var][fuzzy_set] = 0
+
+    return new_instance, changes
