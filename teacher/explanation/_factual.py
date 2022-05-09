@@ -89,8 +89,8 @@ def m_factual(instance, rule_list, class_val):
     fired_rules = _fired_rules(instance, rule_list)
     class_fired_rules = _get_class_fired_rules(fired_rules, class_val)
     class_fired_rules.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
-    avg = reduce(lambda x, y: x + y.matching(instance), class_fired_rules, 0) / len(class_fired_rules)
-    return [rule for rule in class_fired_rules if rule.matching(instance) >= avg]
+    avg = reduce(lambda x, y: x + (y.matching(instance) * y.weight), class_fired_rules, 0) / len(class_fired_rules)
+    return [rule for rule in class_fired_rules if rule.matching(instance) * rule.weight >= avg]
 
 
 def mr_factual(instance, rule_list, class_val):
