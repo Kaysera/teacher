@@ -158,8 +158,8 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
     for cf_rule in counter_rules:
         cf_dist = 0
         for fact_rule in factual:
-            AD = fact_rule.matching(instance)
-            cf_dist += AD * _cf_dist_rule(cf_rule, fact_rule, instance, df_numerical_columns, tau)
+            MD = fact_rule.matching(instance)
+            cf_dist += MD * _cf_dist_rule(cf_rule, fact_rule, instance, df_numerical_columns, tau)
         if cf_dist > 0:
             counterfactual.append((cf_rule, cf_dist))
     sorted_cf = sorted(counterfactual, key=lambda rule: rule[1])
