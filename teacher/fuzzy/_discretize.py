@@ -20,9 +20,6 @@ def _equal_width(variable, sets):
     array
         Points of division between the partitions
     """
-    th = 0.00001  # THRESHOLD TO AVOID PARTITIONS WITH ONLY ONE VALUE
-    if np.std(variable) < th:
-        raise ValueError(f"There is only one unique value in {variable} and cannot be partitioned")
     try:
         cut = pd.cut(variable, sets - 1)
         sol = [cat.left for cat in cut.categories] + [cut.categories[-1].right]
@@ -48,9 +45,6 @@ def _equal_freq(variable, sets):
     array
         Points of division between the partitions
     """
-    th = 0.00001  # THRESHOLD TO AVOID PARTITIONS WITH ONLY ONE VALUE
-    if np.std(variable) < th:
-        raise ValueError(f"There is only one unique value in {variable} and cannot be partitioned")
     try:
         qcut = pd.qcut(variable, sets - 1)
         sol = [cat.left for cat in qcut.categories] + [qcut.categories[-1].right]
