@@ -24,7 +24,7 @@ def _fired_rules(instance, rule_list, threshold=0.001):
     return [rule for rule in rule_list if rule.matching(instance) > threshold]
 
 
-def _get_class_fired_rules(rule_list, class_val):
+def _get_class_value_rules(rule_list, class_val):
     return [rule for rule in rule_list if rule.consequent == class_val]
 
 
@@ -87,7 +87,7 @@ def m_factual(instance, rule_list, class_val):
         List of factual rules
     """
     fired_rules = _fired_rules(instance, rule_list)
-    class_fired_rules = _get_class_fired_rules(fired_rules, class_val)
+    class_fired_rules = _get_class_value_rules(fired_rules, class_val)
     class_fired_rules.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
     avg = reduce(lambda x, y: x + (y.matching(instance) * y.weight), class_fired_rules, 0) / len(class_fired_rules)
     return [rule for rule in class_fired_rules if rule.matching(instance) * rule.weight >= avg]
@@ -113,7 +113,7 @@ def mr_factual(instance, rule_list, class_val):
         List of factual rules
     """
     fired_rules = _fired_rules(instance, rule_list)
-    class_fired_rules = _get_class_fired_rules(fired_rules, class_val)
+    class_fired_rules = _get_class_value_rules(fired_rules, class_val)
     class_fired_rules.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
     robust_threshold = _robust_threshold(instance, rule_list, class_val)
 
@@ -153,7 +153,7 @@ def c_factual(instance, rule_list, class_val, lam, beta=None):
         List of factual rules
     """
     fired_rules = _fired_rules(instance, rule_list)
-    class_fired_rules = _get_class_fired_rules(fired_rules, class_val)
+    class_fired_rules = _get_class_value_rules(fired_rules, class_val)
     class_fired_rules.sort(key=lambda rule: rule.matching(instance) * rule.weight, reverse=True)
     factual = [class_fired_rules[0]]
     prev_matching = factual[0].matching(instance) * factual[0].weight
