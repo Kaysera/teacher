@@ -90,7 +90,7 @@ def FID3_counterfactual(factual, counter_rules):
     return best_cr, min_rule_distance
 
 
-def i_counterfactual(instance, rule_list, class_val, df_numerical_columns, new=False):
+def i_counterfactual(instance, rule_list, class_val, df_numerical_columns):
     """Returns a list that contains the counterfactual with respect to the instance
     for each of the different class values not predicted, as explained in [ref]
 
@@ -115,8 +115,6 @@ def i_counterfactual(instance, rule_list, class_val, df_numerical_columns, new=F
     possible_cf = [(rule, _cf_dist_instance(rule, instance, df_numerical_columns))
                    for rule in counter_rules]
     sorted_cf = sorted(possible_cf, key=lambda rule: rule[1])
-    if not new:
-        return sorted_cf
 
     for cf in sorted_cf:
         new_instance, changes = _apply_changes(cf[0], instance)
@@ -127,7 +125,7 @@ def i_counterfactual(instance, rule_list, class_val, df_numerical_columns, new=F
     return None
 
 
-def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_columns, tau=0.5, new=False):
+def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_columns, tau=0.5):
     """Returns a list that contains the counterfactual with respect to the factual
     for each of the different class values not predicted, as explained in [ref]
 
@@ -165,8 +163,7 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
         if cf_dist > 0:
             counterfactual.append((cf_rule, cf_dist))
     sorted_cf = sorted(counterfactual, key=lambda rule: rule[1])
-    if not new:
-        return sorted_cf
+
     for cf in sorted_cf:
         new_instance, changes = _apply_changes(cf[0], instance)
         new_class_val = Rule.weighted_vote(rule_list, new_instance)
