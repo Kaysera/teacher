@@ -73,6 +73,7 @@ def _literal_distance(fuzzy_clause, fuzzy_value, cf_value):
     distance = skip / (len(fuzzy_clause) - 1)
     return distance
 
+
 def _search_counterfactual(instance, class_val, rule_list, cf_list):
     sorted_cf = sorted(cf_list, key=lambda rule: rule[1])
     for cf in sorted_cf:
@@ -82,6 +83,7 @@ def _search_counterfactual(instance, class_val, rule_list, cf_list):
             return changes
 
     return None
+
 
 def FID3_counterfactual(factual, counter_rules):
     min_rule_distance = np.inf
@@ -126,8 +128,6 @@ def i_counterfactual(instance, rule_list, class_val, df_numerical_columns):
     return _search_counterfactual(instance, class_val, rule_list, possible_cf)
 
 
-
-
 def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_columns, tau=0.5):
     """Returns a list that contains the counterfactual with respect to the factual
     for each of the different class values not predicted, as explained in [ref]
@@ -165,7 +165,7 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
             cf_dist += MD * _cf_dist_rule(cf_rule, fact_rule, instance, df_numerical_columns, tau)
         if cf_dist > 0:
             possible_cf.append((cf_rule, cf_dist))
-    
+
     return _search_counterfactual(instance, class_val, rule_list, possible_cf)
 
 
