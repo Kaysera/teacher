@@ -26,7 +26,7 @@ class BaseDecisionTree(ABC):
 
     def predict(self, X):
         X = check_array(X, dtype=['float64', 'object'])
-        return np.array([self.tree_.predict(x) for x in X])
+        return np.array([self.tree_.predict(X)])
 
     def score(self, X, y):
         X, y = check_X_y(X, y, dtype=['float64', 'object'])

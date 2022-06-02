@@ -124,17 +124,17 @@ def test_FID3Explainer(set_random):
     "f_method, cf_method, lam, beta, expected_fact, expected_cf",
     [
         ('m_factual', 'i_counterfactual', None, None, [Rule((('priors_count', '2'), ('two_year_recid', '1')), 0, 1.0)],
-         [(Rule((('priors_count', '1'), ('days_b_screening_arrest', '1')), 1, 1.0), np.array([0.25]))]),
+         {('priors_count', '1')}),
         ('mr_factual', 'i_counterfactual', None, None, [Rule((('priors_count', '2'), ('two_year_recid', '1')), 0, 1.0)],
-         [(Rule((('priors_count', '1'), ('days_b_screening_arrest', '1')), 1, 1.0), np.array([0.25]))]),
+         {('priors_count', '1')}),
         ('c_factual', 'i_counterfactual', 0.9, None, [Rule((('priors_count', '2'), ('two_year_recid', '1')), 0, 1.0)],
-         [(Rule((('priors_count', '1'), ('days_b_screening_arrest', '1')), 1, 1.0), np.array([0.25]))]),
+         {('priors_count', '1')}),
         ('c_factual', 'i_counterfactual', 0.9, 0.5, [Rule((('priors_count', '2'), ('two_year_recid', '1')), 0, 1.0)],
-         [(Rule((('priors_count', '1'), ('days_b_screening_arrest', '1')), 1, 1.0), np.array([0.25]))]),
+         {('priors_count', '1')}),
         ('m_factual', 'f_counterfactual', None, None, [Rule((('priors_count', '2'), ('two_year_recid', '1')), 0, 1.0)],
-         [(Rule((('priors_count', '0'),), 1, 1.0), np.array([0.]))]),
+         {('two_year_recid', '0')}),
         ('mr_factual', 'f_counterfactual', None, None, [Rule((('priors_count', '2'), ('two_year_recid', '1')), 0, 1.0)],
-         [(Rule((('priors_count', '0'),), 1, 1.0), np.array([0.]))])
+         {('two_year_recid', '0')})
     ]
     )
 def test_FDTExplainer(prepare_compas, f_method, cf_method, lam, beta, expected_fact, expected_cf):

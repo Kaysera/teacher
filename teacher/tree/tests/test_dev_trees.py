@@ -152,7 +152,7 @@ def test_iris_fdt(prepare_iris_fdt):
     new_fdt.fit(X_train, y_train)
     new_fdt_score = new_fdt.score(X_test, y_test)
 
-    np.testing.assert_almost_equal(fdt.predict(df_test_membership), new_fdt.predict(X_test))
+    np.testing.assert_almost_equal([fdt.predict(df_test_membership)], new_fdt.predict(X_test))
 
     assert fdt.predict(fuzzy_element) == new_fdt.predict(X_test.iloc[fuzzy_element_idx].to_numpy().reshape(1, -1))
     assert new_fdt_score == fdt_score
@@ -170,7 +170,7 @@ def test_iris_min_examples_fdt(prepare_iris_fdt):
     new_fdt.fit(X_train, y_train)
     new_fdt_score = new_fdt.score(X_test, y_test)
 
-    np.testing.assert_almost_equal(fdt.predict(df_test_membership), new_fdt.predict(X_test))
+    np.testing.assert_almost_equal([fdt.predict(df_test_membership)], new_fdt.predict(X_test))
 
     assert fdt.predict(fuzzy_element) == new_fdt.predict(X_test.iloc[fuzzy_element_idx].to_numpy().reshape(1, -1))
     assert new_fdt_score == fdt_score
@@ -188,7 +188,7 @@ def test_iris_max_depth_fdt(prepare_iris_fdt):
     new_fdt.fit(X_train, y_train)
     new_fdt_score = new_fdt.score(X_test, y_test)
 
-    np.testing.assert_almost_equal(fdt.predict(df_test_membership), new_fdt.predict(X_test))
+    np.testing.assert_almost_equal([fdt.predict(df_test_membership)], new_fdt.predict(X_test))
 
     assert fdt.predict(fuzzy_element) == new_fdt.predict(X_test.iloc[fuzzy_element_idx].to_numpy().reshape(1, -1))
     assert new_fdt_score == fdt_score
@@ -206,7 +206,7 @@ def test_iris_max_match_fdt(prepare_iris_fdt):
     new_fdt.fit(X_train, y_train)
     new_fdt_score = new_fdt.score(X_test, y_test)
 
-    np.testing.assert_almost_equal(fdt.predict(df_test_membership), new_fdt.predict(X_test))
+    np.testing.assert_almost_equal([fdt.predict(df_test_membership)], new_fdt.predict(X_test))
 
     assert fdt.predict(fuzzy_element) == new_fdt.predict(X_test.iloc[fuzzy_element_idx].to_numpy().reshape(1, -1))
     assert new_fdt_score == fdt_score

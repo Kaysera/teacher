@@ -133,3 +133,6 @@ dmypy.json
 
 # pre-commit config
 .pre-commit-config.yaml
+
+# DS files
+.DS_Store
