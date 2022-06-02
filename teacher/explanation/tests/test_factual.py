@@ -88,7 +88,7 @@ def prepare_beer_fdt(set_random):
             X_test, y_test, fuzzy_element, fuzzy_element_idx, all_classes, df_numerical_columns, fuzzy_variables]
 
 
-def _get_fuzzy_element(fuzzy_X, idx):
+def _get_fuzzy_element(fuzzy_X, idx):  # pragma: no cover
     element = {}
     for feat in fuzzy_X:
         element[feat] = {}
@@ -134,7 +134,7 @@ def _get_best_rule(rules, op, target=None):
     return (best_rule, best_score)
 
 
-def _alpha_factual_avg(explanations):
+def _alpha_factual_avg(explanations):  # pragma: no cover
     avg = reduce(lambda x, y: x + y[1], explanations, 0) / len(explanations)
     first_class_dict, first_matching, first_rule = explanations[0]
     alpha_factual = [(first_rule, first_matching)]
@@ -147,7 +147,7 @@ def _alpha_factual_avg(explanations):
     return alpha_factual
 
 
-def _alpha_factual_robust(explanations, threshold):
+def _alpha_factual_robust(explanations, threshold):  # pragma: no cover
     # This is the cummulative mu of the
     # rules that will be selected
     first_class_dict, first_matching, first_rule = explanations[0]
@@ -162,7 +162,7 @@ def _alpha_factual_robust(explanations, threshold):
     return alpha_factual
 
 
-def _alpha_factual_factor(explanations, alpha):
+def _alpha_factual_factor(explanations, alpha):  # pragma: no cover
     first_class_dict, first_matching, first_rule = explanations[0]
     alpha_factual = [first_rule]
     prev_matching = first_matching
@@ -177,7 +177,7 @@ def _alpha_factual_factor(explanations, alpha):
     return alpha_factual
 
 
-def _alpha_factual_factor_sum(explanations, alpha, beta):
+def _alpha_factual_factor_sum(explanations, alpha, beta):  # pragma: no cover
     first_class_dict, first_matching, first_rule = explanations[0]
     alpha_factual = [first_rule]
     prev_matching = first_matching
