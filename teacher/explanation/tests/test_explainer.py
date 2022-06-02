@@ -87,7 +87,8 @@ def test_explainer_hit():
 def test_write_explanation():
     mbe = MockFactualLocalExplainer()
     mbe.fit()
-    expected_explanation = 'The element is 1 because feat1: val1 => 1 (Weight: 1)\nOtherwise, you would need feat1 = val2'
+    expected_explanation = 'The element is 1 because feat1: val1 => 1 (Weight: 1)\n'
+    expected_explanation += 'Otherwise, you would need feat1 = val2'
     assert expected_explanation == mbe.write_explanation()
 
 
