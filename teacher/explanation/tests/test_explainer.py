@@ -59,8 +59,11 @@ class MockFactualLocalExplainer(FactualLocalExplainer):
     """Mock Base Explainer, not intended for use"""
     def fit(self):
         """Mock fit method that does nothing"""
-        self.exp_value = 1
-        self.target = 1
+        self.exp_value = [1]
+        self.target = [1]
+        factual = Rule([('feat1', 'val1')], 1, 1)
+        counterfactual = {('feat1', 'val2')}
+        self.explanation = (factual, counterfactual)
 
 
 def test_explainer_not_fitted():
@@ -79,6 +82,13 @@ def test_explainer_hit():
     mbe = MockFactualLocalExplainer()
     mbe.fit()
     assert mbe.hit() is True
+
+
+def test_write_explanation():
+    mbe = MockFactualLocalExplainer()
+    mbe.fit()
+    expected_explanation = 'The element is 1 because feat1: val1 => 1 (Weight: 1)\nOtherwise, you would need feat1 = val2'
+    assert expected_explanation == mbe.write_explanation()
 
 
 def test_FID3Explainer(set_random):
