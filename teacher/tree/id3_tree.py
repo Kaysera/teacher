@@ -2,6 +2,7 @@ import numpy as np
 from scipy.stats import entropy
 from .base_decision_tree import BaseDecisionTree
 from .rule import Rule
+from sklearn.utils import check_array
 
 
 class TreeID3:
@@ -228,3 +229,7 @@ class ID3(BaseDecisionTree):
         # print("Corte ",(error_node-current_tree.error)/(current_tree.num_leaf-1))
         # print("*************************************************")
         return
+
+    def predict(self, X):
+        X = check_array(X, dtype=['float64', 'object'])
+        return np.array([self.tree_.predict(x) for x in X])
