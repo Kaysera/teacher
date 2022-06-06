@@ -36,6 +36,71 @@ def get_fuzzy_sets():
     return fuzzy_sets_color_1, fuzzy_sets_color_2, fuzzy_sets_height_1, fuzzy_sets_height_2
 
 
+@pytest.fixture
+def mock_rule():
+    ante = [('height', 'high'), ('color', 'red')]
+    conse = 'conse'
+    weight = 1
+    rule = Rule(ante, conse, weight)
+    return rule
+
+
+def test_build_rule(mock_rule):
+    ante = [('height', 'high'), ('color', 'red')]
+    conse = 'conse'
+    weight = 1
+    assert mock_rule.antecedent == tuple(ante)
+    assert mock_rule.consequent == conse
+    assert mock_rule.weight == weight
+
+
+def test_rule_equal(mock_rule):
+    ante = [('height', 'high'), ('color', 'red')]
+    conse = 'conse'
+    conse_two = 'noconse'
+    weight = 1
+    rule_two = Rule(ante, conse, weight)
+    rule_three = Rule(ante, conse_two, weight)
+
+    assert mock_rule == rule_two
+    assert mock_rule != rule_three
+
+
+def test_rule_no_equal_class(mock_rule):
+    assert mock_rule != 7
+
+
+def test_rule_matching(mock_rule):
+    instance_membership = {
+        'height': {'low': 0.3, 'high': 0.7},
+        'color': {'red': 1, 'blue': 0}
+    }
+
+    assert mock_rule.matching(instance_membership) == 0.7
+
+
+def test_rule_matching_keyerror(mock_rule):
+    instance_membership = {
+        'height': {'low': 0.3, 'high': 0.7},
+    }
+
+    assert mock_rule.matching(instance_membership) == 0
+
+
+def test_weighted_vote():
+    instance_membership = {
+        'height': {'low': 0.3, 'high': 0.7},
+        'color': {'red': 1, 'blue': 0}
+    }
+
+    rule_one = Rule([('height', 'high'), ('color', 'red')], 'conse', 0.4)
+    rule_two = Rule([('height', 'low'), ('color', 'red')], 'conse_two', 1)
+    rule_three = Rule([('height', 'high'), ('color', 'blue')], 'conse', 0.7)
+    rule_list = [rule_one, rule_two, rule_three]
+
+    assert Rule.weighted_vote(rule_list, instance_membership) == 'conse_two'
+
+
 def test_map_rule_variables_different_universe(get_fuzzy_sets):
     fuzzy_sets_color_1, fuzzy_sets_color_2, fuzzy_sets_height_1, fuzzy_sets_height_2 = get_fuzzy_sets
     with pytest.raises(ValueError):
