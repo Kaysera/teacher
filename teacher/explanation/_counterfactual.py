@@ -1,12 +1,7 @@
-# =============================================================================
-# Imports
-# =============================================================================
+from copy import deepcopy
 
-# Third party
 import numpy as np
-
-# Local application
-from ._factual import _get_maximum_weight_rules
+from teacher.tree import Rule
 
 
 # =============================================================================
@@ -86,8 +81,19 @@ def _weighted_literal_distance(fuzzy_clause, fuzzy_value, cf_value):
 def _literal_distance(fuzzy_clause, fuzzy_value, cf_value):
     """Distance between two fuzzy sets of a fuzzy variable"""
     skip = abs(list(fuzzy_clause).index(fuzzy_value) - list(fuzzy_clause).index(cf_value))
-    distance = skip / len(fuzzy_clause)
+    distance = skip / (len(fuzzy_clause) - 1)
     return distance
+
+
+def _search_counterfactual(instance, class_val, rule_list, cf_list):
+    sorted_cf = sorted(cf_list, key=lambda rule: rule[1])
+    for cf in sorted_cf:
+        new_instance, changes = _apply_changes(cf[0], instance)
+        new_class_val = Rule.weighted_vote(rule_list, new_instance)
+        if new_class_val != class_val:
+            return changes
+
+    return None
 
 
 def FID3_counterfactual(factual, counter_rules):
@@ -144,15 +150,10 @@ def i_counterfactual(instance, rule_list, class_val, df_numerical_columns):
     list(Rule)
         List of counterfactual rules
     """
-    counterfactual = []
-    max_weight_rules = _get_maximum_weight_rules(rule_list)
-    counter_rules = [rule for rule in max_weight_rules if rule.consequent != class_val]
-    for class_val in np.unique([rule.consequent for rule in counter_rules]):
-        possible_cf = [(rule, _cf_dist_instance(rule, instance, df_numerical_columns))
-                       for rule in counter_rules if rule.consequent == class_val]
-        counterfactual.append((min(possible_cf, key=lambda rule: rule[1])))
-
-    return counterfactual
+    diff_class_rules = [rule for rule in rule_list if rule.consequent != class_val]
+    possible_cf = [(rule, _cf_dist_instance(rule, instance, df_numerical_columns))
+                   for rule in diff_class_rules]
+    return _search_counterfactual(instance, class_val, rule_list, possible_cf)
 
 
 def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_columns, tau=0.5):
@@ -183,17 +184,31 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
     list(Rule)
         List of counterfactual rules
     """
-    counterfactual = []
-    max_weight_rules = _get_maximum_weight_rules(rule_list)
-    counter_rules = [rule for rule in max_weight_rules if rule.consequent != class_val]
-    for class_val in np.unique([rule.consequent for rule in counter_rules]):
-        possible_cf = []
-        for cf_rule in (rule for rule in counter_rules if rule.consequent == class_val):
-            cf_dist = 0
-            for fact_rule in factual:
-                AD = fact_rule.matching(instance) * fact_rule.weight
-                cf_dist += (1 - AD) * _cf_dist_rule(cf_rule, fact_rule, instance, df_numerical_columns, tau)
+    possible_cf = []
+    diff_class_rules = [rule for rule in rule_list if rule.consequent != class_val]
+    for cf_rule in diff_class_rules:
+        cf_dist = 0
+        for fact_rule in factual:
+            MD = fact_rule.matching(instance)
+            cf_dist += MD * _cf_dist_rule(cf_rule, fact_rule, instance, df_numerical_columns, tau)
+        if cf_dist > 0:
             possible_cf.append((cf_rule, cf_dist))
-        counterfactual.append((min(possible_cf, key=lambda rule: rule[1])))
 
-    return counterfactual
+    return _search_counterfactual(instance, class_val, rule_list, possible_cf)
+
+
+def _apply_changes(rule, instance):
+    changes = set([])
+    rule_changes = {feat: value for (feat, value) in rule.antecedent}
+    new_instance = deepcopy(instance)
+    for fuzzy_var in new_instance:
+        max_pert_value = max(new_instance[fuzzy_var], key=lambda fuzzy_set: new_instance[fuzzy_var][fuzzy_set])
+        if fuzzy_var in rule_changes and max_pert_value != rule_changes[fuzzy_var]:
+            changes.add((fuzzy_var, rule_changes[fuzzy_var]))
+            for fuzzy_set in new_instance[fuzzy_var]:
+                if fuzzy_set == rule_changes[fuzzy_var]:
+                    new_instance[fuzzy_var][fuzzy_set] = 1
+                else:
+                    new_instance[fuzzy_var][fuzzy_set] = 0
+
+    return new_instance, changes

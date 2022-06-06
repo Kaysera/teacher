@@ -150,18 +150,6 @@ def test_equal_freq_no_sets():
                              df_categorical_columns=df_categorical_columns)
 
 
-def test_entropy_no_class_name():
-    with raises(ValueError):
-        df_numerical_columns = ['column_1']
-        df_categorical_columns = ['column_2']
-        neighborhood = MockFuzzyNeighborhood()
-        neighborhood.fit()
-        neighborhood.fuzzify('entropy',
-                             sets=3,
-                             df_numerical_columns=df_numerical_columns,
-                             df_categorical_columns=df_categorical_columns)
-
-
 def test_no_numerical_columns():
     with raises(ValueError):
         df_categorical_columns = ['column_2']
@@ -279,5 +267,17 @@ def test_lore_neighborhood(prepare_beer):
                                                    FuzzyContinuousSet(name='0.107',
                                                                       fuzzy_points=[0.08, 0.107, 0.107])]),
     ]
-    print(neighborhood.get_fuzzy_variables())
     assert neighborhood.get_fuzzy_variables() == expected_fuzzy_vars
+
+    expected_instance_membership = {
+        'color': {
+            '9.0': np.array([0.]),
+            '12.236': np.array([0.]),
+            '15.472': np.array([0.])},
+        'bitterness': {'25.0': np.array([0.])},
+        'strength': {
+            '0.053': np.array([0.]),
+            '0.08': np.array([0.]),
+            '0.107': np.array([0.])}
+        }
+    assert neighborhood.get_instance_membership() == expected_instance_membership

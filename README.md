@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/gh/Kaysera/fuzzy-lore/branch/main/graph/badge.svg?token=QFA17A64EW)](https://codecov.io/gh/Kaysera/fuzzy-lore)
+[![codecov](https://codecov.io/gh/Kaysera/teacher/branch/main/graph/badge.svg?token=QFA17A64EW)](https://codecov.io/gh/Kaysera/teacher)
 ![GitHub - License](https://img.shields.io/github/license/Kaysera/teacher?logo=github&style=flat&color=green)
 # TEACHER: Trustable Extensible Aggregator of CompreHensive Explainers
 
