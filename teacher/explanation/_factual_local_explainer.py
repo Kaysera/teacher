@@ -10,8 +10,8 @@ class FactualLocalExplainer(BaseExplainer):
 
     def write_explanation(self):
         nlp_exp = f'The element is {self.exp_value[0]} because {self.explanation[0]}\n'
-        for cf in self.explanation[1]:
-            nlp_exp += f'For the element to be {cf.consequent}, you would need {cf.antecedent}\n'
+        nlp_exp += 'Otherwise, you would need '
+        nlp_exp += ' and '.join([f'{cf[0]} = {cf[1]}' for cf in self.explanation[1]])
 
         return nlp_exp
 

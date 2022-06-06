@@ -1,5 +1,6 @@
 import numpy as np
-from teacher.fuzzy import fuzzy_entropy, dataset_membership
+from ..fuzzy import dataset_membership
+from ..fuzzy._discretize import _fuzzy_entropy
 from sklearn.utils import check_X_y
 
 from .base_decision_tree import BaseDecisionTree
@@ -134,7 +135,7 @@ class FDT(BaseDecisionTree):
         best_f_gain = 0
         best_child_mu = {}
         for feature in features:
-            f_ent = fuzzy_entropy(tree.mu, y)
+            f_ent = _fuzzy_entropy(tree.mu, y)
             if verbose:  # pragma: no cover
                 print('------------------------------')
                 print(f'Feature: {feature}')
@@ -145,7 +146,7 @@ class FDT(BaseDecisionTree):
             for value in X_membership[feature]:
                 child_mu[value] = t_norm(tree.mu, X_membership[feature][value])
                 fuzzy_cardinality = child_mu[value].sum()
-                child_f_ent = fuzzy_entropy(child_mu[value], y, verbose=False)
+                child_f_ent = _fuzzy_entropy(child_mu[value], y, verbose=False)
                 if verbose:  # pragma: no cover
                     print('------------------------------')
                     print(f'\tvalue: {value}')
