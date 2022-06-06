@@ -267,5 +267,17 @@ def test_lore_neighborhood(prepare_beer):
                                                    FuzzyContinuousSet(name='0.107',
                                                                       fuzzy_points=[0.08, 0.107, 0.107])]),
     ]
-    print(neighborhood.get_fuzzy_variables())
     assert neighborhood.get_fuzzy_variables() == expected_fuzzy_vars
+
+    expected_instance_membership = {
+        'color': {
+            '9.0': np.array([0.]),
+            '12.236': np.array([0.]),
+            '15.472': np.array([0.])},
+        'bitterness': {'25.0': np.array([0.])},
+        'strength': {
+            '0.053': np.array([0.]),
+            '0.08': np.array([0.]),
+            '0.107': np.array([0.])}
+        }
+    assert neighborhood.get_instance_membership() == expected_instance_membership
