@@ -59,36 +59,36 @@ def _equal_freq(variable, sets):
 def _fuzzy_discretization(variable, class_variable, min_point, verbose=False):
     max_point = variable.max()
     best_point = 0
-    best_wef = inf
+    best_wfe = inf
     best_fuzzy_triangle = []
     for point in np.unique(variable):
         if point != min_point and point != max_point:
             divisions = [('low', min_point), ('mid', point), ('high', max_point)]
-            fuzzy_triangle = get_fuzzy_triangle(variable, divisions)
-            wef = weighted_fuzzy_entropy(fuzzy_triangle, class_variable)
+            fuzzy_triangle = _fuzzy_triangle(variable, divisions)
+            wfe = _weighted_fuzzy_entropy(fuzzy_triangle, class_variable)
 
             if verbose:  # pragma: no cover
                 print('\t----------------')
                 print(f'\t{divisions}')
                 print('\t----------------')
                 print(f'\tPoint: {point}')
-                print(f'\tWEF: {wef}')
+                print(f'\twfe: {wfe}')
                 print('\t-----------------')
 
-            if wef < best_wef:
-                best_wef = wef
+            if wfe < best_wfe:
+                best_wfe = wfe
                 best_point = point
                 best_fuzzy_triangle = fuzzy_triangle
 
     divisions = [('low', min_point), ('high', max_point)]
-    global_fuzzy_triangles = get_fuzzy_triangle(variable, divisions)
-    global_wef = weighted_fuzzy_entropy(global_fuzzy_triangles, class_variable)
+    global_fuzzy_triangles = _fuzzy_triangle(variable, divisions)
+    global_wfe = _weighted_fuzzy_entropy(global_fuzzy_triangles, class_variable)
     if verbose:  # pragma: no cover
         print(f'Best point: {best_point}')
-        print(f'Best wef: {best_wef}')
-        print(f'Global Weighted Fuzzy Entropy: {global_wef}')
+        print(f'Best Weighted Fuzzy Entropy: {best_wfe}')
+        print(f'Global Weighted Fuzzy Entropy: {global_wfe}')
 
-    f_gain = global_wef - best_wef
+    f_gain = global_wfe - best_wfe
 
     cardinality = len(variable)
     delta = _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable)
@@ -119,7 +119,43 @@ def _fuzzy_discretization(variable, class_variable, min_point, verbose=False):
         return [min_point, max_point]
 
 
-def get_fuzzy_triangle(variable, divisions, verbose=False):
+def _fuzzy_entropy(triangle, class_variable, verbose=False):
+    """Compute the fuzzy entropy of a given fuzzy subset
+
+    Parameters
+    ----------
+    triangle : np.array
+        Numpy array with the degree of pertenence for a particular
+        fuzzy variable for each instance
+    class_variable : np.array
+        Numpy array with the values of the class for each instance
+    verbose : bool, optional
+        Verbose flag, by default False
+
+    Returns
+    -------
+    float
+        Fuzzy entropy of the subset
+    """
+    fe = 0
+    for value in np.unique(class_variable):
+        class_fuzzy_cardinality = 0
+        for i in range(len(triangle)):
+            if class_variable[i] == value:
+                class_fuzzy_cardinality += triangle[i]
+
+        if class_fuzzy_cardinality > 0:  # i.e. There are elements belonging to this class value
+            fuzzy_cardinality = triangle.sum()
+            if verbose:   # pragma: no cover
+                print(f'class_fuzzy_cardinality: {class_fuzzy_cardinality}')
+                print(f'fuzzy_cardinality: {fuzzy_cardinality}')
+            ratio = class_fuzzy_cardinality / fuzzy_cardinality
+            fe += -ratio * log2(ratio)
+
+    return fe
+
+
+def _fuzzy_triangle(variable, divisions, verbose=False):
     """Function that generates a dictionary with the pertenence to each
     triangular fuzzy set of a variable of a DataFrame given the peaks of
     the triangles
@@ -164,7 +200,7 @@ def get_fuzzy_triangle(variable, divisions, verbose=False):
     return fuzz_dict
 
 
-def weighted_fuzzy_entropy(fuzzy_triangle, class_variable):
+def _weighted_fuzzy_entropy(fuzzy_triangle, class_variable):
     """Function to compute the weighted fuzzy entropy of
     a given fuzzy partition
 
@@ -181,13 +217,13 @@ def weighted_fuzzy_entropy(fuzzy_triangle, class_variable):
     float
         Weighted fuzzy entropy
     """
-    wef = 0
+    wfe = 0
     crisp_cardinality = len(class_variable)  # Number of elements in the partition
     for triangle in fuzzy_triangle:
         fuzzy_cardinality = fuzzy_triangle[triangle].sum()
-        fent = fuzzy_entropy(fuzzy_triangle[triangle], class_variable)
-        wef += fuzzy_cardinality * fent
-    return wef / crisp_cardinality
+        fent = _fuzzy_entropy(fuzzy_triangle[triangle], class_variable)
+        wfe += fuzzy_cardinality * fent
+    return wfe / crisp_cardinality
 
 
 def _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable, verbose=False):
@@ -198,10 +234,10 @@ def _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable
     Parameters
     ----------
     global_fuzzy_triangles : dict
-        Dictionary with the format {key : value} obtained from get_fuzzy_triangle
+        Dictionary with the format {key : value} obtained from _fuzzy_triangle
         with two fuzzy partitions
     best_fuzzy_triangle : dict
-        Dictionary with the format {key : value} obtained from get_fuzzy_triangle
+        Dictionary with the format {key : value} obtained from _fuzzy_triangle
         with three fuzzy partitions
     class_variable : np.array
         Numpy array with the class values for the instances of the fuzzy partition
@@ -218,14 +254,14 @@ def _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable
     old_f_entropy = 0
     new_f_entropy = 0
     for triangle in global_fuzzy_triangles:
-        old_f_entropy += n_classes * fuzzy_entropy(global_fuzzy_triangles[triangle], class_variable)
+        old_f_entropy += n_classes * _fuzzy_entropy(global_fuzzy_triangles[triangle], class_variable)
 
     for triangle in best_fuzzy_triangle:
         bft = np.array(best_fuzzy_triangle[triangle])
         cv = np.array(class_variable)
         classes = cv[bft > 0]
         new_n_classes = len(np.unique(classes))
-        new_f_entropy += new_n_classes * fuzzy_entropy(best_fuzzy_triangle[triangle], class_variable)
+        new_f_entropy += new_n_classes * _fuzzy_entropy(best_fuzzy_triangle[triangle], class_variable)
     if verbose:   # pragma: no cover
         print(f'Old Entropy: {old_f_entropy:.3f}')
         print(f'New Entropy: {new_f_entropy:.3f}')
@@ -233,39 +269,3 @@ def _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable
     delta = log2(pow(3, n_classes) - 2) - (old_f_entropy - new_f_entropy)
 
     return delta
-
-
-def fuzzy_entropy(triangle, class_variable, verbose=False):
-    """Compute the fuzzy entropy of a given fuzzy subset
-
-    Parameters
-    ----------
-    triangle : np.array
-        Numpy array with the degree of pertenence for a particular
-        fuzzy variable for each instance
-    class_variable : np.array
-        Numpy array with the values of the class for each instance
-    verbose : bool, optional
-        Verbose flag, by default False
-
-    Returns
-    -------
-    float
-        Fuzzy entropy of the subset
-    """
-    fe = 0
-    for value in np.unique(class_variable):
-        class_fuzzy_cardinality = 0
-        for i in range(len(triangle)):
-            if class_variable[i] == value:
-                class_fuzzy_cardinality += triangle[i]
-
-        if class_fuzzy_cardinality > 0:  # i.e. There are elements belonging to this class value
-            fuzzy_cardinality = triangle.sum()
-            if verbose:   # pragma: no cover
-                print(f'class_fuzzy_cardinality: {class_fuzzy_cardinality}')
-                print(f'fuzzy_cardinality: {fuzzy_cardinality}')
-            ratio = class_fuzzy_cardinality / fuzzy_cardinality
-            fe += -ratio * log2(ratio)
-
-    return fe

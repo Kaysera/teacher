@@ -1,9 +1,9 @@
 import numpy as np
-from numpy.testing import assert_equal, assert_almost_equal
+from numpy.testing import assert_equal
 from pytest import raises, fixture
 import pandas as pd
 
-from teacher.fuzzy import (get_fuzzy_points, fuzzy_entropy, dataset_membership, get_fuzzy_variables,
+from teacher.fuzzy import (get_fuzzy_points, dataset_membership, get_fuzzy_variables,
                            FuzzyContinuousSet, FuzzyDiscreteSet, FuzzyVariable)
 
 from sklearn import datasets
@@ -31,7 +31,7 @@ def toy_fuzzy_variables(toy_dataset):
     df, df_numerical_columns, sets = toy_dataset
     fuzzy_points = {
         'one': [0, 5, 10],
-        'two': [0, 5, 10]
+        'two': [7]
     }
     continuous_labels = {
         'one': ['low', 'mid', 'high']
@@ -56,6 +56,23 @@ def test_get_fuzzy_points(toy_dataset):
     assert freq_points == {'one': [0, 2, 10], 'two': [7, 9, 10]}
 
 
+def test_get_fuzzy_points_point_set(toy_dataset):
+    df = pd.DataFrame(
+        [
+            [0, 7, 'six'],
+            [2, 7, 'nine'],
+            [10, 7, 'ninety']
+        ],
+        columns=['one', 'two', 'three']
+    )
+
+    df_numerical_columns = ['one', 'two']
+    sets = 3
+    width_points = get_fuzzy_points('equal_width', df_numerical_columns, df[df_numerical_columns],
+                                    sets=sets, point_variables=['two'])
+    assert width_points == {'one': [0, 5.0, 10.0], 'two': np.array([7])}
+
+
 def test_get_fuzzy_points_bad_method(toy_dataset):
     with raises(ValueError):
         df, df_numerical_columns, sets = toy_dataset
@@ -66,12 +83,6 @@ def test_get_fuzzy_points_unsupported_division(toy_dataset):
     df, df_numerical_columns, sets = toy_dataset
     with raises(ValueError):
         get_fuzzy_points(df, 'None', df_numerical_columns, sets=sets)
-
-
-def test_fuzzy_entropy():
-    fuzzy_set = np.array([0.75, 0.25, 0.])
-    class_var = np.array([1, 0, 1])
-    assert_almost_equal(fuzzy_entropy(fuzzy_set, class_var, verbose=True), 0.8112781)
 
 
 def test_get_fuzzy_points_entropy():
@@ -116,9 +127,7 @@ def test_get_fuzzy_variables(toy_fuzzy_variables):
         FuzzyVariable(name='one', fuzzy_sets=[FuzzyContinuousSet(name='low', fuzzy_points=[0, 0, 5]),
                                               FuzzyContinuousSet(name='mid', fuzzy_points=[0, 5, 10]),
                                               FuzzyContinuousSet(name='high', fuzzy_points=[5, 10, 10])]),
-        FuzzyVariable(name='two', fuzzy_sets=[FuzzyContinuousSet(name='0', fuzzy_points=[0, 0, 5]),
-                                              FuzzyContinuousSet(name='5', fuzzy_points=[0, 5, 10]),
-                                              FuzzyContinuousSet(name='10', fuzzy_points=[5, 10, 10])]),
+        FuzzyVariable(name='two', fuzzy_sets=[FuzzyContinuousSet(name='7', fuzzy_points=[7, 7, 7], point_set=True)]),
         FuzzyVariable(name='three', fuzzy_sets=[FuzzyDiscreteSet(name='six', value='six'),
                                                 FuzzyDiscreteSet(name='nine', value='nine'),
                                                 FuzzyDiscreteSet(name='ninety', value='ninety')])
@@ -128,9 +137,7 @@ def test_get_fuzzy_variables(toy_fuzzy_variables):
         FuzzyVariable(name='one', fuzzy_sets=[FuzzyContinuousSet(name='0', fuzzy_points=[0, 0, 5]),
                                               FuzzyContinuousSet(name='5', fuzzy_points=[0, 5, 10]),
                                               FuzzyContinuousSet(name='10', fuzzy_points=[5, 10, 10])]),
-        FuzzyVariable(name='two', fuzzy_sets=[FuzzyContinuousSet(name='0', fuzzy_points=[0, 0, 5]),
-                                              FuzzyContinuousSet(name='5', fuzzy_points=[0, 5, 10]),
-                                              FuzzyContinuousSet(name='10', fuzzy_points=[5, 10, 10])]),
+        FuzzyVariable(name='two', fuzzy_sets=[FuzzyContinuousSet(name='7', fuzzy_points=[7, 7, 7], point_set=True)]),
         FuzzyVariable(name='three', fuzzy_sets=[FuzzyDiscreteSet(name='six', value='six'),
                                                 FuzzyDiscreteSet(name='nine', value='nine'),
                                                 FuzzyDiscreteSet(name='ninety', value='ninety')])
@@ -148,9 +155,7 @@ def test_get_dataset_membership(toy_fuzzy_variables):
     expected_dataset_membership = {'one': {'low': np.array([1, 0.6, 0]),
                                            'mid': np.array([0, 0.4, 0]),
                                            'high': np.array([0, 0., 1.])},
-                                   'two': {'0': np.array([0, 0, 0]),
-                                           '5': np.array([0.6, 0.2, 0]),
-                                           '10': np.array([0.4, 0.8, 1])},
+                                   'two': {'7': np.array([1., 0., 0.])},
                                    'three': {'six': np.array([1, 0, 0]),
                                              'nine': np.array([0, 1, 0]),
                                              'ninety': np.array([0, 0, 1])}}
