@@ -1,6 +1,4 @@
-import random
 import pytest
-import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from teacher.explanation import FID3Explainer, FDTExplainer
@@ -9,44 +7,6 @@ from teacher.tree import Rule
 from teacher.neighbors import LoreNeighborhood, NotFittedError
 from .._base_explainer import BaseExplainer
 from .._factual_local_explainer import FactualLocalExplainer
-
-
-@pytest.fixture
-def set_random():
-    seed = 0
-    random.seed(seed)
-    np.random.seed(seed)
-    return seed
-
-
-@pytest.fixture
-def prepare_compas(set_random):
-    dataset = load_compas()
-
-    X, y = dataset['X'], dataset['y']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.2, random_state=set_random)
-
-    idx_record2explain = 3
-    instance = X_test[idx_record2explain]
-    size = 300
-    class_name = dataset['class_name']
-    get_division = 'entropy'
-
-    df_numerical_columns = [col for col in dataset['continuous'] if col != class_name]
-    df_categorical_columns = [col for col in dataset['discrete'] if col != class_name]
-
-    blackbox = RandomForestClassifier(n_estimators=20, random_state=set_random)
-    blackbox.fit(X_train, y_train)
-    target = blackbox.predict(instance.reshape(1, -1))
-
-    neighborhood = LoreNeighborhood(instance, size, class_name, blackbox, dataset, X_test, idx_record2explain)
-    neighborhood.fit()
-    neighborhood.fuzzify(get_division,
-                         class_name=class_name,
-                         df_numerical_columns=df_numerical_columns,
-                         df_categorical_columns=df_categorical_columns)
-    instance = instance.reshape(1, -1)
-    return [instance, target, neighborhood, df_numerical_columns]
 
 
 class MockBaseExplainer(BaseExplainer):
