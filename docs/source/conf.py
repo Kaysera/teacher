@@ -28,6 +28,7 @@ release = '0.1.0'
 import sys
 import os
 sys.path.append(os.path.abspath('.'))
+sys.path.append(os.path.abspath('..'))
 sys.path.append('.')
 
 # -- General configuration ---------------------------------------------------
