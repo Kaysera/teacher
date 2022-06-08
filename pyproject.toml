@@ -11,3 +11,6 @@ requires = [
 ]
 
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "teacher-xai"
