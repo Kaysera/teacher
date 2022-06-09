@@ -21,8 +21,7 @@ project = 'Teacher'
 copyright = '2022, Guillermo Fernandez'
 author = 'Guillermo Fernandez'
 
-# The full version, including alpha/beta/rc tags
-release = '0.1.0'
+
 
 
 import sys
@@ -30,6 +29,11 @@ import os
 sys.path.append(os.path.abspath('.'))
 sys.path.append(os.path.abspath('..'))
 sys.path.append('.')
+import teacher
+from sphinxext.github_link import make_linkcode_resolve  # noqa
+
+version = teacher.__version__
+release = version
 
 # -- General configuration ---------------------------------------------------
 
@@ -40,7 +44,9 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.doctest",
+    "sphinx.ext.napoleon",
     "sphinx_design",
+    "sphinx.ext.linkcode",
     'sphinx.ext.intersphinx',
     'sphinxext.redirect_from',
 ]
@@ -79,7 +85,28 @@ intersphinx_mapping = {
 #
 html_theme = "pydata_sphinx_theme"
 
+html_theme_options = {
+        "icon_links": [
+        {
+            # Label for this link
+            "name": "GitHub",
+            # URL where the link will redirect
+            "url": "https://github.com/Kaysera/teacher",  # required
+            # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
+            "icon": "fab fa-github-square",
+            # The type of image to be used (see below for details)
+            "type": "fontawesome",
+        }
+   ],
+     "show_prev_next": False
+}
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# Link the source code of an object to the repository
+linkcode_resolve = make_linkcode_resolve(author="Kaysera",
+                                         package="teacher",
+                                         branch="docs")
