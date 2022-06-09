@@ -41,6 +41,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.doctest",
     "sphinx_design",
+    'sphinx.ext.intersphinx',
     'sphinxext.redirect_from',
 ]
 
@@ -55,6 +56,20 @@ exclude_patterns = []
 # The toplevel toctree document (renamed to root_doc in Sphinx 4.0)
 # root_doc = master_doc = 'users/index'
 
+
+intersphinx_mapping = {
+    'Pillow': ('https://pillow.readthedocs.io/en/stable/', None),
+    'cycler': ('https://matplotlib.org/cycler/', None),
+    'dateutil': ('https://dateutil.readthedocs.io/en/stable/', None),
+    'ipykernel': ('https://ipykernel.readthedocs.io/en/latest/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
+    'pytest': ('https://pytest.org/en/stable/', None),
+    'python': ('https://docs.python.org/3/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/', None),
+    'tornado': ('https://www.tornadoweb.org/en/stable/', None),
+    'xarray': ('https://xarray.pydata.org/en/stable/', None),
+}
 
 
 # -- Options for HTML output -------------------------------------------------

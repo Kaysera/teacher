@@ -20,9 +20,7 @@ class BaseExplainer(ABC):
 
     @abstractmethod
     def fit(self):
-        """
-        Perform the operations to obtain the explanation
-        """
+        """Perform the operations to obtain the explanation"""
 
     def explain(self):
         if self.explanation is None:
