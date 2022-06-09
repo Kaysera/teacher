@@ -104,7 +104,6 @@ def load_german():
     Returns
     -------
     dataset : dict
-        Returns a dataset as formatted in `generate_dataset()`
     """
 
     # Read Dataset
@@ -125,7 +124,6 @@ def load_adult():
     Returns
     -------
     dataset : dict
-        Returns a dataset as formatted in `generate_dataset()`
     """
 
     # Read Dataset
@@ -155,7 +153,6 @@ def load_compas():
     Returns
     -------
     dataset : dict
-        Returns a dataset as formatted in `generate_dataset()`
     """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/compas-scores-two-years.csv', delimiter=',', skipinitialspace=True)
@@ -206,7 +203,6 @@ def load_heloc():
     Returns
     -------
     dataset : dict
-        Returns a dataset as formatted in `generate_dataset()`
     """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/heloc_dataset_v1.csv', delimiter=',')
@@ -225,7 +221,6 @@ def load_beer():
     Returns
     -------
     dataset : dict
-        Returns a dataset as formatted in `generate_dataset()`
     """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/beer.csv', delimiter=',')
@@ -248,7 +243,6 @@ def load_pima():
     Returns
     -------
     dataset : dict
-        Returns a dataset as formatted in `generate_dataset()`
     """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/pima-indians-diabetes.csv', delimiter=',')
@@ -271,7 +265,6 @@ def load_breast():
     Returns
     -------
     dataset : dict
-        Returns a dataset as formatted in `generate_dataset()`
     """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/breast.csv', delimiter=',')
