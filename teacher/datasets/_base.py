@@ -4,11 +4,9 @@ as a function to take a new generic dataset and return it in a format understand
 by the library
 """
 
-
 # =============================================================================
 # Imports
 # =============================================================================
-
 
 # Standard
 from os.path import dirname
@@ -24,6 +22,7 @@ from teacher.utils import recognize_features_type, set_discrete_continuous, labe
 # =============================================================================
 # Constants
 # =============================================================================
+
 MODULE_PATH = dirname(__file__)
 
 

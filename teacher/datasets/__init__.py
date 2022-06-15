@@ -48,6 +48,7 @@ the correctional offender management profiling for alternative sanctions \
 
 * Pima: `[dataset] <https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database>`_
 
+
 Dataset format
 ---------------
 
@@ -78,7 +79,6 @@ The different methods return a `dict` with the following keys:
     * X : :class:`numpy.ndarray`, all columns except for the class
 
     * y : :class:`numpy.ndarray`, class column
-
 
 Functions
 ----------

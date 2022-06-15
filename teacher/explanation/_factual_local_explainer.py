@@ -12,6 +12,7 @@ from teacher.neighbors import NotFittedError
 # =============================================================================
 # Classes
 # =============================================================================
+
 class FactualLocalExplainer(BaseExplainer):
     def __init__(self):
         self.target = None
@@ -40,6 +41,11 @@ class FactualLocalExplainer(BaseExplainer):
         -------
         bool
             The explanation corresponds with the expected prediction
+
+        Raises
+        ------
+        NotFittedError
+            When the Explainer is not fitted
         """
         if self.exp_value is None or self.target is None:
             raise(NotFittedError)

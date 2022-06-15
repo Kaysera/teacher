@@ -1,7 +1,24 @@
-from ._factual_local_explainer import FactualLocalExplainer
+"""
+The *Explainer* are classes that follow the guidelines of scikit-learn modules
+in that they can be fitted with data to generate an explanation.
+"""
+
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Third party
 from sklearn.utils import check_array
+
+# Local application
+from ._factual_local_explainer import FactualLocalExplainer
 from teacher.tree import FDT
 from teacher.explanation import m_factual, mr_factual, c_factual, i_counterfactual, f_counterfactual
+
+
+# =============================================================================
+# Constants
+# =============================================================================
 
 FACTUAL_METHODS = {
     'm_factual': m_factual,
@@ -15,8 +32,14 @@ COUNTERFACTUAL_METHODS = {
     'f_counterfactual': f_counterfactual
 }
 
+# =============================================================================
+# Classes
+# =============================================================================
+
 
 class FDTExplainer(FactualLocalExplainer):
+    """This *Explainer* uses the :ref:`fdt-tree` implemented in :mod:teacher as a white box model to
+       explain a local instance of a scikit-learn compatible black box classifier."""
     def __init__(self):
         self.local_explainer = None
         self.factual_method = None
@@ -24,6 +47,40 @@ class FDTExplainer(FactualLocalExplainer):
         super().__init__()
 
     def fit(self, instance, target, neighborhood, df_num_cols, factual, counterfactual, **kwargs):
+        """
+        .. _article: https://doi.org/10.1109/TFUZZ.2022.3179582
+
+        Build a FDTExplainer from the instance, the target and the neighborhood around
+        the instance
+
+        Parameters
+        ----------
+        instance : array-like of shape (,n_features)
+            The input instance
+        target : array-like of shape (1,)
+            The expected target
+        neighborhood : class extending from BaseNeighborhood
+            Neighborhood fitted around the instance to train
+            the whitebox model
+        df_num_cols : array-like of shape (n_numerical) where
+            n_numerical are the number of numerical columns
+        factual : {"m_factual", "mr_factual", "c_factual"}
+            The function to compute the factual explanation. Supported
+            methods are explained in this article_.
+        counterfactual : {"f_counterfactual", "i_counterfactual"}
+            The function to compute the factual explanation. Supported
+            methods are explained in this article_.
+
+        Raises
+        ------
+        ValueError
+            Factual method invalid
+        ValueError
+            Counterfactual method invalid
+        ValueError
+            'c_factual' chosen but no 'lam' parameter given
+
+        """
         instance = check_array(instance)
         try:
             self.factual_method = FACTUAL_METHODS[factual]

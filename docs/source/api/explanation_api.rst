@@ -6,4 +6,5 @@
 
 .. automodule:: teacher.explanation
    :members:
-   :no-inherited-members:
+   :inherited-members: BaseExplainer, FactualLocalExplainer
+   :member-order: bysource
