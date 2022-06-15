@@ -1,15 +1,29 @@
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Third party
 import numpy as np
-from .fuzzy_variable import FuzzyVariable
-from .fuzzy_set import FuzzyContinuousSet, FuzzyDiscreteSet
 from sklearn.utils import check_array, check_X_y
 
+# Local application
+from .fuzzy_variable import FuzzyVariable
+from .fuzzy_set import FuzzyContinuousSet, FuzzyDiscreteSet
 from . import _discretize
+
+# =============================================================================
+# Constants
+# =============================================================================
 
 DISCRETIZE_METHODS = {
     'equal_freq': _discretize._equal_freq,
     'equal_width': _discretize._equal_width,
     'entropy': _discretize._fuzzy_discretization
 }
+
+# =============================================================================
+# Functions
+# =============================================================================
 
 
 def get_fuzzy_points(discretize_method, df_numerical_columns, X, y=None, sets=0,

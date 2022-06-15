@@ -10,10 +10,10 @@ from functools import reduce
 # Third party
 import numpy as np
 
-
 # =============================================================================
 # Functions
 # =============================================================================
+
 
 def _fired_rules(instance, rule_list, threshold=0.001):
     """

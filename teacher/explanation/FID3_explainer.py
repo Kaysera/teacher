@@ -1,7 +1,18 @@
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Third party
+import numpy as np
+
+# Local application
 from ._factual_local_explainer import FactualLocalExplainer
 from teacher.explanation import FID3_factual, FID3_counterfactual
 from teacher.tree import ID3
-import numpy as np
+
+# =============================================================================
+# Classes
+# =============================================================================
 
 
 class FID3Explainer(FactualLocalExplainer):
