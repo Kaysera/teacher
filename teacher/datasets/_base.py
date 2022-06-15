@@ -98,7 +98,8 @@ def generate_dataset(df, columns, class_name, discrete, name):
 
 
 def load_german():
-    """Loads and returns the german credit dataset
+    """
+    Load and return the german credit dataset.
 
     Returns
     -------
@@ -118,7 +119,8 @@ def load_german():
 
 
 def load_adult():
-    """Loads and returns the adult dataset
+    """
+    Load and return the adult dataset.
 
     Returns
     -------
@@ -147,7 +149,8 @@ def load_adult():
 
 
 def load_compas():
-    """Loads and returns the COMPAS scores dataset
+    """
+    Load and return the COMPAS scores dataset.
 
     Returns
     -------
@@ -197,7 +200,8 @@ def load_compas():
 
 
 def load_heloc():
-    """Loads and returns the HELOC dataset
+    """
+    Load and return the HELOC dataset.
 
     Returns
     -------
@@ -215,7 +219,8 @@ def load_heloc():
 
 
 def load_beer():
-    """Loads and returns the beer dataset
+    """
+    Load and return the beer dataset.
 
     Returns
     -------
@@ -237,7 +242,8 @@ def load_beer():
 
 
 def load_pima():
-    """Loads and returns the pima indians dataset
+    """
+    Load and return the pima indians dataset.
 
     Returns
     -------
@@ -259,7 +265,8 @@ def load_pima():
 
 
 def load_breast():
-    """Loads and returns the breast cancer dataset
+    """
+    Load and return the breast cancer dataset.
 
     Returns
     -------

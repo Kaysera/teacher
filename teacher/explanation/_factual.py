@@ -16,7 +16,8 @@ import numpy as np
 # =============================================================================
 
 def _fired_rules(instance, rule_list, threshold=0.001):
-    """Return the rules fired by the instance given a threshold
+    """
+    Return the rules fired by the instance given a threshold.
 
     Parameters
     ----------
@@ -58,7 +59,8 @@ def _robust_threshold(instance, rule_list, class_val):
 
 
 def FID3_factual(instance, rule_list, threshold=0.01):
-    """Generate the factual extracted for the :class:`.ID3`,
+    """
+    Generate the factual extracted for the :class:`.ID3`,
     this is, the rule with the maximum matching with the instance.
 
     Parameters
@@ -82,7 +84,8 @@ def FID3_factual(instance, rule_list, threshold=0.01):
 
 
 def m_factual(instance, rule_list, class_val):
-    """Generate the factual associated to the mean
+    """
+    Generate the factual associated to the mean.
 
     Parameters
     ----------
@@ -107,8 +110,8 @@ def m_factual(instance, rule_list, class_val):
 
 
 def mr_factual(instance, rule_list, class_val):
-    """Returns the minimum robust factual generated
-    as explained in [ref]
+    """
+    Generate the minimum robust factual.
 
     Parameters
     ----------
@@ -141,7 +144,8 @@ def mr_factual(instance, rule_list, class_val):
 
 
 def c_factual(instance, rule_list, class_val, lam, beta=None):
-    """Generate the factual associated to the lambda quotient.
+    """
+    Generate the factual associated to the lambda quotient.
     If beta is passed, it generate the minimum mass factual.
 
     Parameters

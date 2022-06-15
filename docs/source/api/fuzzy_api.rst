@@ -6,4 +6,5 @@
 
 .. automodule:: teacher.fuzzy
    :members:
-   :no-inherited-members:
+   :inherited-members:
+   :member-order: bysource
