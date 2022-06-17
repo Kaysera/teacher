@@ -6,4 +6,7 @@
 
 .. automodule:: teacher.neighbors
    :members:
-   :no-inherited-members:
+   :exclude-members: NotFittedError, NotFuzzifiedError
+   :special-members: __init__
+   :inherited-members:
+   :member-order: bysource

@@ -1,15 +1,28 @@
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Standard
 from abc import ABC
-from teacher.fuzzy import get_fuzzy_variables, get_fuzzy_points, dataset_membership
-from teacher.neighbors import BaseNeighborhood
-from ._base_neighborhood import NotFittedError
+
+# Third party
 import pandas as pd
 
+# Local application
+from teacher.fuzzy import get_fuzzy_variables, get_fuzzy_points, dataset_membership
+from teacher.neighbors import BaseNeighborhood
+from ._exceptions import NotFittedError, NotFuzzifiedError
 
-class NotFuzzifiedError(Exception):
-    pass
+# =============================================================================
+# Classes
+# =============================================================================
 
 
 class FuzzyNeighborhood(BaseNeighborhood, ABC):
+    """
+    Base Fuzzy abstract neighborhood that provides the
+    starting point for all fuzzy neighborhoods
+    """
 
     def __init__(self, instance, size, class_name, bb):
         self._X_membership = None
@@ -18,8 +31,40 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
         super().__init__(instance, size, class_name, bb)
 
     def fuzzify(self, get_division, **kwargs):
-        # EXPECTED PARAMS IN KWARGS: df_numerical_columns, df_categorical_columns, sets,
-        #                            fuzzy_labels, class_name, verbose
+        """
+        Method to fuzzify a fitted neighborhood, obtaining the fuzzy partitions and
+        obtaining the membership degrees of the different fuzzy sets for all the
+        instances of the neighborhood.
+
+        Parameters
+        ----------
+        get_division : str, {"equal_width", "equal_freq", "entropy"}
+            Type of fuzzy discretization of the neighborhood
+
+        Keyword Arguments
+        -----------------
+        df_numerical_columns : list
+            List with all the numerical columns
+        df_categorical_columns : list
+            List with all the categorical columns
+        sets : int
+            Number of sets, needed for *get_division="equal_width"*
+            or *get_division="equal_freq"*
+        fuzzy_labels : list, of shape (n_sets)
+            Optional list of names for the sets generated with the
+            methods *get_division="equal_width"* or *get_division="equal_freq"*
+        class_name : str
+            Name of the class variable, needed for *get_division="entropy"*
+        verbose : bool
+            Debug flag
+
+        Raises
+        ------
+        NotFittedError
+            Neighborhood must be fitted before fuzzifying
+        ValueError
+            Argument mismatch
+        """
 
         if self._X is None or self._y is None or self._Xy is None:
             raise NotFittedError
@@ -55,18 +100,59 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
         self._instance_membership = dataset_membership(pd.DataFrame(instance_dict), self._fuzzy_variables)
 
     def get_X_membership(self):
+        """
+        Return the membership degrees of the neighborhood
+
+        Returns
+        -------
+        dict
+            Dictionary of shape {feature: {set_1: [pert_1, pert_2, ...]}} with the
+            pertenence degrees of the neighborhood extracted by :meth:`teacher.fuzzy.dataset_membership`
+
+        Raises
+        ------
+        NotFuzzifiedError
+            If the neighborhood is not fuzzified yet
+        """
         if self._X_membership is None:
             raise NotFuzzifiedError
         else:
             return self._X_membership
 
     def get_instance_membership(self):
+        """
+        Return the membership degrees of the instance
+
+        Returns
+        -------
+        dict
+            Dictionary of shape {feature: {set_1: [pert_1, pert_2, ...]}} with the
+            pertenence degrees of the instance extracted by :meth:`teacher.fuzzy.dataset_membership`
+
+        Raises
+        ------
+        NotFuzzifiedError
+            If the neighborhood is not fuzzified yet
+        """
         if self._instance_membership is None:
             raise NotFuzzifiedError
         else:
             return self._instance_membership
 
     def get_fuzzy_variables(self):
+        """
+        Return the fuzzy variables used in the neighborhood
+
+        Returns
+        -------
+        list[FuzzyVariable]
+            List with all the fuzzy variables already generated
+
+        Raises
+        ------
+        NotFuzzifiedError
+            If the neighborhood is not fuzzified yet
+        """
         if self._fuzzy_variables is None:
             raise NotFuzzifiedError
         else:
