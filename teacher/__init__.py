@@ -19,7 +19,7 @@
 # "X.Y.dev0" is the canonical version of "X.Y.dev".
 
 # Teacher package version
-__version__ = "0.1.dev0"
+__version__ = "0.1b2"
 
 
 # =============================================================================

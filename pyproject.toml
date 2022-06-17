@@ -1,0 +1,13 @@
+[build-system]
+requires = [
+    "setuptools>=61.0.0", 
+    "wheel",
+    'pandas',
+    'scikit-fuzzy',
+    'scikit-learn',
+    'matplotlib',
+    'deap',
+    'imblearn'
+]
+
+build-backend = "setuptools.build_meta"

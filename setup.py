@@ -1,12 +1,4 @@
-from setuptools import setup, find_packages
+import setuptools
 
-install_requires = [
-    'pandas',
-    'scikit-fuzzy',
-    'scikit-learn',
-    'matplotlib',
-    'deap',
-    'imblearn'
-]
-
-setup(name="teacher", packages=find_packages())
+if __name__ == "__main__":
+    setuptools.setup()
