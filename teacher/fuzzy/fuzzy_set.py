@@ -1,6 +1,17 @@
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Standard
 from dataclasses import dataclass
-import skfuzzy as fuzz
 from abc import ABC, abstractmethod
+
+# Third party
+import skfuzzy as fuzz
+
+# =============================================================================
+# Classes
+# =============================================================================
 
 
 @dataclass
@@ -15,7 +26,7 @@ class FuzzySet(ABC):
 
         Parameters
         ----------
-        variable : NumPy array
+        variable : numpy.ndarray
             Array with values of the variable
         """
 
@@ -43,6 +54,10 @@ class FuzzySet(ABC):
 
 @dataclass
 class FuzzyContinuousSet(FuzzySet):
+    """
+    Dataclass that represents a fuzzy continuous set by assigning a name and a list of points that represent
+    the triangles
+    """
     fuzzy_points: list
     point_set: bool = False
 
@@ -89,6 +104,10 @@ class FuzzyContinuousSet(FuzzySet):
 
 @dataclass
 class FuzzyDiscreteSet(FuzzySet):
+    """
+    Dataclass that represents a fuzzy continuous set by assigning a name that represents the value
+    of this set.
+    """
     value: str
 
     def membership(self, variable):

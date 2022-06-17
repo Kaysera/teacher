@@ -1,16 +1,42 @@
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Third party
+import numpy as np
+
+# Local application
 from ._factual_local_explainer import FactualLocalExplainer
-from teacher.neighbors import LoreNeighborhood
 from teacher.explanation import FID3_factual, FID3_counterfactual
 from teacher.tree import ID3
-import numpy as np
+
+# =============================================================================
+# Classes
+# =============================================================================
 
 
 class FID3Explainer(FactualLocalExplainer):
+    """This *Explainer* uses the :class:`.ID3` tree implemented in :mod:`teacher` as a white box model to
+       explain a local instance of a scikit-learn compatible black box classifier. Only intended for use
+       as a baseline. It uses its own set of factual and counterfactual explanation generation methods."""
     def __init__(self):
         self.local_explainer = None
         super().__init__()
 
-    def fit(self, instance, target, neighborhood: LoreNeighborhood):
+    def fit(self, instance, target, neighborhood):
+        """Build a FID3Explainer from the instance,
+        the target and the neighborhood around the instance.
+
+        Parameters
+        ----------
+        instance : array-like of shape (,n_features)
+            The input instance
+        target : array-like of shape (1,)
+            The expected target
+        neighborhood : LoreNeighborhood
+            Neighborhood fitted around the instance to train
+            the whitebox model
+        """
         self.target = target
         X_membership = neighborhood.get_X_membership()
         X = neighborhood.get_X()

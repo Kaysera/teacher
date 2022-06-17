@@ -1,9 +1,19 @@
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Third party
 import numpy as np
-from .fuzzy_variable import FuzzyVariable
-from .fuzzy_set import FuzzyContinuousSet, FuzzyDiscreteSet
 from sklearn.utils import check_array, check_X_y
 
+# Local application
+from .fuzzy_variable import FuzzyVariable
+from .fuzzy_set import FuzzyContinuousSet, FuzzyDiscreteSet
 from . import _discretize
+
+# =============================================================================
+# Constants
+# =============================================================================
 
 DISCRETIZE_METHODS = {
     'equal_freq': _discretize._equal_freq,
@@ -11,36 +21,45 @@ DISCRETIZE_METHODS = {
     'entropy': _discretize._fuzzy_discretization
 }
 
+# =============================================================================
+# Functions
+# =============================================================================
+
 
 def get_fuzzy_points(discretize_method, df_numerical_columns, X, y=None, sets=0,
                      point_variables=None, debug=False):
-    """Obtain the peak of the fuzzy triangles of
-    the continuous variables of a DataFrame
+    """
+    Obtain the peak of the fuzzy triangles of
+    the continuous variables of a dataset.
 
     Parameters
     ----------
-    discretize_method : string
-        Function used to get the divisions. Currently
-        supported: 'equal_freq', 'equal_width', 'entropy'
+    discretize_method : str, {'equal_freq', 'equal_width', 'entropy'}
+        Function used to get the divisions.
     df_numerical_columns : list
-        List with the ordered numerical columns of the input
-        samples.
+        Ordered numerical columns of the input samples.
     X : array-like, of shape (n_samples, n_features)
-        The training input samples. Must only have numerical columns.
+        Training input samples. Must only have numerical columns.
     y : array-like of shape (n_samples,)
-        The target values (class labels) as integers or strings.
+        Target values (class labels) as integers or strings.
     sets : int
         Number of fuzzy sets that the variable will
-        be divided into
+        be divided into.
     point_variables : set, None by default
         Set of the variables to be considered point variables
-        to return a list with the point value
+        to return a list with the point value.
     debug : boolean, False by default
-
+        Debugging flag
     Returns
     -------
     dict
-        Dictionary with the format {key : [points]}
+        Dictionary with the format {feature_name : [start, peak, end]}
+        for each feature in *df_numerical_columns*
+
+    Raises
+    -------
+    ValueError
+        Discretize method not supported
     """
 
     if y is not None:
@@ -67,22 +86,24 @@ def get_fuzzy_points(discretize_method, df_numerical_columns, X, y=None, sets=0,
 
 
 def dataset_membership(X, fuzzy_variables):
-    """Obtain the membership of the values of all the columns of a DataFrame to each
-    Fuzzy Set of the different Fuzzy Variables
+    """
+    Compute the membership of the values of all the instances
+    of a dataset to each Fuzzy Set of the different Fuzzy Variables.
 
     Parameters
     ----------
     X : array-like, of shape (n_samples, n_features)
         The input samples of which to obtain the membership.
-    fuzzy_variables : list[FuzzySet]
+    fuzzy_variables : list[FuzzyVariable]
         List of the fuzzy variables to compute the membership. Must be
         ordered according to the features of X.
 
     Returns
     -------
     dict
-        Dictionary with format {key : value} where the key is the name of the column of the DataFrame
-        and the value is a dictionary with the membership to each fuzzy set of the variable
+        Dictionary with format {variable: {set_1: pert_1, ...}, ...} with all
+        the variables in *fuzzy_variables* and the pertenence degree to
+        all the corresponding sets.
     """
 
     X = check_array(X, dtype=['float64', 'object'])
@@ -96,32 +117,29 @@ def dataset_membership(X, fuzzy_variables):
 def get_fuzzy_variables(continuous_fuzzy_points, discrete_fuzzy_values, order,
                         continuous_labels=None, discrete_labels=None, point_set_method='point_set'):
     """Build the fuzzy variables given the points of the triangles that
-    define them, as well as the values of the discrete variables
+    define them, as well as the values of the discrete variables.
 
     Parameters
     ----------
     continuous_fuzzy_points : dict
-        Dictionary with format {key : [v1, v2, ...]} where key is the
-        name of the continuous variable and v1, v2, ... are the peaks of the triangles
-        of each fuzzy set
+        Dictionary with format {feature: [peak_1, peak_2, ...]} with the name
+        of the features and the peaks of the triangles of each fuzzy set.
     discrete_fuzzy_values : dict
-        Dictionary with format {key : [v1, v2, ...]} where key is the
-        name of the discrete variable and v1, v2, ... are the unique values that
-        the discrete variable can take
+        Dictionary with format {feature : [value_1, value_2, ...]} with the name
+        of the features and the unique values thatthe discrete variable can take
     order : dict
-        Dictionary with the format {name : position} where each name is the label
+        Dictionary with format {name : position} where each name is the label
         of the fuzzy variable and the position relative to an input dataset
     continuous_labels : dict, optional
-        Dictionary with format {key : [l1, l2, ...]} where key is the
-        name of the continuous variable and l1, l2, ... are the labels of the fuzzy
-        sets associated to the peaks v1, v2, ...
+        Dictionary with format {feature : [label_1, label_2, ...]} with the name
+        the continuous variable and the labels of the fuzzy
+        sets associated to the peaks peak_1, peak_2, ...
     discrete_labels : dict, optional
-        Dictionary with format {key : [l1, l2, ...]} where key is the
-        name of the discrete variable and l1, l2, ... are the labels of the fuzzy
-        sets associated to the values v1, v2, ...
+        Dictionary with format {feature : [label_1, label_2, ...]} with the name
+        the discrete variable and the labels of the fuzzy
+        sets associated to the values value_1, value_2, ...
     point_set : str, 'point_set' by default
-        Name of the method to generate the point sets.
-        Defaults to `point_set`
+        Method to generate the point sets. Defaults to `point_set`
 
     Returns
     -------

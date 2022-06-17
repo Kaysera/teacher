@@ -1,8 +1,19 @@
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Standard
+from math import log2, inf, pow
+
+# Third party
 import numpy as np
 import pandas as pd
 import skfuzzy as fuzz
 import matplotlib.pyplot as plt
-from math import log2, inf, pow
+
+# =============================================================================
+# Functions
+# =============================================================================
 
 
 def _equal_width(variable, sets):

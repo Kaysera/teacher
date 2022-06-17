@@ -1,14 +1,34 @@
+"""
+This module gathers the different datasets used to run the experiments, as well
+as a function to take a new generic dataset and return it in a format understandable
+by the library
+"""
 
-# Standard imports
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Standard
 from os.path import dirname
 
-# Third party imports
-from teacher.utils import recognize_features_type, set_discrete_continuous, label_encode
+# Third party
 import pandas as pd
 import numpy as np
 
+# Local application
+from teacher.utils import recognize_features_type, set_discrete_continuous, label_encode
+
+
+# =============================================================================
+# Constants
+# =============================================================================
+
 MODULE_PATH = dirname(__file__)
 
+
+# =============================================================================
+# Functions
+# =============================================================================
 
 def generate_dataset(df, columns, class_name, discrete, name):
     """Generate the dataset suitable for LORE usage
@@ -32,17 +52,17 @@ def generate_dataset(df, columns, class_name, discrete, name):
         Dataset as a dictionary with the following elements:
             name : Name of the dataset
             df : Pandas DataFrame with the original data
-            columns : list of the columns of the dataframe
+            columns : list of the columns of the DataFrame
             class_name : name of the class variable
             possible_outcomes : list with all the values of the class column
             type_features : dict with all the variables grouped by type
             features_type : dict with the type of each feature
             discrete : list with all the columns to be considered to have discrete values
             continuous : list with all the columns to be considered to have continuous values
-            idx_features : dict with the column name of each column once arranged in a numpy array
+            idx_features : dict with the column name of each column once arranged in a NumPy array
             label_encoder : label encoder for the discrete values
-            X : numpy array with all the columns except for the class
-            y : numpy array with the class column
+            X : NumPy array with all the columns except for the class
+            y : NumPy array with the class column
     """
     possible_outcomes = list(df[class_name].unique())
 
@@ -78,12 +98,12 @@ def generate_dataset(df, columns, class_name, discrete, name):
 
 
 def load_german():
-    """Loads and returns the german credit dataset
+    """
+    Load and return the german credit dataset.
 
     Returns
     -------
     dataset : dict
-        Returns a dataset as formatted in generate_dataset()
     """
 
     # Read Dataset
@@ -99,12 +119,12 @@ def load_german():
 
 
 def load_adult():
-    """Loads and returns the adult dataset
+    """
+    Load and return the adult dataset.
 
     Returns
     -------
     dataset : dict
-        Returns a dataset as formatted in generate_dataset()
     """
 
     # Read Dataset
@@ -129,6 +149,13 @@ def load_adult():
 
 
 def load_compas():
+    """
+    Load and return the COMPAS scores dataset.
+
+    Returns
+    -------
+    dataset : dict
+    """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/compas-scores-two-years.csv', delimiter=',', skipinitialspace=True)
 
@@ -173,6 +200,13 @@ def load_compas():
 
 
 def load_heloc():
+    """
+    Load and return the HELOC dataset.
+
+    Returns
+    -------
+    dataset : dict
+    """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/heloc_dataset_v1.csv', delimiter=',')
 
@@ -185,6 +219,13 @@ def load_heloc():
 
 
 def load_beer():
+    """
+    Load and return the beer dataset.
+
+    Returns
+    -------
+    dataset : dict
+    """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/beer.csv', delimiter=',')
 
@@ -201,6 +242,13 @@ def load_beer():
 
 
 def load_pima():
+    """
+    Load and return the pima indians dataset.
+
+    Returns
+    -------
+    dataset : dict
+    """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/pima-indians-diabetes.csv', delimiter=',')
 
@@ -217,6 +265,13 @@ def load_pima():
 
 
 def load_breast():
+    """
+    Load and return the breast cancer dataset.
+
+    Returns
+    -------
+    dataset : dict
+    """
     # Read Dataset
     df = pd.read_csv(MODULE_PATH + '/data/breast.csv', delimiter=',')
     del df['id']

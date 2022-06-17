@@ -1,10 +1,18 @@
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Standard
 from collections import defaultdict
+
+# =============================================================================
+# Classes
+# =============================================================================
 
 
 class Rule:
     def __init__(self, antecedent, consequent, weight):
-        """Constructor of rules
-
+        """
         Parameters
         ----------
         antecedent : list of tuples (feature, value)
@@ -53,7 +61,7 @@ class Rule:
 
         Parameters
         ----------
-        rule_list : list of Rule
+        rule_list : list[Rule]
             List with the rules that will be taken into account for the
             weighted vote method
         instance_membership : dict

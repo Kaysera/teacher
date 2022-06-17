@@ -1,5 +1,10 @@
 [![codecov](https://codecov.io/gh/Kaysera/teacher/branch/main/graph/badge.svg?token=QFA17A64EW)](https://codecov.io/gh/Kaysera/teacher)
-![GitHub - License](https://img.shields.io/github/license/Kaysera/teacher?logo=github&style=flat&color=green)
+[![GitHub - License](https://img.shields.io/github/license/Kaysera/teacher?logo=github&style=flat&color=green)](https://github.com/Kaysera/teacher/blob/main/LICENSE)
+[![Lint](https://github.com/Kaysera/teacher/actions/workflows/linting.yml/badge.svg)](https://github.com/Kaysera/teacher/actions/workflows/linting.yml)
+[![Continuous Integration](https://github.com/Kaysera/teacher/actions/workflows/integration.yml/badge.svg)](https://github.com/Kaysera/teacher/actions/workflows/integration.yml)
+[![Continuous Deployment](https://github.com/Kaysera/teacher/actions/workflows/python-publish.yml/badge.svg)](https://github.com/Kaysera/teacher/actions/workflows/python-publish.yml)
+[![PyPi package](https://badge.fury.io/py/teacher-xai.svg)](https://pypi.org/project/teacher-xai/)
+
 # TEACHER: Trustable Extensible Aggregator of CompreHensive Explainers
 
 TEACHER is an open source Python Library that incorporates several state-of-the-art 
@@ -10,7 +15,7 @@ keeping compatibility with the most used machine learning models such as scikit-
 This project was started in 2020 as the Ph.D. Thesis of Guillermo Tomás Fernández Martín,
 whose advisors are José Antonio Gámez Martín and José Miguel Puerta Callejón.
 
-Website: TBD
+Website: <https://xai-teacher.readthedocs.io/en/latest/>
 
 ## Installation
 
@@ -29,25 +34,21 @@ Teacher requires:
 
 If you already have a working installation, you can install teacher with 
 
-```
-TBD
+```shell
+pip install -U teacher-xai
 ```
 
-The documentation includes more detailed instructions.
+The documentation includes more [detailed instructions](https://xai-teacher.readthedocs.io/en/latest/users/installing/index.html).
 
 ## Usage
 
-TBD
+For detailed instructions on how to use teacher, please refer to the [API Reference](https://xai-teacher.readthedocs.io/en/latest/api/index.html)
 
 ## Supported Methods
 
 The following list summarizes the models and explainers currently supported
-- **Anchors**: Future work
-- **Bayesian Networks**: Future work
 - **Fuzzy Factuals and Counterfactuals**: Explainer obtained from a fuzzy tree that can be used for global or local explanations
-- **LIME**: Future work
 - **LORE**: Local explainer generated from a neighborhood
-- **SHAP**: Future work
   
 ## Metrics
 
@@ -57,17 +58,16 @@ The following list summarizes the metrics and scores that can be extracted from 
 - **Coverage**: How many instances are covered by the rules forming the explanation
 - **Precision**: How many of the instances covered by the rules forming the explanation are properly classified
 
-### Local neighborhood metrics (To be implemented)
+### Local neighborhood metrics 
 - **Fidelity**: How good is the local explainer at mimicking the global classifier in the neighborhood
-- **L-fidelity**: How good is the local explainer at mimicking the global classifier in the instances of the neighborhood covered by the factual explanation
-- **Cl-fidelity**: How good is the local explainer at mimicking the global classifier in the instances of the neighborhood covered by the counterfactual explanation
-- **Hit**: Does the local explainer match the global classifier result?
-- **C-hit**: Does the local explainer match the global classifier result for tan instance built from the counterfactual rule?
+- **L-fidelity (Rule fidelity)**: How good is the local explainer at mimicking the global classifier in the instances of the neighborhood covered by the factual explanation
+- **Cl-fidelity**: How good is the local explainer at mimicking the global classifier in the instances of the neighborhood covered by the counterfactual explanation (To be implemented)
+- **Hit**: Does the local explainer match the global classifier result? (To be implemented)
+- **C-hit**: Does the local explainer match the global classifier result for tan instance built from the counterfactual rule? (To be implemented)
 
 #### References and Examples
-- Fuzzy Factuals and counterfactuals([ref])
-  - Documentation (TBD)
-  - Examples: Beer (TBD)
-- LORE ([Guidotti et al., 2018](https://arxiv.org/pdf/1805.10820.pdf))
-  - Documentation (TBD)
-  - Examples: (TBD)
+- Fuzzy Factuals and counterfactuals([Fernandez et al., 2022](https://doi.org/10.1109/TFUZZ.2022.3179582))
+  - Documentation <https://xai-teacher.readthedocs.io/en/latest/>
+  - Experiments: <https://github.com/Kaysera/teacher-experiments>
+- LORE ([Guidotti et al., 2018](https://doi.org/10.1109/MIS.2019.2957223))
+  - Documentation and examples: <https://doi.org/10.1109/MIS.2019.2957223>

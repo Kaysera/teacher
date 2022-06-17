@@ -1,10 +1,25 @@
+"""Methods to generate a counterfactual explanation"""
+
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Standard
 from copy import deepcopy
 
+# Third-party
 import numpy as np
+
+# Local application
 from teacher.tree import Rule
 
 
+# =============================================================================
+# Functions
+# =============================================================================
+
 def _compare_rules_FID3(factual, counter_rule):
+    """Compare two rules according to the `FID3` algorithm"""
     fact_ante = {key: val for key, val in factual.antecedent}
     counter_rule_ante = {key: val for key, val in counter_rule.antecedent}
 
@@ -21,6 +36,7 @@ def _compare_rules_FID3(factual, counter_rule):
 
 
 def _cf_dist_instance(cf_rule, instance, df_numerical_columns):
+    """Compute the distance from a tentative counterfactual rule to an instance"""
     fuzzified_instance = {feat: max(fuzz_sets, key=lambda x: fuzz_sets[x]) for feat, fuzz_sets in instance.items()}
     cf_dict = {key: val for key, val in cf_rule.antecedent}
     num_keys = [x for x in df_numerical_columns if x in fuzzified_instance and x in cf_dict]
@@ -33,6 +49,7 @@ def _cf_dist_instance(cf_rule, instance, df_numerical_columns):
 
 
 def _cf_dist_rule(cf_rule, rule, instance, df_numerical_columns, tau=0.5):
+    """Compute the distance from a tentative counterfactual rule to a rule"""
     rule_dict = {key: val for key, val in rule.antecedent}
     cf_dict = {key: val for key, val in cf_rule.antecedent}
     num_keys = [x for x in df_numerical_columns if x in rule_dict and x in cf_dict]
@@ -48,6 +65,7 @@ def _cf_dist_rule(cf_rule, rule, instance, df_numerical_columns, tau=0.5):
 
 
 def _get_categorical_cf_distance(fuzzy_element, cf_dict, df_numerical_columns):
+    """Compute the distance between the categorical elements of a fuzzy rule"""
     common_keys = set([])
     common_keys.update([x for x in fuzzy_element if x in cf_dict])
     common_keys.update([x for x in cf_dict if x in fuzzy_element])
@@ -63,18 +81,37 @@ def _get_categorical_cf_distance(fuzzy_element, cf_dict, df_numerical_columns):
 
 
 def _weighted_literal_distance(fuzzy_clause, fuzzy_value, cf_value):
-    """Distance between a point and a fuzzy set of a fuzzy variable"""
+    """Compute the distance between a point and a fuzzy set of a fuzzy variable"""
     return _literal_distance(fuzzy_clause, fuzzy_value, cf_value) * (1 - fuzzy_clause[cf_value])
 
 
 def _literal_distance(fuzzy_clause, fuzzy_value, cf_value):
-    """Distance between two fuzzy sets of a fuzzy variable"""
+    """Compute the distance between two fuzzy sets of a fuzzy variable"""
     skip = abs(list(fuzzy_clause).index(fuzzy_value) - list(fuzzy_clause).index(cf_value))
     distance = skip / (len(fuzzy_clause) - 1)
     return distance
 
 
+def _apply_changes(rule, instance):
+    """Extract the changes that a rule means to an instance and perform said changes."""
+    changes = set([])
+    rule_changes = {feat: value for (feat, value) in rule.antecedent}
+    new_instance = deepcopy(instance)
+    for fuzzy_var in new_instance:
+        max_pert_value = max(new_instance[fuzzy_var], key=lambda fuzzy_set: new_instance[fuzzy_var][fuzzy_set])
+        if fuzzy_var in rule_changes and max_pert_value != rule_changes[fuzzy_var]:
+            changes.add((fuzzy_var, rule_changes[fuzzy_var]))
+            for fuzzy_set in new_instance[fuzzy_var]:
+                if fuzzy_set == rule_changes[fuzzy_var]:
+                    new_instance[fuzzy_var][fuzzy_set] = 1
+                else:
+                    new_instance[fuzzy_var][fuzzy_set] = 0
+
+    return new_instance, changes
+
+
 def _search_counterfactual(instance, class_val, rule_list, cf_list):
+    """Iterate through the cf_list to find the first rule that generates a valid counterfactual"""
     sorted_cf = sorted(cf_list, key=lambda rule: rule[1])
     for cf in sorted_cf:
         new_instance, changes = _apply_changes(cf[0], instance)
@@ -86,6 +123,23 @@ def _search_counterfactual(instance, class_val, rule_list, cf_list):
 
 
 def FID3_counterfactual(factual, counter_rules):
+    """Returns a list that contains the counterfactual
+    for each of the different class values not predicted,
+    as the rule with the most equal literals to the rule.
+
+    Parameters
+    ----------
+    factual : Rule
+        List of rules that correspond to a factual explanation of the
+        instance
+    counter_rules : list[Rule]
+        List of candidate rules to form part of the counterfactual
+
+    Returns
+    -------
+    (list[Rule], float)
+        Tuple with the list of counterfactual rules and the distance
+    """
     min_rule_distance = np.inf
     best_cr = []
     for counter_rule in counter_rules:
@@ -102,15 +156,14 @@ def FID3_counterfactual(factual, counter_rules):
 
 
 def i_counterfactual(instance, rule_list, class_val, df_numerical_columns):
-    """Returns a list that contains the counterfactual with respect to the instance
-    for each of the different class values not predicted, as explained in [ref]
+    """Return a list that contains the counterfactual with respect to the instance
 
     Parameters
     ----------
     instance : dict, {feature: {set_1: pert_1, set_2: pert_2, ...}, ...}
         Fuzzy representation of the instance with all the features and pertenence
         degrees to each fuzzy set
-    rule_list : list(Rule)
+    rule_list : list[Rule]
         List of candidate rules to form part of the counterfactual
     class_val : str
         Predicted value that the factual will explain
@@ -119,8 +172,9 @@ def i_counterfactual(instance, rule_list, class_val, df_numerical_columns):
 
     Returns
     -------
-    list(Rule)
-        List of counterfactual rules
+    set((feature, value))
+        Set of pairs feature-value with the changes that need to be applied to
+        the instance to change class value.
     """
     diff_class_rules = [rule for rule in rule_list if rule.consequent != class_val]
     possible_cf = [(rule, _cf_dist_instance(rule, instance, df_numerical_columns))
@@ -129,18 +183,17 @@ def i_counterfactual(instance, rule_list, class_val, df_numerical_columns):
 
 
 def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_columns, tau=0.5):
-    """Returns a list that contains the counterfactual with respect to the factual
-    for each of the different class values not predicted, as explained in [ref]
+    """Return a list that contains the counterfactual with respect to the factual
 
     Parameters
     ----------
-    factual : list(Rule)
+    factual : list[Rule]
         List of rules that correspond to a factual explanation of the
         instance for the class value class_val
     instance : dict, {feature: {set_1: pert_1, set_2: pert_2, ...}, ...}
         Fuzzy representation of the instance with all the features and pertenence
         degrees to each fuzzy set
-    rule_list : list(Rule)
+    rule_list : list[Rule]
         List of candidate rules to form part of the counterfactual
     class_val : str
         Predicted value that the factual will explain
@@ -153,8 +206,9 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
 
     Returns
     -------
-    list(Rule)
-        List of counterfactual rules
+    set((feature, value))
+        Set of pairs feature-value with the changes that need to be applied to
+        the instance to change class value.
     """
     possible_cf = []
     diff_class_rules = [rule for rule in rule_list if rule.consequent != class_val]
@@ -167,20 +221,3 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
             possible_cf.append((cf_rule, cf_dist))
 
     return _search_counterfactual(instance, class_val, rule_list, possible_cf)
-
-
-def _apply_changes(rule, instance):
-    changes = set([])
-    rule_changes = {feat: value for (feat, value) in rule.antecedent}
-    new_instance = deepcopy(instance)
-    for fuzzy_var in new_instance:
-        max_pert_value = max(new_instance[fuzzy_var], key=lambda fuzzy_set: new_instance[fuzzy_var][fuzzy_set])
-        if fuzzy_var in rule_changes and max_pert_value != rule_changes[fuzzy_var]:
-            changes.add((fuzzy_var, rule_changes[fuzzy_var]))
-            for fuzzy_set in new_instance[fuzzy_var]:
-                if fuzzy_set == rule_changes[fuzzy_var]:
-                    new_instance[fuzzy_var][fuzzy_set] = 1
-                else:
-                    new_instance[fuzzy_var][fuzzy_set] = 0
-
-    return new_instance, changes
