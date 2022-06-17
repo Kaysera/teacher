@@ -1,8 +1,14 @@
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Third party
 import numpy as np
-from ..fuzzy import dataset_membership
-from ..fuzzy._discretize import _fuzzy_entropy
 from sklearn.utils import check_X_y
 
+# Local application
+from ..fuzzy import dataset_membership
+from ..fuzzy._discretize import _fuzzy_entropy
 from .base_decision_tree import BaseDecisionTree
 from .rule import Rule
 from . import _voting
@@ -18,6 +24,10 @@ VOTING_METHODS = {
     "max_match": _voting._maximum_matching
 }
 
+
+# =============================================================================
+# Classes
+# =============================================================================
 
 class TreeFDT:
     def __init__(self, fuzzy_variable, t_norm=np.minimum, voting='agg_vote'):
@@ -122,6 +132,26 @@ class TreeFDT:
 class FDT(BaseDecisionTree):
     def __init__(self, fuzzy_variables, fuzzy_threshold=0.0001,
                  th=0.0001, max_depth=10, min_num_examples=1, prunning=True, t_norm=np.minimum, voting='agg_vote'):
+        """
+        Parameters
+        ----------
+        fuzzy_variables : list[FuzzyVariable]
+            List of the fuzzy variables used in the tree
+        fuzzy_threshold : float, optional
+            Minimum threshold for a pertenence degree to activate a fuzzy set, by default 0.0001
+        th : float, optional
+            Minimum gain threshold to keep branching the tree, by default 0.0001
+        max_depth : int, optional
+            Maximum depth of the tree, by default 2
+        min_num_examples : int, optional
+            Minimum number of examples per leaf, by default 1
+        prunning : bool, optional
+            Whether or not to prune the tree, by default True
+        t_norm : function, optional
+            function to be used as T-norm, by default np.minimum
+        voting : str, optional
+            {'agg_vote', 'max_match'}, method of voting for the inference, by default 'agg_vote'
+        """
 
         features = [fuzzy_var.name for fuzzy_var in fuzzy_variables]
         self.features_dict = {feat: i for i, feat in enumerate(features)}

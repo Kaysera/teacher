@@ -38,7 +38,7 @@ COUNTERFACTUAL_METHODS = {
 
 
 class FDTExplainer(FactualLocalExplainer):
-    """This *Explainer* uses the :ref:`fdt-tree` implemented in :mod:teacher as a white box model to
+    """This *Explainer* uses the :class:`.FDT` implemented in :mod:`teacher` as a white box model to
        explain a local instance of a scikit-learn compatible black box classifier."""
     def __init__(self):
         self.local_explainer = None

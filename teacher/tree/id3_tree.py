@@ -1,8 +1,19 @@
+# =============================================================================
+# Imports
+# =============================================================================
+
+# Third party
 import numpy as np
 from scipy.stats import entropy
+from sklearn.utils import check_array
+
+# Local application
 from .base_decision_tree import BaseDecisionTree
 from .rule import Rule
-from sklearn.utils import check_array
+
+# =============================================================================
+# Classes
+# =============================================================================
 
 
 class TreeID3:
