@@ -100,7 +100,25 @@ class FDTExplainer(FactualLocalExplainer):
         X = neighborhood.get_X()
         y = neighborhood.get_y()
 
-        self.local_explainer = FDT(fuzzy_variables)
+        try:
+            max_depth = kwargs['max_depth']
+            del kwargs['max_depth']
+        except KeyError:
+            max_depth = 2
+        
+        try:
+            min_num_examples = kwargs['min_num_examples']
+            del kwargs['min_num_examples']
+        except KeyError:
+            min_num_examples = 1
+        
+        try:
+            fuzzy_threshold = kwargs['fuzzy_threshold']
+            del kwargs['fuzzy_threshold']
+        except KeyError:
+            fuzzy_threshold = 1
+
+        self.local_explainer = FDT(fuzzy_variables, max_depth=max_depth, min_num_examples=min_num_examples, fuzzy_threshold=fuzzy_threshold)
         self.local_explainer.fit(X, y)
 
         rules = self.local_explainer.to_rule_based_system()
