@@ -2,10 +2,15 @@
 # Imports
 # =============================================================================
 
+# Third party
+from base64 import decode
+import numpy as np
+
 # Local application
 from ._fuzzy_neighborhood import FuzzyNeighborhood
 from teacher.neighbors import genetic_neighborhood, calculate_feature_values
 from teacher.utils import dataframe2explain
+from teacher.fuzzy import dataset_membership
 
 # =============================================================================
 # Classes
@@ -62,6 +67,18 @@ class LoreNeighborhood(FuzzyNeighborhood):
         self._X = df.drop(self.class_name, axis=1)
         self._y = self.bb.predict(Z)
         self._y_decoded = df[self.class_name]
+    
+    def fuzzify(self, get_division, **kwargs):
+        print(self.instance)
+        super().fuzzify(get_division, **kwargs)
+        decoded_instance = []
+        for i, var in enumerate(self._fuzzy_variables):
+            try:
+                decoded_instance.append(self.dataset['label_encoder'][var.name].inverse_transform([self.instance[i]])[0])
+            except:
+                decoded_instance += [self.instance[i]]
+
+        self._instance_membership = dataset_membership(np.array([decoded_instance], dtype='object'), self._fuzzy_variables)
 
     def get_y_decoded(self):
         return self._y_decoded
