@@ -25,7 +25,7 @@ def _get_fuzzy_coverage(rules, fuzzy_dataset, threshold=0.001):
     covered_instances, ds_len = _get_covered_instances(rules[0], fuzzy_dataset, threshold)
     for rule in rules:
         n_covered_instance, _ = _get_covered_instances(rule, fuzzy_dataset, threshold)
-        covered_instances = covered_instances | n_covered_instance
+        covered_instances = covered_instances & n_covered_instance
     return covered_instances, ds_len
 
 
