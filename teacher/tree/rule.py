@@ -80,7 +80,7 @@ class Rule:
         return max(conse_dict, key=lambda conse: conse_dict[conse])
 
     @staticmethod
-    def map_rule_variables(rule, origin_fuzzy_variables, dest_fuzzy_variables):
+    def map_rule_variables(rule, origin_fuzzy_variables, dest_fuzzy_variables, map_function='intersect'):
         """Changes the fuzzy variables of the rule
         for ones that are defined in the same universe
 
@@ -92,6 +92,8 @@ class Rule:
             List with the original fuzzy variables
         dest_fuzzy_variables : list[FuzzyVariable]
             List with the destination fuzzy variables
+        map_function : str, {'intersection', 'simmilarity'}
+            Method to check the best fuzzy set to change
 
         Returns
         -------
@@ -119,7 +121,12 @@ class Rule:
             origin_fuzzy_sets = {fs.name: fs for fs in origin_feat}
             origin_fs = origin_fuzzy_sets[value]
 
-            dest_fs = max(dest_feat, key=lambda fs: fs.intersection(origin_fs))
+            if map_function == 'intersection':
+                dest_fs = max(dest_feat, key=lambda fs: fs.intersection(origin_fs))
+            elif map_function == 'simmilarity':
+                dest_fs = max(dest_feat, key=lambda fs: fs.simmilarity(origin_fs))
+            else:
+                raise ValueError(f'Map function {map_function} not supported')
             new_antecedent.append((feat, dest_fs.name))
 
         return Rule(new_antecedent, rule.consequent, rule.weight)
