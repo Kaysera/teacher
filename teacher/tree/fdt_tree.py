@@ -241,6 +241,9 @@ class FDT(BaseDecisionTree):
             child = TreeFDT(self.fuzzy_variables[self.features_dict[att]])
             child.value = (self.features_dict[att], i)
             child.mu = child_mu[value]
+            current_tree.childlist.append(child)
             if child.mu.sum() > 0:
-                current_tree.childlist.append(child)
                 self._partial_fit(X_membership, y, child, new_features, current_depth + 1)
+            else:
+                child.is_leaf = True
+                child.class_value = self._get_class_value(current_tree.mu, y)

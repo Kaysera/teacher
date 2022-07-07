@@ -9,6 +9,7 @@ in that they can be fitted with data to generate an explanation.
 
 # Third party
 from sklearn.utils import check_array
+from sklearn.metrics import f1_score
 
 # Local application
 from ._factual_local_explainer import FactualLocalExplainer
@@ -81,7 +82,7 @@ class FDTExplainer(FactualLocalExplainer):
             'c_factual' chosen but no 'lam' parameter given
 
         """
-        instance = check_array(instance)
+        instance = check_array(instance, dtype=['float64', 'object'])
         try:
             self.factual_method = FACTUAL_METHODS[factual]
             if factual == 'c_factual' and 'lam' not in kwargs:
@@ -104,7 +105,7 @@ class FDTExplainer(FactualLocalExplainer):
             max_depth = kwargs['max_depth']
             del kwargs['max_depth']
         except KeyError:
-            max_depth = 2
+            max_depth = 10
         
         try:
             min_num_examples = kwargs['min_num_examples']
@@ -116,10 +117,11 @@ class FDTExplainer(FactualLocalExplainer):
             fuzzy_threshold = kwargs['fuzzy_threshold']
             del kwargs['fuzzy_threshold']
         except KeyError:
-            fuzzy_threshold = 1
+            fuzzy_threshold = 0.0001
 
         self.local_explainer = FDT(fuzzy_variables, max_depth=max_depth, min_num_examples=min_num_examples, fuzzy_threshold=fuzzy_threshold)
         self.local_explainer.fit(X, y)
+        self.fidelity = f1_score(y, self.local_explainer.predict(X)[0])
 
         rules = self.local_explainer.to_rule_based_system()
         self.exp_value = self.local_explainer.predict(instance)
