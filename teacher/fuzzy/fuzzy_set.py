@@ -161,3 +161,6 @@ class FuzzyDiscreteSet(FuzzySet):
             raise ValueError('Intersection must be between two Fuzzy Sets of the same type')
 
         return int(self == other)
+    
+    def simmilarity(self, other):
+        return self.intersection(other)
