@@ -108,10 +108,7 @@ class LoreNeighborhood(FuzzyNeighborhood):
         self._y_decoded = df[self.class_name]
     
     def fuzzify(self, get_division, **kwargs):
-        print(self.instance)
         super().fuzzify(get_division, **kwargs)
-
-
         self._instance_membership = dataset_membership(self.decoded_instance, self._fuzzy_variables)
 
     def get_y_decoded(self):
