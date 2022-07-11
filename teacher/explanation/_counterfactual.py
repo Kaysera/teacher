@@ -12,6 +12,7 @@ import numpy as np
 
 # Local application
 from teacher.tree import Rule
+from teacher.metrics._counterfactual import _distance
 
 
 # =============================================================================
@@ -221,3 +222,43 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
             possible_cf.append((cf_rule, cf_dist))
 
     return _search_counterfactual(instance, class_val, rule_list, possible_cf)
+
+
+def d_counterfactual(decoded_instance, instance_membership, rule_list, class_val, continuous, discrete, mad, tau=0.5):
+    # TODO: IMPORTANTE NO MERGEAR A LA RAMA MAIN HASTA NO LIMPIAR LA FUNCION
+    """Return a list that contains the counterfactual with respect to the factual
+
+    Parameters
+    ----------
+    factual : list[Rule]
+        List of rules that correspond to a factual explanation of the
+        instance for the class value class_val
+    instance : dict, {feature: {set_1: pert_1, set_2: pert_2, ...}, ...}
+        Fuzzy representation of the instance with all the features and pertenence
+        degrees to each fuzzy set
+    rule_list : list[Rule]
+        List of candidate rules to form part of the counterfactual
+    class_val : str
+        Predicted value that the factual will explain
+    df_numerical_columns : list
+        List of the numerical columns of the instance, used to compute the distance
+    tau : float, optional
+        Importance degree of new elements added or substracted from a rule
+        in contrast to existing elements that have been modified, used
+        to compute the distance , by default 0.5
+
+    Returns
+    -------
+    set((feature, value))
+        Set of pairs feature-value with the changes that need to be applied to
+        the instance to change class value.
+    """
+    possible_cf = []
+    diff_class_rules = [rule for rule in rule_list if rule.consequent != class_val]
+    for cf_rule in diff_class_rules:
+        cf_instance, changes = _apply_changes(cf_rule, instance_membership)
+        cf_instance = [max(child[1], key=lambda a: child[1][a]) for child in cf_instance.items()]
+        cf_instance = [float(x) if i in continuous else x for i, x in enumerate(cf_instance)]
+        cf_dist = _distance(decoded_instance, cf_instance, continuous, discrete, mad)
+        possible_cf.append((cf_rule, cf_dist))
+    return _search_counterfactual(instance_membership, class_val, rule_list, possible_cf)

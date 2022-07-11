@@ -14,7 +14,7 @@ from sklearn.metrics import f1_score
 # Local application
 from ._factual_local_explainer import FactualLocalExplainer
 from teacher.tree import FDT
-from teacher.explanation import m_factual, mr_factual, c_factual, i_counterfactual, f_counterfactual
+from teacher.explanation import m_factual, mr_factual, c_factual, i_counterfactual, f_counterfactual, d_counterfactual
 
 
 # =============================================================================
@@ -30,7 +30,8 @@ FACTUAL_METHODS = {
 
 COUNTERFACTUAL_METHODS = {
     'i_counterfactual': i_counterfactual,
-    'f_counterfactual': f_counterfactual
+    'f_counterfactual': f_counterfactual,
+    'd_counterfactual': d_counterfactual
 }
 
 # =============================================================================
@@ -98,6 +99,7 @@ class FDTExplainer(FactualLocalExplainer):
         self.target = target
         fuzzy_variables = neighborhood.get_fuzzy_variables()
         instance_membership = neighborhood.get_instance_membership()
+        decoded_instance = neighborhood.decoded_instance[0]
         X = neighborhood.get_X()
         y = neighborhood.get_y()
 
@@ -118,6 +120,26 @@ class FDTExplainer(FactualLocalExplainer):
             del kwargs['fuzzy_threshold']
         except KeyError:
             fuzzy_threshold = 0.0001
+        
+        # TODO: IMPORTANTE NO MERGEAR A LA RAMA MASTER HASTA NO LIMPIAR
+        if counterfactual == 'd_counterfactual':
+            try:
+                cont_idx = kwargs['cont_idx']
+                del kwargs['cont_idx']
+            except KeyError:
+                raise ValueError('Continuous index needed for d_counterfactual')
+
+            try:
+                disc_idx = kwargs['disc_idx']
+                del kwargs['disc_idx']
+            except KeyError:
+                raise ValueError('Discrete index needed for d_counterfactual')
+
+            try:
+                mad = kwargs['mad']
+                del kwargs['mad']
+            except KeyError:
+                raise ValueError('MAD needed for d_counterfactual')
 
         self.local_explainer = FDT(fuzzy_variables, max_depth=max_depth, min_num_examples=min_num_examples, fuzzy_threshold=fuzzy_threshold)
         self.local_explainer.fit(X, y)
@@ -130,4 +152,6 @@ class FDTExplainer(FactualLocalExplainer):
             cf = self.counterfactual_method(instance_membership, rules, self.exp_value, df_num_cols)
         elif counterfactual == 'f_counterfactual':
             cf = self.counterfactual_method(fact, instance_membership, rules, self.exp_value, df_num_cols)
+        elif counterfactual == 'd_counterfactual':
+            cf = self.counterfactual_method(decoded_instance, instance_membership, rules, self.exp_value, cont_idx, disc_idx, mad)
         self.explanation = (fact, cf)
