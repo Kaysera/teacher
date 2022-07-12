@@ -14,6 +14,7 @@ from os.path import dirname
 # Third party
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 # Local application
 from teacher.utils import recognize_features_type, set_discrete_continuous, label_encode
@@ -30,7 +31,7 @@ MODULE_PATH = dirname(__file__)
 # Functions
 # =============================================================================
 
-def generate_dataset(df, columns, class_name, discrete, name):
+def generate_dataset(df, columns, class_name, discrete, name, normalize=False):
     """Generate the dataset suitable for LORE usage
 
     Parameters
@@ -72,7 +73,10 @@ def generate_dataset(df, columns, class_name, discrete, name):
     columns_tmp = list(columns)
     columns_tmp.remove(class_name)
     idx_features = {i: col for i, col in enumerate(columns_tmp)}
-
+    df[continuous] += 1 # TREMENDA ÑAPA PARA NORMALIZAR LA MEDIANA Y QUE NO REVIENTE
+    if normalize:
+        scaler = StandardScaler()
+        df[continuous] = scaler.fit_transform(df[continuous])
     # Dataset Preparation for Scikit Alorithms
     df_le, label_encoder = label_encode(df, discrete)
     X = df_le.loc[:, df_le.columns != class_name].values
@@ -97,7 +101,7 @@ def generate_dataset(df, columns, class_name, discrete, name):
     return dataset
 
 
-def load_german():
+def load_german(normalize=False):
     """
     Load and return the german credit dataset.
 
@@ -115,10 +119,10 @@ def load_german():
 
     discrete = ['installment_as_income_perc', 'present_res_since', 'credits_this_bank', 'people_under_maintenance']
 
-    return generate_dataset(df, columns, class_name, discrete, 'german_credit')
+    return generate_dataset(df, columns, class_name, discrete, 'german_credit', normalize)
 
 
-def load_adult():
+def load_adult(normalize=False):
     """
     Load and return the adult dataset.
 
@@ -145,10 +149,10 @@ def load_adult():
     class_name = 'class'
 
     discrete = []
-    return generate_dataset(df, columns, class_name, discrete, 'adult')
+    return generate_dataset(df, columns, class_name, discrete, 'adult', normalize)
 
 
-def load_compas():
+def load_compas(normalize=False):
     """
     Load and return the COMPAS scores dataset.
 
@@ -196,10 +200,10 @@ def load_compas():
     class_name = 'class'
     discrete = ['is_recid', 'is_violent_recid', 'two_year_recid']
 
-    return generate_dataset(df, columns, class_name, discrete, 'compas-scores-two-years')
+    return generate_dataset(df, columns, class_name, discrete, 'compas-scores-two-years', normalize)
 
 
-def load_heloc():
+def load_heloc(normalize=False):
     """
     Load and return the HELOC dataset.
 
@@ -215,10 +219,10 @@ def load_heloc():
     class_name = 'RiskPerformance'
 
     discrete = []
-    return generate_dataset(df, columns, class_name, discrete, 'heloc_dataset_v1')
+    return generate_dataset(df, columns, class_name, discrete, 'heloc_dataset_v1', normalize)
 
 
-def load_beer():
+def load_beer(normalize=False):
     """
     Load and return the beer dataset.
 
@@ -238,10 +242,10 @@ def load_beer():
 
     discrete = []
     columns = df.columns
-    return generate_dataset(df, columns, class_name, discrete, 'beer')
+    return generate_dataset(df, columns, class_name, discrete, 'beer', normalize)
 
 
-def load_pima():
+def load_pima(normalize=False):
     """
     Load and return the pima indians dataset.
 
@@ -261,10 +265,10 @@ def load_pima():
 
     discrete = []
     columns = df.columns
-    return generate_dataset(df, columns, class_name, discrete, 'pima')
+    return generate_dataset(df, columns, class_name, discrete, 'pima', normalize)
 
 
-def load_breast():
+def load_breast(normalize=False):
     """
     Load and return the breast cancer dataset.
 
@@ -281,4 +285,4 @@ def load_breast():
     class_name = 'diagnosis'
 
     discrete = []
-    return generate_dataset(df, columns, class_name, discrete, 'breast')
+    return generate_dataset(df, columns, class_name, discrete, 'breast', normalize)
