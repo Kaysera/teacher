@@ -90,7 +90,7 @@ class SamplingNeighborhood(FuzzyNeighborhood):
         features = [col for col in self.dataset['columns'] if col != self.class_name]
         for i, var in enumerate(features):
             try:
-                decoded_instance.append(self.dataset['label_encoder'][var].inverse_transform([self.instance[i]])[0])
+                decoded_instance.append(self.dataset['label_encoder'][var].inverse_transform(np.array([self.instance[i]], dtype=int))[0])
             except:
                 decoded_instance += [self.instance[i]]
         
