@@ -80,7 +80,7 @@ class Rule:
         return max(conse_dict, key=lambda conse: conse_dict[conse])
 
     @staticmethod
-    def map_rule_variables(rule, origin_fuzzy_variables, dest_fuzzy_variables, map_function='intersect'):
+    def map_rule_variables(rule, origin_fuzzy_variables, dest_fuzzy_variables, map_function='intersection'):
         """Changes the fuzzy variables of the rule
         for ones that are defined in the same universe
 

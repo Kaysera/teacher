@@ -136,3 +136,5 @@ dmypy.json
 
 # DS files
 .DS_Store
+
+flore-experiments/
