@@ -37,6 +37,9 @@ class Rule:
                 self.consequent == other.consequent and
                 self.weight == other.weight)
 
+    def __hash__(self) -> int:
+        return hash((self.antecedent, self.consequent, self.weight))
+
     def matching(self, instance_membership, t_norm=min):
         """Matching that an instance has with the rule
         If there is some feature or value not existing in the instance,
