@@ -73,7 +73,7 @@ def generate_dataset(df, columns, class_name, discrete, name, normalize=False):
     columns_tmp = list(columns)
     columns_tmp.remove(class_name)
     idx_features = {i: col for i, col in enumerate(columns_tmp)}
-    df[continuous] += 1 # TREMENDA ÑAPA PARA NORMALIZAR LA MEDIANA Y QUE NO REVIENTE
+    # df[continuous] += 1 # TREMENDA ÑAPA PARA NORMALIZAR LA MEDIANA Y QUE NO REVIENTE
     if normalize:
         scaler = StandardScaler()
         df[continuous] = scaler.fit_transform(df[continuous])
@@ -286,3 +286,29 @@ def load_breast(normalize=False):
 
     discrete = []
     return generate_dataset(df, columns, class_name, discrete, 'breast', normalize)
+
+def load_basket(normalize=False, reduced=False):
+    """
+    Load and return the basket dataset.
+
+    Returns
+    -------
+    dataset : dict
+    """
+    # Read Dataset
+    if reduced:
+        df = pd.read_csv(MODULE_PATH + '/data/small_basket.csv', delimiter=',')
+    else:
+        df = pd.read_csv(MODULE_PATH + '/data/basket.csv', delimiter=',')
+
+
+    # Features Categorization
+    columns = df.columns
+    class_name = 'Position'    
+    df_cols = list(df.columns)
+    df_cols.remove(class_name)
+    new_cols = [class_name] + df_cols
+    df = df[new_cols]
+
+    discrete = []
+    return generate_dataset(df, columns, class_name, discrete, 'basket', normalize)

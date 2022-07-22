@@ -109,7 +109,7 @@ Functions
 # =============================================================================
 
 # Local application
-from ._base import load_german, load_adult, load_compas, load_heloc, load_beer, load_pima, load_breast
+from ._base import load_german, load_adult, load_compas, load_heloc, load_beer, load_pima, load_breast, load_basket
 
 
 # =============================================================================
@@ -120,10 +120,11 @@ from ._base import load_german, load_adult, load_compas, load_heloc, load_beer, 
 # from the module teacher.datasets
 __all__ = [
     "load_adult",
+    "load_basket",
     "load_beer",
     "load_breast",
     "load_compas",
     "load_german",
     "load_heloc",
-    "load_pima"
+    "load_pima",
 ]
