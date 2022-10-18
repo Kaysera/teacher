@@ -10,7 +10,7 @@ from math import inf
 import numpy as np
 from scipy.spatial.distance import cdist
 from scipy.spatial.distance import _validate_vector
-from scipy.stats import median_absolute_deviation
+from scipy.stats import median_abs_deviation
 
 
 # =============================================================================
@@ -28,7 +28,7 @@ def mad_cityblock(u, v, mad):
 def _continuous_distance(x, cf_list, continuous_features, metric='euclidean', X=None, agg=None):
 
     if metric == 'mad':
-        mad = median_absolute_deviation(X[:, continuous_features], axis=0)
+        mad = median_abs_deviation(X[:, continuous_features], axis=0)
         mad = np.array([v if v != 0 else 1.0 for v in mad])
 
         def _mad_cityblock(u, v):
