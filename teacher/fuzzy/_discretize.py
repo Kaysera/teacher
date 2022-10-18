@@ -67,7 +67,7 @@ def _equal_freq(variable, sets):
     return sol
 
 
-def _fuzzy_discretization(variable, class_variable, min_point, verbose=False):
+def _fuzzy_discretization(variable, class_variable, min_point, depth = 0, max_depth = 0, verbose=False):
     max_point = variable.max()
     best_point = 0
     best_wfe = inf
@@ -110,22 +110,25 @@ def _fuzzy_discretization(variable, class_variable, min_point, verbose=False):
         print(f'Pass Threshold: {f_gain >= threshold}')
         print('-----------------')
 
-    if not f_gain < threshold:
-        left = ([(p, c) for p, c in zip(variable, class_variable) if p <= best_point])
-        right = ([(p, c) for p, c in zip(variable, class_variable) if p > best_point])
+    if (max_depth > 0 and max_depth > depth) or max_depth == 0:
+        if not f_gain < threshold:
+            left = ([(p, c) for p, c in zip(variable, class_variable) if p <= best_point])
+            right = ([(p, c) for p, c in zip(variable, class_variable) if p > best_point])
 
-        left_variable, left_class = zip(*left)
-        right_variable, right_class = zip(*right)
+            left_variable, left_class = zip(*left)
+            right_variable, right_class = zip(*right)
 
-        left_points = []
-        right_points = []
+            left_points = []
+            right_points = []
 
-        if len(left_variable) > 1:
-            left_points = _fuzzy_discretization(np.array(left_variable), left_class, min_point, verbose)
-        if len(right_variable) > 1:
-            right_points = _fuzzy_discretization(np.array(right_variable), right_class, best_point, verbose)
-        points = left_points + right_points
-        return np.unique(points).tolist()
+            if len(left_variable) > 1:
+                left_points = _fuzzy_discretization(np.array(left_variable), left_class, min_point, depth+1, max_depth, verbose)
+            if len(right_variable) > 1:
+                right_points = _fuzzy_discretization(np.array(right_variable), right_class, best_point, depth+1, max_depth, verbose)
+            points = left_points + right_points
+            return np.unique(points).tolist()
+        else:
+            return [min_point, max_point]
     else:
         return [min_point, max_point]
 

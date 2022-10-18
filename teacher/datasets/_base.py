@@ -268,6 +268,60 @@ def load_pima(normalize=False):
     return generate_dataset(df, columns, class_name, discrete, 'pima', normalize)
 
 
+def load_flavia(normalize=False):
+    """
+    Load and return the FLAVIA dataset.
+
+    Returns
+    -------
+    dataset : dict
+    """
+    # Read Dataset
+    df = pd.read_csv(MODULE_PATH + '/data/FLAVIA3.csv', delimiter=',')
+
+    # Features Categorization
+    class_name = 'Class'
+    df_cols = list(df.columns)
+    df_cols.remove(class_name)
+    new_cols = [class_name] + df_cols
+    df = df[new_cols]
+
+    discrete = []
+    columns = df.columns
+    return generate_dataset(df, columns, class_name, discrete, 'flavia', normalize)
+
+
+def load_phishing(normalize=False):
+    """
+    Load and return the phishing dataset.
+
+    Returns
+    -------
+    dataset : dict
+    """
+    # Read Dataset
+    df = pd.read_csv(MODULE_PATH + '/data/phishing.csv', delimiter=',')
+    del df['id']
+    del df['PctExtResourceUrls']
+    del df['PctNullSelfRedirectHyperlinks']
+    del df['SubdomainLevelRT']
+    del df['UrlLengthRT']
+    del df['PctExtResourceUrlsRT']
+    del df['AbnormalExtFormActionR']
+    del df['ExtMetaScriptLinkRT']
+    del df['PctExtNullSelfRedirectHyperlinksRT']
+
+    # Features Categorization
+    class_name = 'CLASS_LABEL'
+    df_cols = list(df.columns)
+    df_cols.remove(class_name)
+    new_cols = [class_name] + df_cols
+    df = df[new_cols]
+
+    discrete = []
+    columns = df.columns
+    return generate_dataset(df, columns, class_name, discrete, 'phishing', normalize)
+
 def load_breast(normalize=False):
     """
     Load and return the breast cancer dataset.
