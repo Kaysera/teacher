@@ -27,7 +27,7 @@ DISCRETIZE_METHODS = {
 
 
 def get_fuzzy_points(discretize_method, df_numerical_columns, X, y=None, sets=0,
-                     point_variables=None, max_depth = 0, debug=False):
+                     point_variables=None, max_depth=0, debug=False):
     """
     Obtain the peak of the fuzzy triangles of
     the continuous variables of a dataset.
@@ -78,7 +78,7 @@ def get_fuzzy_points(discretize_method, df_numerical_columns, X, y=None, sets=0,
         if point_variables and column in point_variables:
             fuzzy_points[column] = np.unique(X[:, i])
         elif discretize_method == 'entropy':
-            fuzzy_points[column] = discretize(X[:, i], y, np.min(X[:, i]), debug, max_depth)
+            fuzzy_points[column] = discretize(X[:, i], y, np.min(X[:, i]), depth=0, max_depth=max_depth, verbose=debug)
         else:
             fuzzy_points[column] = discretize(X[:, i], sets)
 

@@ -109,7 +109,16 @@ Functions
 # =============================================================================
 
 # Local application
-from ._base import load_german, load_adult, load_compas, load_heloc, load_beer, load_pima, load_breast, load_basket
+from ._base import (load_german,
+                    load_adult,
+                    load_compas,
+                    load_heloc,
+                    load_beer,
+                    load_pima,
+                    load_breast,
+                    load_basket,
+                    load_phishing,
+                    load_flavia)
 
 
 # =============================================================================
@@ -127,4 +136,6 @@ __all__ = [
     "load_german",
     "load_heloc",
     "load_pima",
+    "load_phishing",
+    "load_flavia"
 ]
