@@ -67,7 +67,7 @@ def _equal_freq(variable, sets):
     return sol
 
 
-def _fuzzy_discretization(variable, class_variable, min_point, verbose=False):
+def _fuzzy_discretization(variable, class_variable, min_point, verbose=False, max_depth=0, depth=0):
     max_point = variable.max()
     best_point = 0
     best_wfe = inf
@@ -110,7 +110,7 @@ def _fuzzy_discretization(variable, class_variable, min_point, verbose=False):
         print(f'Pass Threshold: {f_gain >= threshold}')
         print('-----------------')
 
-    if not f_gain < threshold:
+    if not f_gain < threshold and (max_depth == 0 or depth < max_depth):
         left = ([(p, c) for p, c in zip(variable, class_variable) if p <= best_point])
         right = ([(p, c) for p, c in zip(variable, class_variable) if p > best_point])
 
@@ -121,9 +121,9 @@ def _fuzzy_discretization(variable, class_variable, min_point, verbose=False):
         right_points = []
 
         if len(left_variable) > 1:
-            left_points = _fuzzy_discretization(np.array(left_variable), left_class, min_point, verbose)
+            left_points = _fuzzy_discretization(np.array(left_variable), left_class, min_point, verbose, max_depth, depth+1)
         if len(right_variable) > 1:
-            right_points = _fuzzy_discretization(np.array(right_variable), right_class, best_point, verbose)
+            right_points = _fuzzy_discretization(np.array(right_variable), right_class, best_point, verbose, max_depth, depth+1)
         points = left_points + right_points
         return np.unique(points).tolist()
     else:
@@ -150,11 +150,7 @@ def _fuzzy_entropy(triangle, class_variable, verbose=False):
     """
     fe = 0
     for value in np.unique(class_variable):
-        class_fuzzy_cardinality = 0
-        for i in range(len(triangle)):
-            if class_variable[i] == value:
-                class_fuzzy_cardinality += triangle[i]
-
+        class_fuzzy_cardinality = np.sum(triangle[class_variable == value])
         if class_fuzzy_cardinality > 0:  # i.e. There are elements belonging to this class value
             fuzzy_cardinality = triangle.sum()
             if verbose:   # pragma: no cover
