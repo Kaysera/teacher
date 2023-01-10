@@ -140,18 +140,24 @@ class FDTExplainer(FactualLocalExplainer):
                 del kwargs['mad']
             except KeyError:
                 raise ValueError('MAD needed for d_counterfactual')
+            
+            try:
+                cf_dist = kwargs['cf_dist']
+                del kwargs['cf_dist']
+            except KeyError:
+                cf_dist = 'moth'
 
         self.local_explainer = FDT(fuzzy_variables, max_depth=max_depth, min_num_examples=min_num_examples, fuzzy_threshold=fuzzy_threshold)
         self.local_explainer.fit(X, y)
         self.fidelity = f1_score(y, self.local_explainer.predict(X)[0])
 
         rules = self.local_explainer.to_rule_based_system()
-        self.exp_value = self.local_explainer.predict(instance)
+        self.exp_value = self.local_explainer.predict(decoded_instance.reshape(1, -1))
         fact = self.factual_method(instance_membership, rules, self.exp_value, **kwargs)
         if counterfactual == 'i_counterfactual':
             cf = self.counterfactual_method(instance_membership, rules, self.exp_value, df_num_cols)
         elif counterfactual == 'f_counterfactual':
             cf = self.counterfactual_method(fact, instance_membership, rules, self.exp_value, df_num_cols)
         elif counterfactual == 'd_counterfactual':
-            cf = self.counterfactual_method(decoded_instance, instance_membership, rules, self.exp_value, cont_idx, disc_idx, mad)
+            cf = self.counterfactual_method(decoded_instance, instance_membership, rules, self.exp_value, cont_idx, disc_idx, mad, cf_dist)
         self.explanation = (fact, cf)
