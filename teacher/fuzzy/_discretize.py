@@ -67,7 +67,7 @@ def _equal_freq(variable, sets):
     return sol
 
 
-def _fuzzy_discretization(variable, class_variable, min_point, depth = 0, max_depth = 0, verbose=False):
+def _fuzzy_discretization(variable, class_variable, min_point, depth = 0, max_depth = 0, th = None, verbose=False):
     max_point = variable.max()
     best_point = 0
     best_wfe = inf
@@ -103,7 +103,10 @@ def _fuzzy_discretization(variable, class_variable, min_point, depth = 0, max_de
 
     cardinality = len(variable)
     delta = _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable)
-    threshold = (log2(cardinality - 1) + delta) / cardinality
+    if th is None:
+        threshold = (log2(cardinality - 1) + delta) / cardinality
+    else:
+        threshold = th
 
     if verbose:   # pragma: no cover
         print('-----------------')
@@ -122,9 +125,9 @@ def _fuzzy_discretization(variable, class_variable, min_point, depth = 0, max_de
             right_points = []
 
             if len(left_variable) > 1:
-                left_points = _fuzzy_discretization(np.array(left_variable), left_class, min_point, depth+1, max_depth, verbose)
+                left_points = _fuzzy_discretization(np.array(left_variable), left_class, min_point, depth+1, max_depth, th, verbose)
             if len(right_variable) > 1:
-                right_points = _fuzzy_discretization(np.array(right_variable), right_class, best_point, depth+1, max_depth, verbose)
+                right_points = _fuzzy_discretization(np.array(right_variable), right_class, best_point, depth+1, max_depth, th, verbose)
             points = left_points + right_points
             return np.unique(points).tolist()
         else:
@@ -261,10 +264,10 @@ def _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable
     """
     n_classes = len(np.unique(class_variable))
 
-    old_f_entropy = 0
+    old_f_entropy = n_classes * _weighted_fuzzy_entropy(global_fuzzy_triangles, class_variable)
     new_f_entropy = 0
-    for triangle in global_fuzzy_triangles:
-        old_f_entropy += n_classes * _fuzzy_entropy(global_fuzzy_triangles[triangle], class_variable)
+    # for triangle in global_fuzzy_triangles:
+    #     old_f_entropy += n_classes * _fuzzy_entropy(global_fuzzy_triangles[triangle], class_variable)
 
     for triangle in best_fuzzy_triangle:
         bft = np.array(best_fuzzy_triangle[triangle])
