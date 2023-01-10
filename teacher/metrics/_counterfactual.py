@@ -96,6 +96,7 @@ def _distance(instance_a, instance_b, continuous, discrete, mad):
     """
     cont = 0
     disc = 0
+    diss = 0
     for i, (instance_var, cf_instance_var) in enumerate(zip(instance_a, instance_b)):
         if i in continuous:
             if abs(instance_var - cf_instance_var) == 0:
@@ -105,7 +106,11 @@ def _distance(instance_a, instance_b, continuous, discrete, mad):
         else:
             disc += int(instance_var != cf_instance_var)
     
-    diss = 1 / len(continuous) * cont + 1 / len(discrete) * disc
+    # Avoid division by zero when there is no continuous or discrete variables
+    if cont:
+        diss += cont / len(continuous)
+    if disc:
+        diss += disc / len(discrete)
 
     return diss
 
@@ -116,7 +121,7 @@ DISTANCES = {
 }
 
 
-def _closest_instance(instance, dataset, continuous, discrete, mad, distance='moth'):
+def _closest_instance(instance, dataset, continuous, discrete, mad, distance='mixed'):
     """Return the closest instance to a given one from a dataset
 
     Parameters
