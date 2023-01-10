@@ -12,7 +12,7 @@ import numpy as np
 
 # Local application
 from teacher.tree import Rule
-from teacher.metrics._counterfactual import _distance
+from teacher.metrics._counterfactual import _distance, _mixed_distance, DISTANCES
 
 
 # =============================================================================
@@ -237,7 +237,7 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
     return _search_counterfactual(instance, class_val, rule_list, possible_cf)
 
 
-def d_counterfactual(decoded_instance, instance_membership, rule_list, class_val, continuous, discrete, mad, tau=0.5):
+def d_counterfactual(decoded_instance, instance_membership, rule_list, class_val, continuous, discrete, mad, distance='moth', tau=0.5):
     # TODO: IMPORTANTE NO MERGEAR A LA RAMA MAIN HASTA NO LIMPIAR LA FUNCION
     """Return a list that contains the counterfactual with respect to the factual
 
@@ -272,6 +272,6 @@ def d_counterfactual(decoded_instance, instance_membership, rule_list, class_val
         cf_instance, changes = _apply_changes(cf_rule, instance_membership)
         cf_instance = [max(child[1], key=lambda a: child[1][a]) for child in cf_instance.items()]
         cf_instance = [float(x) if i in continuous else x for i, x in enumerate(cf_instance)]
-        cf_dist = _distance(decoded_instance, cf_instance, continuous, discrete, mad)
+        cf_dist = DISTANCES[distance](decoded_instance, cf_instance, continuous, discrete, mad)
         possible_cf.append((cf_rule, cf_dist))
     return _search_counterfactual(instance_membership, class_val, rule_list, possible_cf)
