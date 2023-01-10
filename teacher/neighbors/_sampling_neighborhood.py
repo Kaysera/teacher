@@ -144,7 +144,8 @@ class SamplingNeighborhood(FuzzyNeighborhood):
         self._y_decoded = self.dataset['label_encoder'][self.class_name].inverse_transform(self._y)
     
     def fuzzify(self, get_division, **kwargs):
-        super().fuzzify(get_division, **kwargs)
+        # AS INSTANCE MEMBERSHIP IS COMPUTED HERE, PASS FLAG TO NOT COMPUTE IT BEFORE
+        super().fuzzify(get_division, instance_membership=False, **kwargs)
         self._instance_membership = dataset_membership(self.decoded_instance, self._fuzzy_variables)
 
     def get_y_decoded(self):
