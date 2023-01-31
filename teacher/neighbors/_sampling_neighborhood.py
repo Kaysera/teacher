@@ -27,7 +27,7 @@ class SamplingNeighborhood(FuzzyNeighborhood):
     for all the different possible class values.
     """
 
-    def __init__(self, instance, size, class_name, bb, dataset, X2E, idx_record_to_explain, neighbor_generation='slow'):
+    def __init__(self, instance, size, class_name, bb, dataset, X2E, idx_record_to_explain, neighbor_generation='slow', neighbor_range='std'):
         """
         Parameters
         ----------
@@ -48,13 +48,21 @@ class SamplingNeighborhood(FuzzyNeighborhood):
         self.dataset = dataset
         self.idx_record_to_explain = idx_record_to_explain
         self.neighbor_generation = neighbor_generation
+        self.neighbor_range = neighbor_range
         super().__init__(instance, size, class_name, bb)
 
     def _generate_prob_dist(self, instance, cont_idx):
         prob_dist = {}
         for i, col in enumerate(self.X2E.T):
             if i in cont_idx:
-                vals = [x for x in np.unique(col) if x < instance[i] + col.std() and x > instance[i] - col.std()]
+                if self.neighbor_range == 'std':
+                    col_range = col.std()
+                # check if neighbor_range is between 0 and 1
+                elif isinstance(self.neighbor_range, float) and self.neighbor_range > 0 and self.neighbor_range < 1:
+                    col_range = (col.max() - col.min()) * self.neighbor_range
+                else:
+                    raise ValueError("Neighbor range must be between 0 and 1 or 'std'")
+                vals = [x for x in np.unique(col) if x < instance[i] + col_range and x > instance[i] - col_range]
                 dists = [np.count_nonzero(col == val) for val in vals]    
                 dists = [d / sum(dists) for d in dists]
             else:
@@ -94,7 +102,7 @@ class SamplingNeighborhood(FuzzyNeighborhood):
             if class_values[neigh_pred] < (self.size/len(class_values)):
                 class_values[neigh_pred] += 1
                 neighborhood.append(c_neigh)
-        
+        neighborhood.append(self.instance)
         features = [col for col in self.dataset['columns'] if col != self.class_name]
         return pd.DataFrame(np.array(neighborhood), columns=features)
     
