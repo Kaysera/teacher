@@ -86,7 +86,8 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
             if self._X[num].std() < th:
                 point_vars.add(num)
         fuzzy_points_args['point_variables'] = point_vars
-
+        if 'th' in kwargs.keys():
+            fuzzy_points_args['th'] = kwargs['th']
         X_num = self._X[kwargs['df_numerical_columns']]
         num_cols = X_num.columns
         fuzzy_points = get_fuzzy_points(get_division, num_cols, X_num, self._y, **fuzzy_points_args)
