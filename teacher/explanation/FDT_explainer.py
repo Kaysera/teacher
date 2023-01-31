@@ -152,7 +152,7 @@ class FDTExplainer(FactualLocalExplainer):
         self.fidelity = f1_score(y, self.local_explainer.predict(X)[0])
 
         rules = self.local_explainer.to_rule_based_system()
-        self.exp_value = self.local_explainer.predict(decoded_instance.reshape(1, -1))
+        self.exp_value = self.local_explainer.predict(instance.reshape(1, -1))
         fact = self.factual_method(instance_membership, rules, self.exp_value, **kwargs)
         if counterfactual == 'i_counterfactual':
             cf = self.counterfactual_method(instance_membership, rules, self.exp_value, df_num_cols)
