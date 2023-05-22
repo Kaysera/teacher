@@ -5,13 +5,16 @@
 # Standard
 from collections import defaultdict
 
+# Local application
+from teacher.fuzzy import FuzzyContinuousSet
+
 # =============================================================================
 # Classes
 # =============================================================================
 
 
 class Rule:
-    def __init__(self, antecedent, consequent, weight):
+    def __init__(self, antecedent, consequent, weight, simplify=False):
         """
         Parameters
         ----------
@@ -22,6 +25,8 @@ class Rule:
         self.antecedent = tuple(antecedent)
         self.consequent = consequent
         self.weight = weight
+        if simplify:
+            self.simplify()
 
     def __repr__(self):  # pragma: no cover
         return f'Rule({self.antecedent}, {self.consequent}, {self.weight})'
@@ -39,6 +44,16 @@ class Rule:
 
     def __hash__(self) -> int:
         return hash((self.antecedent, self.consequent, self.weight))
+    
+    def simplify(self):
+        new_antecedent = {}
+        for (feature, value) in self.antecedent:
+            if feature not in new_antecedent:
+                new_antecedent[feature] = value
+            else:
+                if len(new_antecedent[feature]) > len(value):
+                    new_antecedent[feature] = value
+        self.antecedent = tuple(new_antecedent.items())
 
     def matching(self, instance_membership, t_norm=min):
         """Matching that an instance has with the rule
@@ -56,6 +71,67 @@ class Rule:
             return t_norm([instance_membership[feature][value] for (feature, value) in self.antecedent])
         except KeyError:
             return 0
+        
+    def to_json(self, fuzzy_variables):
+        """Transform the rule to a json format
+
+        Parameters
+        ----------
+        fuzzy_variables : list[FuzzyVariable]
+            List with the fuzzy variables of the problem
+
+        Returns
+        -------
+        dict
+            Json with the rule
+        """
+        fuzzy_dict = {fv.name: fv.fuzzy_sets for fv in fuzzy_variables}
+        json_antecedents = {feature: value for (feature, value) in self.antecedent}
+        fuzzy_things = []
+        for feature, value in self.antecedent:
+            fuzzy_sets = {fs.name: fs for fs in fuzzy_dict[feature]}
+            fuzzy_set = fuzzy_sets[value]
+            if isinstance(fuzzy_set, FuzzyContinuousSet):
+                fuzzy_things.append((feature, fuzzy_set.name, fuzzy_set.fuzzy_points))
+            else:
+                fuzzy_things.append((feature, fuzzy_set.name))
+        
+
+
+
+        return [json_antecedents, self.consequent, self.weight, fuzzy_things]
+    
+    def to_crisp(self, alpha_cut, fuzzy_variables):
+        """Transform the rule to a crisp rule
+
+        Parameters
+        ----------
+        alpha_cut : float
+            Alpha cut to use to transform the rule
+
+        Returns
+        -------
+        Rule
+            Crisp rule
+        """
+
+        fuzzy_dict = {fv.name: fv.fuzzy_sets for fv in fuzzy_variables}
+        new_antecedent = []
+        for (feature, value) in self.antecedent:
+            fuzzy_sets = fuzzy_dict[feature]
+            fuzzy_sets_dict = {fs.name: fs for fs in fuzzy_sets}
+            fuzzy_set = fuzzy_sets_dict[value]
+
+            # Check if fuzzy set is FuzzyContinuousSet
+            
+            if isinstance(fuzzy_set, FuzzyContinuousSet):
+                new_value = fuzzy_set.alpha_cut(alpha_cut)
+            else:
+                new_value = value
+            
+            new_antecedent.append((feature, new_value))
+
+        return Rule(new_antecedent, self.consequent, self.weight)
 
     @staticmethod
     def weighted_vote(rule_list, instance_membership):

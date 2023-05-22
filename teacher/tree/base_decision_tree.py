@@ -93,7 +93,7 @@ class BaseDecisionTree(ABC):
         X, y = check_X_y(X, y, dtype=['float64', 'object'])
         return np.sum(self.predict(X) == y)/y.shape[0]
 
-    def to_rule_based_system(self, verbose=False):
+    def to_rule_based_system(self, verbose=False, simplify=False):
         """
         Return the tree as a rule-based system
 
@@ -107,4 +107,4 @@ class BaseDecisionTree(ABC):
         rule_system : list[Rule]
             List of the rules extracted from the tree
         """
-        return self.tree_.to_rule_based_system(verbose)
+        return self.tree_.to_rule_based_system(verbose, simplify)

@@ -82,6 +82,9 @@ class FuzzyContinuousSet(FuzzySet):
     fuzzy_points: list
     point_set: bool = False
 
+    def __hash__(self) -> int:
+        return hash((self.name, tuple(self.fuzzy_points), self.point_set))
+
     def membership(self, variable):
         return fuzz.trimf(variable, self.fuzzy_points)
 
@@ -140,6 +143,16 @@ class FuzzyContinuousSet(FuzzySet):
         # Else compute the intersection divided by the union of the ranges
         return (min(max_self, max_other) - max(min_self, min_other)) / (max(max_self, max_other) - min(min_self, min_other))
 
+    def alpha_cut(self, cut):
+        # Return the interval of the alpha cut
+
+        if cut < 0 or cut > 1:
+            raise ValueError('The alpha cut must be between 0 and 1')
+        
+        left_offset = (self.fuzzy_points[1] - self.fuzzy_points[0]) * cut
+        right_offset = (self.fuzzy_points[2] - self.fuzzy_points[1]) * cut
+
+        return (self.fuzzy_points[0] + left_offset, self.fuzzy_points[2] - right_offset)
 
 
 @dataclass
