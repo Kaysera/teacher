@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.utils import check_X_y
 
 # Local application
-from ..fuzzy import dataset_membership
+from ..fuzzy import dataset_membership, FuzzyContinuousSet
 from ..fuzzy._discretize import _fuzzy_entropy
 from .base_decision_tree import BaseDecisionTree
 from .rule import Rule
@@ -114,7 +114,7 @@ class TreeFBDT:
 
     def to_rule_based_system(self, th=0.0001, simplify=False, verbose=False):
         rules = self._get_rules(self, [], th, verbose)
-        return [Rule(antecedent, consequent, weight, simplify) for (antecedent, consequent, weight) in rules]
+        return [Rule(antecedent, consequent, weight, simplify, multiple_antecedents=True) for (antecedent, consequent, weight) in rules]
 
     def _get_rules(self, tree, rule, th=0.0001, verbose=False):
         if tree.value is not None:
@@ -187,7 +187,6 @@ class FBDT(BaseDecisionTree):
             
             for i in range(len(splits)-1):
                 partitions.append((feature,splits[:i+1], splits[i+1:]))
-        print(partitions)
         return partitions
 
     def _get_max_f_gain(self, tree, features_dict, X_membership, y, t_norm=np.minimum, verbose=False):
@@ -279,13 +278,11 @@ class FBDT(BaseDecisionTree):
     def _partial_fit(self, X_membership, y, current_tree, features_dict, current_depth):
         current_tree.level = current_depth
         att, f_gain, child_mu, split, ignored = self._get_max_f_gain(current_tree, features_dict, X_membership, y, verbose=False)
-        print(f'Best attribute: {att}, split: {split}, f_gain: {f_gain}')
         # apply mask to y
         mask = [(x > 0) for x in current_tree.mu]
         y_masked = y[mask]
 
         if self._stop_met(f_gain, y_masked, current_depth):
-            print('Im leaf')
             current_tree.is_leaf = True
             current_tree.class_value = self._get_class_value(current_tree.mu, y)
             return
@@ -302,7 +299,6 @@ class FBDT(BaseDecisionTree):
         current_tree.childlist.append(child)
         new_features_dict = features_dict.copy()
         new_features_dict[att] = [x for x in new_features_dict[att] if x in set(split[0])]
-        print(new_features_dict)
 
         if child.mu.sum() > 0:
             self._partial_fit(X_membership, y, child, new_features_dict, current_depth + 1)

@@ -14,7 +14,7 @@ from teacher.fuzzy import FuzzyContinuousSet
 
 
 class Rule:
-    def __init__(self, antecedent, consequent, weight, simplify=False):
+    def __init__(self, antecedent, consequent, weight, simplify=False, multiple_antecedents=False):
         """
         Parameters
         ----------
@@ -25,6 +25,7 @@ class Rule:
         self.antecedent = tuple(antecedent)
         self.consequent = consequent
         self.weight = weight
+        self.multiple_antecedents = multiple_antecedents
         if simplify:
             self.simplify()
 
@@ -67,10 +68,22 @@ class Rule:
         t_norm : function, optional
             Operation to use as tnorm to get the matching, by default min
         """
-        try:
-            return t_norm([instance_membership[feature][value] for (feature, value) in self.antecedent])
-        except KeyError:
-            return 0
+        if self.multiple_antecedents:
+            try:
+                memberships = []
+                for feature, values in self.antecedent:
+                    m = 0
+                    for value in values:
+                        m += instance_membership[feature][value]
+                    memberships.append(m)
+                return t_norm(memberships)
+            except KeyError:
+                return 0
+        else:
+            try:
+                return t_norm([instance_membership[feature][value] for (feature, value) in self.antecedent])
+            except KeyError:
+                return 0
         
     def to_json(self, fuzzy_variables):
         """Transform the rule to a json format
@@ -85,16 +98,29 @@ class Rule:
         dict
             Json with the rule
         """
-        fuzzy_dict = {fv.name: fv.fuzzy_sets for fv in fuzzy_variables}
-        json_antecedents = {feature: value for (feature, value) in self.antecedent}
-        fuzzy_things = []
-        for feature, value in self.antecedent:
-            fuzzy_sets = {fs.name: fs for fs in fuzzy_dict[feature]}
-            fuzzy_set = fuzzy_sets[value]
-            if isinstance(fuzzy_set, FuzzyContinuousSet):
-                fuzzy_things.append((feature, fuzzy_set.name, fuzzy_set.fuzzy_points))
-            else:
-                fuzzy_things.append((feature, fuzzy_set.name))
+        if self.multiple_antecedents:
+            fuzzy_dict = {fv.name: fv.fuzzy_sets for fv in fuzzy_variables}
+            json_antecedents = {feature: tuple(values) for (feature, values) in self.antecedent}
+            fuzzy_things = []
+            for feature, values in self.antecedent:
+                fuzzy_sets = {fs.name: fs for fs in fuzzy_dict[feature]}
+                for value in values:
+                    fuzzy_set = fuzzy_sets[value]
+                    if isinstance(fuzzy_set, FuzzyContinuousSet):
+                        fuzzy_things.append((feature, fuzzy_set.name, fuzzy_set.fuzzy_points))
+                    else:
+                        fuzzy_things.append((feature, fuzzy_set.name))
+        else:
+            fuzzy_dict = {fv.name: fv.fuzzy_sets for fv in fuzzy_variables}
+            json_antecedents = {feature: value for (feature, value) in self.antecedent}
+            fuzzy_things = []
+            for feature, value in self.antecedent:
+                fuzzy_sets = {fs.name: fs for fs in fuzzy_dict[feature]}
+                fuzzy_set = fuzzy_sets[value]
+                if isinstance(fuzzy_set, FuzzyContinuousSet):
+                    fuzzy_things.append((feature, fuzzy_set.name, fuzzy_set.fuzzy_points))
+                else:
+                    fuzzy_things.append((feature, fuzzy_set.name))
         
 
 
