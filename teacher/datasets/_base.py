@@ -77,6 +77,8 @@ def generate_dataset(df, columns, class_name, discrete, name, normalize=False):
     if normalize:
         scaler = StandardScaler()
         df[continuous] = scaler.fit_transform(df[continuous])
+    else:
+        scaler = None
     # Dataset Preparation for Scikit Alorithms
     df_le, label_encoder = label_encode(df, discrete)
     X = df_le.loc[:, df_le.columns != class_name].values
@@ -94,6 +96,7 @@ def generate_dataset(df, columns, class_name, discrete, name, normalize=False):
         'continuous': continuous,
         'idx_features': idx_features,
         'label_encoder': label_encoder,
+        'normalize_scaler': scaler,
         'X': X,
         'y': y,
     }

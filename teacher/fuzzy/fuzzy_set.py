@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 
 # Third party
 import skfuzzy as fuzz
+import numpy as np
 
 # =============================================================================
 # Classes
@@ -84,6 +85,9 @@ class FuzzyContinuousSet(FuzzySet):
 
     def __hash__(self) -> int:
         return hash((self.name, tuple(self.fuzzy_points), self.point_set))
+    
+    def __lt__(self, other):
+        return self.fuzzy_points < other.fuzzy_points
 
     def membership(self, variable):
         return fuzz.trimf(variable, self.fuzzy_points)
@@ -153,7 +157,29 @@ class FuzzyContinuousSet(FuzzySet):
         right_offset = (self.fuzzy_points[2] - self.fuzzy_points[1]) * cut
 
         return (self.fuzzy_points[0] + left_offset, self.fuzzy_points[2] - right_offset)
+    
+    @staticmethod
+    def merge(a, b):
+        new_name = np.mean([float(a.name), float(b.name)])
+        return FuzzyContinuousSet(str(new_name), [min(a.fuzzy_points[0], b.fuzzy_points[0]), np.mean([a.fuzzy_points[1], b.fuzzy_points[1]]), max(a.fuzzy_points[2], b.fuzzy_points[2])])
 
+    @staticmethod
+    def jaccard_similarity(a, b):
+        # Compute Jaccard similarity between two fuzzy sets with triangular membership functions
+
+        # Define the ranges for the common support
+        common_support_start = max(a.fuzzy_points[0], b.fuzzy_points[0])
+        common_support_end = min(a.fuzzy_points[2], b.fuzzy_points[2])
+
+        if common_support_start >= common_support_end:
+            return 0
+
+        # Calculate the intersection and union
+        intersection = common_support_end - common_support_start
+        union = max(a.fuzzy_points[2], b.fuzzy_points[2]) - min(a.fuzzy_points[0], b.fuzzy_points[0])
+        jaccard_similarity = intersection / union * a.intersection(b)
+
+        return jaccard_similarity
 
 @dataclass
 class FuzzyDiscreteSet(FuzzySet):
