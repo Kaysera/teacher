@@ -118,7 +118,9 @@ from ._base import (load_german,
                     load_breast,
                     load_basket,
                     load_phishing,
-                    load_flavia)
+                    load_flavia,
+                    load_iris,
+                    load_wine)
 
 
 # =============================================================================
@@ -137,5 +139,7 @@ __all__ = [
     "load_heloc",
     "load_pima",
     "load_phishing",
-    "load_flavia"
+    "load_flavia",
+    "load_iris",
+    "load_wine"
 ]

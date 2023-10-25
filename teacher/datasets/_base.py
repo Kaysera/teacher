@@ -15,6 +15,7 @@ from os.path import dirname
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from sklearn import datasets
 
 # Local application
 from teacher.utils import recognize_features_type, set_discrete_continuous, label_encode
@@ -321,6 +322,47 @@ def load_phishing(normalize=False):
     discrete = []
     columns = df.columns
     return generate_dataset(df, columns, class_name, discrete, 'phishing', normalize)
+
+
+def load_iris(normalize=False):
+    """
+    Load and return the iris dataset.
+
+    Returns
+    -------
+    dataset : dict
+    """
+    # Read Dataset
+    iris = datasets.load_iris(as_frame=True)
+    df = iris.frame
+
+    # Features Categorization
+    columns = df.columns
+    class_name = columns[-1]
+
+    discrete = []
+    return generate_dataset(df, columns, class_name, discrete, 'iris', normalize)
+
+
+def load_wine(normalize=False):
+    """
+    Load and return the wine dataset.
+
+    Returns
+    -------
+    dataset : dict
+    """
+    # Read Dataset
+    wine = datasets.load_wine(as_frame=True)
+    df = wine.frame
+
+    # Features Categorization
+    columns = df.columns
+    class_name = columns[-1]
+
+    discrete = []
+    return generate_dataset(df, columns, class_name, discrete, 'wine', normalize)
+
 
 def load_breast(normalize=False):
     """
