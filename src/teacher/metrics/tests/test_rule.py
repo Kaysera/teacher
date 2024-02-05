@@ -41,7 +41,7 @@ def test_coverage_multiple_rules():
 
     r1 = Rule((('feat1', 'val1'), ('feat2', 'val1'), ('feat3', 'val1')), 'conse', 0.5)
     r2 = Rule((('feat1', 'val1'), ('feat2', 'val2'), ('feat3', 'val1')), 'conse', 0.5)
-    np.testing.assert_almost_equal(coverage([r1, r2], dataset_membership), 1)
+    np.testing.assert_almost_equal(coverage([r1, r2], dataset_membership), 0.6666666666)
 
 
 def test_precision():

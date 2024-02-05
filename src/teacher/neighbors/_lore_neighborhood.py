@@ -64,8 +64,9 @@ class LoreNeighborhood(FuzzyNeighborhood):
         while new_length - old_length > 0:
             ndf = ndf[(np.abs(stats.zscore(ndf[continuous])) < 3).all(axis=1)]
 
-        instance_df = pd.DataFrame(self.instance.reshape(1, -1), columns=list(ndf))
-        ndf = ndf.append(instance_df, ignore_index=True)
+        y_bb = self.bb.predict(self.instance.reshape(1, -1))
+        instance_df = pd.DataFrame(np.concatenate([y_bb, self.instance]).reshape(1, -1), columns=list(ndf))
+        ndf = pd.concat([ndf, instance_df])
         edf = ndf.drop(self.class_name, axis=1).copy()
         for le in label_encoder:
             if le != self.class_name:

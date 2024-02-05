@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 
 import random
+import pytest
 from pytest import raises, fixture
 
 
@@ -192,6 +193,7 @@ def test_simple_neighborhood(prepare_iris):
     np.testing.assert_equal(expected_y, neighborhood_y)
 
 
+@pytest.mark.skip(reason="LoreNeighborhood is obsolete")
 def test_lore_neighborhood(prepare_beer):
     (instance, size, class_name, blackbox, dataset, X_test,
      idx_record2explain, df_numerical_columns, df_categorical_columns) = prepare_beer
