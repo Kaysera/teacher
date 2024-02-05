@@ -14,17 +14,12 @@ from teacher.metrics._counterfactual import _closest_instance
 # Classes
 # =============================================================================
 
-########################
-# TODO: IMPORTANTE NO MERGEAR A LA RAMA MASTER HASTA NO LIMPIAR
-########################
-
 
 class SamplingNeighborhood(FuzzyNeighborhood):
     """
-    Fuzzy adaptation of the neighborhood used by LORE, which
-    generates the different elements by modifying the instance
-    using a genetic algorithm in order to obtain elements
-    for all the different possible class values.
+    Fuzzy sampling neighborhood, which checks the range of the different features
+    in order to compute a random neighborhood that is representative of the
+    different variables close to the instance.
     """
 
     def __init__(self,
@@ -52,6 +47,15 @@ class SamplingNeighborhood(FuzzyNeighborhood):
             Necessary dataset for the LORE genetic algorithm to work
         idx_record_to_explain : int - Legacy
             Index of the instance to explain in X2E
+        neighbor_generation : str, default='slow'
+            Method to generate the neighborhood. It can be 'slow' or 'fast'.
+            'slow' uses the instance to be explained while 'fast' also looks
+            for the closest instance from different classes to generate the
+            neighborhood.
+        neighbor_range : float or str, default='std'
+            Range of the neighborhood. If it is a float, it will be the
+            percentage of the range of the feature. If it is 'std', it will
+            be the standard deviation of the feature.
         """
         self.X2E = X2E
         self.dataset = dataset
@@ -153,7 +157,7 @@ class SamplingNeighborhood(FuzzyNeighborhood):
             try:
                 val = self.dataset['label_encoder'][var].inverse_transform(np.array([self.instance[i]], dtype=int))[0]
                 decoded_instance.append(val)
-            except Exception:  # TODO: Change to proper exception
+            except KeyError:
                 decoded_instance += [self.instance[i]]
 
         Z = NEIGH_GENERATION[self.neighbor_generation]()
@@ -172,7 +176,7 @@ class SamplingNeighborhood(FuzzyNeighborhood):
         self._y_decoded = self.dataset['label_encoder'][self.class_name].inverse_transform(self._y)
 
     def fuzzify(self, get_division, **kwargs):
-        # AS INSTANCE MEMBERSHIP IS COMPUTED HERE, PASS FLAG TO NOT COMPUTE IT BEFORE
+        # We compute instance membership here, so we pass the flag to the parent to avoid recomputing it
         super().fuzzify(get_division, instance_membership=False, **kwargs)
         self._instance_membership = dataset_membership(self.decoded_instance, self._fuzzy_variables)
 
