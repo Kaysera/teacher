@@ -86,7 +86,8 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
             if self._X[num].std() < th:
                 point_vars.add(num)
         fuzzy_points_args['point_variables'] = point_vars
-
+        if 'th' in kwargs.keys():
+            fuzzy_points_args['th'] = kwargs['th']
         X_num = self._X[kwargs['df_numerical_columns']]
         num_cols = X_num.columns
         fuzzy_points = get_fuzzy_points(get_division, num_cols, X_num, self._y, **fuzzy_points_args)
@@ -96,8 +97,9 @@ class FuzzyNeighborhood(BaseNeighborhood, ABC):
         self._fuzzy_variables = get_fuzzy_variables(fuzzy_points, discrete_fuzzy_values, fuzzy_variables_order)
         self._X_membership = dataset_membership(self._X, self._fuzzy_variables)
 
-        instance_dict = {self._X.columns[i]: [self.instance[i]] for i in range(len(self.instance))}
-        self._instance_membership = dataset_membership(pd.DataFrame(instance_dict), self._fuzzy_variables)
+        if 'instance_membership' not in kwargs.keys() or kwargs['instance_membership']:
+            instance_dict = {self._X.columns[i]: [self.instance[i]] for i in range(len(self.instance))}
+            self._instance_membership = dataset_membership(pd.DataFrame(instance_dict), self._fuzzy_variables)
 
     def get_X_membership(self):
         """

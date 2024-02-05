@@ -1,5 +1,5 @@
 recursive-include docs *
-recursive-include teacher/datasets/data *.csv
+recursive-include src/teacher/datasets/data *.csv
 
 include LICENSE
 include MANIFEST.in

@@ -48,6 +48,7 @@ from ._base_neighborhood import BaseNeighborhood
 from ._simple_neighborhood import SimpleNeighborhood
 from ._fuzzy_neighborhood import FuzzyNeighborhood
 from ._lore_neighborhood import LoreNeighborhood
+from ._sampling_neighborhood import SamplingNeighborhood
 from ._exceptions import NotFittedError, NotFuzzifiedError
 
 
@@ -70,6 +71,7 @@ __all__ = [
     "FuzzyNeighborhood",
     "SimpleNeighborhood",
     "LoreNeighborhood",
+    "SamplingNeighborhood",
     "NotFittedError",
     "NotFuzzifiedError"
 ]

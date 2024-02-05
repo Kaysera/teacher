@@ -47,21 +47,18 @@ def prepare_iris_fdt(set_random):
 @pytest.fixture
 def iris_rules():
     return [
-        Rule((('petal width (cm)', '0.1'),), 0, 1.0),
-        Rule((('petal width (cm)', '0.5'), ('petal length (cm)', '1.1')), 0, 1.0),
-        Rule((('petal width (cm)', '0.5'), ('petal length (cm)', '1.7')), 0, 0.9269256089532588),
-        Rule((('petal width (cm)', '0.5'), ('petal length (cm)', '1.7')), 1, 0.07307439104674127),
-        Rule((('petal width (cm)', '0.5'), ('petal length (cm)', '3.9')), 1, 1.0),
-        Rule((('petal width (cm)', '0.5'), ('petal length (cm)', '5.0')), 1, 1.0),
-        Rule((('petal width (cm)', '1.3'), ('petal length (cm)', '1.7')), 1, 1.0),
-        Rule((('petal width (cm)', '1.3'), ('petal length (cm)', '3.9')), 1, 0.9883736292773152),
-        Rule((('petal width (cm)', '1.3'), ('petal length (cm)', '3.9')), 2, 0.011626370722684645),
-        Rule((('petal width (cm)', '1.3'), ('petal length (cm)', '5.0')), 1, 0.8770949720670391),
-        Rule((('petal width (cm)', '1.3'), ('petal length (cm)', '5.0')), 2, 0.12290502793296092),
-        Rule((('petal width (cm)', '1.3'), ('petal length (cm)', '6.9')), 2, 1.0),
-        Rule((('petal width (cm)', '1.8'),), 1, 0.19487750556792865),
-        Rule((('petal width (cm)', '1.8'),), 2, 0.8051224944320712),
-        Rule((('petal width (cm)', '2.5'),), 2, 1.0)
+        Rule((('petal length (cm)', '1.1'),), 0, 1.0),
+        Rule((('petal length (cm)', '1.7'), ('petal width (cm)', '0.1')), 0, 1.0),
+        Rule((('petal length (cm)', '1.7'), ('petal width (cm)', '0.5')), 0, 0.9269256089532588),
+        Rule((('petal length (cm)', '1.7'), ('petal width (cm)', '0.5')), 1, 0.07307439104674127),
+        Rule((('petal length (cm)', '1.7'), ('petal width (cm)', '1.3')), 1, 1.0),
+        Rule((('petal length (cm)', '1.7'), ('petal width (cm)', '2.5')), 0, 0.9462365591397849),
+        Rule((('petal length (cm)', '1.7'), ('petal width (cm)', '2.5')), 1, 0.053763440860215034),
+        Rule((('petal length (cm)', '3.9'),), 1, 0.9623529411764704),
+        Rule((('petal length (cm)', '3.9'),), 2, 0.037647058823529395),
+        Rule((('petal length (cm)', '5.0'),), 1, 0.3323927765237021),
+        Rule((('petal length (cm)', '5.0'),), 2, 0.6676072234762981),
+        Rule((('petal length (cm)', '6.9'),), 2, 1.0)
     ]
 
 
@@ -97,7 +94,7 @@ def test_fit_predict_fdt(prepare_iris_fdt):
     fdt = FDT(fuzzy_variables)
     fdt.fit(X_train, y_train)
 
-    assert fdt.predict(X_test.iloc[48].to_numpy().reshape(1, -1)) == [[1]]
+    assert fdt.predict(X_test.iloc[48].to_numpy().reshape(1, -1)) == [[2]]
 
 
 def test_score_fdt(prepare_iris_fdt):
@@ -107,7 +104,7 @@ def test_score_fdt(prepare_iris_fdt):
     fdt.fit(X_train, y_train)
     score = fdt.score(X_test, y_test)
 
-    assert score == 0.94
+    assert score == 0.96
 
 
 def test_score_max_match_fdt(prepare_iris_fdt):
@@ -117,7 +114,7 @@ def test_score_max_match_fdt(prepare_iris_fdt):
     fdt.fit(X_train, y_train)
     score = fdt.score(X_test, y_test)
 
-    assert score == 0.94
+    assert score == 0.88
 
 
 def test_score_min_num_examples_fdt(prepare_iris_fdt):
@@ -127,7 +124,7 @@ def test_score_min_num_examples_fdt(prepare_iris_fdt):
     fdt.fit(X_train, y_train)
     score = fdt.score(X_test, y_test)
 
-    assert score == 0.94
+    assert score == 0.96
 
 
 def test_score_max_depth_fdt(prepare_iris_fdt):
@@ -137,7 +134,7 @@ def test_score_max_depth_fdt(prepare_iris_fdt):
     fdt.fit(X_train, y_train)
     score = fdt.score(X_test, y_test)
 
-    assert score == 0.94
+    assert score == 0.96
 
 
 def test_rules_fdt(prepare_iris_fdt, iris_rules):

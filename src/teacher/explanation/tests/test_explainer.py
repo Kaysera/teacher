@@ -52,6 +52,7 @@ def test_write_explanation():
     assert expected_explanation == mbe.write_explanation()
 
 
+@pytest.mark.skip(reason="LoreNeighborhood is obsolete")
 def test_FID3Explainer(set_random):
     dataset = load_compas()
 
@@ -108,6 +109,7 @@ def test_FID3Explainer(set_random):
          {('two_year_recid', '0')})
     ]
     )
+@pytest.mark.skip(reason="LoreNeighborhood is obsolete")
 def test_FDTExplainer(prepare_compas, f_method, cf_method, lam, beta, expected_fact, expected_cf):
     [instance, target, neighborhood, df_numerical_columns] = prepare_compas
 
@@ -123,6 +125,7 @@ def test_FDTExplainer(prepare_compas, f_method, cf_method, lam, beta, expected_f
     assert counterfactual == expected_cf
 
 
+@pytest.mark.skip(reason="LoreNeighborhood is obsolete")
 def test_FDTExplainer_invalid_factual(prepare_compas):
     with pytest.raises(ValueError):
         [instance, target, neighborhood, df_numerical_columns] = prepare_compas
@@ -132,6 +135,7 @@ def test_FDTExplainer_invalid_factual(prepare_compas):
         explainer.fit(instance, target, neighborhood, df_numerical_columns, f_method, cf_method)
 
 
+@pytest.mark.skip(reason="LoreNeighborhood is obsolete")
 def test_FDTExplainer_invalid_counterfactual(prepare_compas):
     with pytest.raises(ValueError):
         [instance, target, neighborhood, df_numerical_columns] = prepare_compas
@@ -141,6 +145,7 @@ def test_FDTExplainer_invalid_counterfactual(prepare_compas):
         explainer.fit(instance, target, neighborhood, df_numerical_columns, f_method, cf_method)
 
 
+@pytest.mark.skip(reason="LoreNeighborhood is obsolete")
 def test_FDTExplainer_no_lambda(prepare_compas):
     with pytest.raises(ValueError):
         [instance, target, neighborhood, df_numerical_columns] = prepare_compas

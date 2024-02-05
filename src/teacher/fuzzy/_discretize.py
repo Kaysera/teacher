@@ -67,7 +67,7 @@ def _equal_freq(variable, sets):
     return sol
 
 
-def _fuzzy_discretization(variable, class_variable, min_point, verbose=False):
+def _fuzzy_discretization(variable, class_variable, min_point, depth=0, max_depth=0, th=None, verbose=False):
     max_point = variable.max()
     best_point = 0
     best_wfe = inf
@@ -103,29 +103,35 @@ def _fuzzy_discretization(variable, class_variable, min_point, verbose=False):
 
     cardinality = len(variable)
     delta = _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable)
-    threshold = (log2(cardinality - 1) + delta) / cardinality
+    if th is None:
+        threshold = (log2(cardinality - 1) + delta) / cardinality
+    else:
+        threshold = th
 
     if verbose:   # pragma: no cover
         print('-----------------')
         print(f'Pass Threshold: {f_gain >= threshold}')
         print('-----------------')
 
-    if not f_gain < threshold:
-        left = ([(p, c) for p, c in zip(variable, class_variable) if p <= best_point])
-        right = ([(p, c) for p, c in zip(variable, class_variable) if p > best_point])
+    if (max_depth > 0 and max_depth > depth) or max_depth == 0:
+        if not f_gain < threshold:
+            left = ([(p, c) for p, c in zip(variable, class_variable) if p <= best_point])
+            right = ([(p, c) for p, c in zip(variable, class_variable) if p > best_point])
 
-        left_variable, left_class = zip(*left)
-        right_variable, right_class = zip(*right)
+            left_variable, left_class = zip(*left)
+            right_variable, right_class = zip(*right)
 
-        left_points = []
-        right_points = []
+            left_points = []
+            right_points = []
 
-        if len(left_variable) > 1:
-            left_points = _fuzzy_discretization(np.array(left_variable), left_class, min_point, verbose)
-        if len(right_variable) > 1:
-            right_points = _fuzzy_discretization(np.array(right_variable), right_class, best_point, verbose)
-        points = left_points + right_points
-        return np.unique(points).tolist()
+            if len(left_variable) > 1:
+                left_points = _fuzzy_discretization(np.array(left_variable), left_class, min_point, depth+1, max_depth, th, verbose)
+            if len(right_variable) > 1:
+                right_points = _fuzzy_discretization(np.array(right_variable), right_class, best_point, depth+1, max_depth, th, verbose)
+            points = left_points + right_points
+            return np.unique(points).tolist()
+        else:
+            return [min_point, max_point]
     else:
         return [min_point, max_point]
 
@@ -150,11 +156,7 @@ def _fuzzy_entropy(triangle, class_variable, verbose=False):
     """
     fe = 0
     for value in np.unique(class_variable):
-        class_fuzzy_cardinality = 0
-        for i in range(len(triangle)):
-            if class_variable[i] == value:
-                class_fuzzy_cardinality += triangle[i]
-
+        class_fuzzy_cardinality = np.sum(triangle[class_variable == value])
         if class_fuzzy_cardinality > 0:  # i.e. There are elements belonging to this class value
             fuzzy_cardinality = triangle.sum()
             if verbose:   # pragma: no cover
@@ -262,10 +264,8 @@ def _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable
     """
     n_classes = len(np.unique(class_variable))
 
-    old_f_entropy = 0
+    old_f_entropy = n_classes * _weighted_fuzzy_entropy(global_fuzzy_triangles, class_variable)
     new_f_entropy = 0
-    for triangle in global_fuzzy_triangles:
-        old_f_entropy += n_classes * _fuzzy_entropy(global_fuzzy_triangles[triangle], class_variable)
 
     for triangle in best_fuzzy_triangle:
         bft = np.array(best_fuzzy_triangle[triangle])

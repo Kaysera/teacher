@@ -12,6 +12,7 @@ import numpy as np
 
 # Local application
 from teacher.tree import Rule
+from teacher.metrics._counterfactual import DISTANCES
 
 
 # =============================================================================
@@ -110,15 +111,27 @@ def _apply_changes(rule, instance):
     return new_instance, changes
 
 
-def _search_counterfactual(instance, class_val, rule_list, cf_list):
+def _search_counterfactual(instance, class_val, rule_list, cf_list, multiclass=False):
     """Iterate through the cf_list to find the first rule that generates a valid counterfactual"""
     sorted_cf = sorted(cf_list, key=lambda rule: rule[1])
+    if multiclass:
+        possible_class_values = set([cf[0].consequent for cf in cf_list])
+        changes_dict = {}
     for cf in sorted_cf:
         new_instance, changes = _apply_changes(cf[0], instance)
         new_class_val = Rule.weighted_vote(rule_list, new_instance)
         if new_class_val != class_val:
-            return changes
+            if not multiclass:
+                return changes
+            else:
+                if new_class_val not in changes_dict:
+                    changes_dict[new_class_val] = changes
+                    if len(changes_dict) == len(possible_class_values):
+                        print('Wiii')
+                        return changes_dict
 
+    if multiclass:
+        return changes_dict
     return None
 
 
@@ -155,7 +168,7 @@ def FID3_counterfactual(factual, counter_rules):
     return best_cr, min_rule_distance
 
 
-def i_counterfactual(instance, rule_list, class_val, df_numerical_columns):
+def i_counterfactual(instance, rule_list, class_val, df_numerical_columns, multiclass=False):
     """Return a list that contains the counterfactual with respect to the instance
 
     Parameters
@@ -179,7 +192,7 @@ def i_counterfactual(instance, rule_list, class_val, df_numerical_columns):
     diff_class_rules = [rule for rule in rule_list if rule.consequent != class_val]
     possible_cf = [(rule, _cf_dist_instance(rule, instance, df_numerical_columns))
                    for rule in diff_class_rules]
-    return _search_counterfactual(instance, class_val, rule_list, possible_cf)
+    return _search_counterfactual(instance, class_val, rule_list, possible_cf, multiclass)
 
 
 def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_columns, tau=0.5):
@@ -221,3 +234,53 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
             possible_cf.append((cf_rule, cf_dist))
 
     return _search_counterfactual(instance, class_val, rule_list, possible_cf)
+
+
+def d_counterfactual(decoded_instance,
+                     instance_membership,
+                     rule_list,
+                     class_val,
+                     continuous,
+                     discrete,
+                     mad,
+                     distance='moth',
+                     tau=0.5):
+    """Return a list that contains the counterfactual with the closest distance
+
+    Parameters
+    ----------
+    decoded_instance : list
+        List of values of the decoded instance
+    instance_membership : dict, {feature: {set_1: pert_1, set_2: pert_2, ...}, ...}
+        Fuzzy representation of the instance with all the features and pertenence
+        degrees to each fuzzy set
+    rule_list : list[Rule]
+        List of candidate rules to form part of the counterfactual
+    class_val : str
+        Predicted value that the factual will explain
+    continuous : list
+        List of the numerical columns of the instance, used to compute the distance
+    discrete : list
+        List of the categorical columns of the instance, used to compute the distance
+    mad : float
+        Mean absolute deviation of the dataset
+    tau : float, optional
+        Importance degree of new elements added or substracted from a rule
+        in contrast to existing elements that have been modified, used
+        to compute the distance , by default 0.5
+
+    Returns
+    -------
+    set((feature, value))
+        Set of pairs feature-value with the changes that need to be applied to
+        the instance to change class value.
+    """
+    possible_cf = []
+    diff_class_rules = [rule for rule in rule_list if rule.consequent != class_val]
+    for cf_rule in diff_class_rules:
+        cf_instance, _ = _apply_changes(cf_rule, instance_membership)
+        cf_instance = [max(child[1], key=lambda a: child[1][a]) for child in cf_instance.items()]
+        cf_instance = [float(x) if i in continuous else x for i, x in enumerate(cf_instance)]
+        cf_dist = DISTANCES[distance](decoded_instance, cf_instance, continuous, discrete, mad)
+        possible_cf.append((cf_rule, cf_dist))
+    return _search_counterfactual(instance_membership, class_val, rule_list, possible_cf)

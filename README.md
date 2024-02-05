@@ -52,6 +52,7 @@ For detailed instructions on how to use teacher, please refer to the [API Refere
 The following list summarizes the models and explainers currently supported
 - **Fuzzy Factuals and Counterfactuals**: Explainer obtained from a fuzzy tree that can be used for global or local explanations
 - **LORE**: Local explainer generated from a neighborhood
+- **FLARE**: Fuzzy local explainer generated from a neighborhood
   
 ## Metrics
 
@@ -74,3 +75,4 @@ The following list summarizes the metrics and scores that can be extracted from 
   - Experiments: <https://github.com/Kaysera/teacher-experiments>
 - LORE ([Guidotti et al., 2018](https://doi.org/10.1109/MIS.2019.2957223))
   - Documentation and examples: <https://doi.org/10.1109/MIS.2019.2957223>
+- FLARE ([Fernandez et al., 2023 preprint](https://dsi.uclm.es/descargas/technicalreports/DIAB-24-02-1/FLARE_Tech_Rep.pdf))
