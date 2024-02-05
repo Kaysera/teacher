@@ -342,8 +342,14 @@ def load_iris(normalize=False):
     # Features Categorization
     columns = df.columns
     class_name = columns[-1]
+    
+    df_cols = list(df.columns)
+    df_cols.remove(class_name)
+    new_cols = [class_name] + df_cols
+    df = df[new_cols]
 
     discrete = []
+    columns = df.columns
     return generate_dataset(df, columns, class_name, discrete, 'iris', normalize)
 
 
@@ -362,8 +368,14 @@ def load_wine(normalize=False):
     # Features Categorization
     columns = df.columns
     class_name = columns[-1]
+    
+    df_cols = list(df.columns)
+    df_cols.remove(class_name)
+    new_cols = [class_name] + df_cols
+    df = df[new_cols]
 
     discrete = []
+    columns = df.columns
     return generate_dataset(df, columns, class_name, discrete, 'wine', normalize)
 
 
