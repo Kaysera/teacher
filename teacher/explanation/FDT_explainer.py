@@ -10,6 +10,7 @@ in that they can be fitted with data to generate an explanation.
 # Third party
 from sklearn.utils import check_array
 from sklearn.metrics import f1_score
+import numpy as np
 
 # Local application
 from ._factual_local_explainer import FactualLocalExplainer
@@ -149,7 +150,11 @@ class FDTExplainer(FactualLocalExplainer):
 
         self.local_explainer = FDT(fuzzy_variables, max_depth=max_depth, min_num_examples=min_num_examples, fuzzy_threshold=fuzzy_threshold)
         self.local_explainer.fit(X, y)
-        self.fidelity = f1_score(y, self.local_explainer.predict(X)[0])
+        local_prediction = self.local_explainer.predict(X)[0]
+        if len(np.unique(y)) > 2:
+            self.fidelity = f1_score(y, local_prediction, average='weighted')
+        else:
+            self.fidelity = f1_score(y, local_prediction)
 
         rules = self.local_explainer.to_rule_based_system()
         self.exp_value = self.local_explainer.predict(instance.reshape(1, -1))
