@@ -1,14 +1,5 @@
 [build-system]
-requires = [
-    "setuptools>=61.0.0", 
-    "wheel",
-    'pandas',
-    'scikit-fuzzy',
-    'scikit-learn',
-    'matplotlib',
-    'deap',
-    'imblearn'
-]
+requires = ["setuptools>=61.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -52,3 +43,6 @@ omit=[
     "./teacher/tree/tests/id3_legacy_tree.py",
 ]
 dynamic_context = "test_function"
+
+[tool.setuptools.dynamic]
+version = {attr = "teacher.__version__"}
