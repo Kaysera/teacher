@@ -67,7 +67,7 @@ def _equal_freq(variable, sets):
     return sol
 
 
-def _fuzzy_discretization(variable, class_variable, min_point, depth = 0, max_depth = 0, th = None, verbose=False):
+def _fuzzy_discretization(variable, class_variable, min_point, depth=0, max_depth=0, th=None, verbose=False):
     max_point = variable.max()
     best_point = 0
     best_wfe = inf
@@ -266,8 +266,6 @@ def _get_delta_point(global_fuzzy_triangles, best_fuzzy_triangle, class_variable
 
     old_f_entropy = n_classes * _weighted_fuzzy_entropy(global_fuzzy_triangles, class_variable)
     new_f_entropy = 0
-    # for triangle in global_fuzzy_triangles:
-    #     old_f_entropy += n_classes * _fuzzy_entropy(global_fuzzy_triangles[triangle], class_variable)
 
     for triangle in best_fuzzy_triangle:
         bft = np.array(best_fuzzy_triangle[triangle])
