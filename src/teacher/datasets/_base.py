@@ -47,6 +47,8 @@ def generate_dataset(df, columns, class_name, discrete, name, normalize=False):
         List with all the columns to be considered to have discrete values
     name : str
         Name of the dataset
+    normalize : bool
+        Whether to normalize the continuous features or not
 
     Returns
     -------
@@ -65,6 +67,7 @@ def generate_dataset(df, columns, class_name, discrete, name, normalize=False):
             label_encoder : label encoder for the discrete values
             X : NumPy array with all the columns except for the class
             y : NumPy array with the class column
+            normalize_scaler : scaler used to normalize the continuous features
     """
     possible_outcomes = list(df[class_name].unique())
 
@@ -74,7 +77,7 @@ def generate_dataset(df, columns, class_name, discrete, name, normalize=False):
     columns_tmp = list(columns)
     columns_tmp.remove(class_name)
     idx_features = {i: col for i, col in enumerate(columns_tmp)}
-    # df[continuous] += 1 # TREMENDA ÑAPA PARA NORMALIZAR LA MEDIANA Y QUE NO REVIENTE
+    df[continuous] += 1
     if normalize:
         scaler = StandardScaler()
         df[continuous] = scaler.fit_transform(df[continuous])
