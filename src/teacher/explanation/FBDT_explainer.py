@@ -120,7 +120,6 @@ class FBDTExplainer(FactualLocalExplainer):
         except KeyError:
             fuzzy_threshold = 0.0001
 
-        # TODO: IMPORTANTE NO MERGEAR A LA RAMA MASTER HASTA NO LIMPIAR
         self.local_explainer = FBDT(fuzzy_variables,
                                     max_depth=max_depth,
                                     min_num_examples=min_num_examples,
