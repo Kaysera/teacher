@@ -15,7 +15,6 @@ dependencies = [
     "scikit-learn",
     "deap",
     "imblearn",
-    "scikit-fuzzy@git+https://github.com/scikit-fuzzy/scikit-fuzzy",
     "matplotlib",
 ]
 authors = [

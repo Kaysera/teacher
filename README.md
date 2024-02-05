@@ -31,7 +31,10 @@ Teacher requires:
     * imblearn (for compatibility with the LORE algorithm)
 
 **IMPORTANT** Install scikit-fuzzy from their [GitHub](https://github.com/scikit-fuzzy/scikit-fuzzy) as the PyPi version
-is obsolete.
+is obsolete:
+```Shell
+pip install git+https://github.com/scikit-fuzzy/scikit-fuzzy
+```
 
 ### User installation
 
