@@ -21,6 +21,10 @@ class Rule:
         antecedent : list of tuples (feature, value)
         consequent : string or number
         weight: weight of the consequent in the tree
+        simplify : bool, optional
+            Whether or not to simplify the rules, by default False
+        multiple_antecedents : bool, optional
+            Whether or not the rule has multiple antecedents, by default False
         """
         self.antecedent = tuple(antecedent)
         self.consequent = consequent
@@ -47,6 +51,8 @@ class Rule:
         return hash((self.antecedent, self.consequent, self.weight))
 
     def simplify(self):
+        """If there are repeated features in the antecedent, it simplifies the rule
+        """
         new_antecedent = {}
         for (feature, value) in self.antecedent:
             if feature not in new_antecedent:

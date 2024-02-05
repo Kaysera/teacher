@@ -101,6 +101,8 @@ class BaseDecisionTree(ABC):
         ----------
         verbose : bool, optional
             debug flag, by default False
+        simplify : bool, optional
+            Whether or not to simplify the rules, by default False
 
         Returns
         -------
