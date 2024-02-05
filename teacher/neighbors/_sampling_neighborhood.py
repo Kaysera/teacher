@@ -89,7 +89,9 @@ class SamplingNeighborhood(FuzzyNeighborhood):
         c_prob_dist = self._generate_prob_dist(closest_instance, cont_idx)
         class_values = {i: 0 for i in range(len(self.dataset['possible_outcomes']))}
         neighborhood = []
+        tries = 0
         while len(neighborhood) < self.size:
+            tries += 1
             i_neigh = self._get_instance_from_prob_dist(prob_dist)
             c_neigh = self._get_instance_from_prob_dist(c_prob_dist)
 
@@ -102,6 +104,8 @@ class SamplingNeighborhood(FuzzyNeighborhood):
             if class_values[neigh_pred] < (self.size/len(class_values)):
                 class_values[neigh_pred] += 1
                 neighborhood.append(c_neigh)
+            if tries > self.size * 100:
+                break
         neighborhood.append(self.instance)
         features = [col for col in self.dataset['columns'] if col != self.class_name]
         return pd.DataFrame(np.array(neighborhood), columns=features)
@@ -136,7 +140,7 @@ class SamplingNeighborhood(FuzzyNeighborhood):
                 decoded_instance.append(self.dataset['label_encoder'][var].inverse_transform(np.array([self.instance[i]], dtype=int))[0])
             except:
                 decoded_instance += [self.instance[i]]
-        
+
         Z = NEIGH_GENERATION[self.neighbor_generation]()
         df = Z.copy()
         
