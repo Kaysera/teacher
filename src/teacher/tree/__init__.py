@@ -32,6 +32,7 @@ The classes are the following ones:
 # Local application
 from .id3_tree import ID3
 from .fdt_tree import FDT
+from .fdt_binary_tree import FBDT
 from .base_decision_tree import BaseDecisionTree
 from .rule import Rule
 
@@ -43,5 +44,6 @@ __all__ = [
     "BaseDecisionTree",
     "ID3",
     "FDT",
+    "FBDT",
     "Rule"
 ]

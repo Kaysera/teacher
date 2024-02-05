@@ -37,6 +37,7 @@ The following functions are provided to compute different metrics:
 
 # Local application
 from ._rule import coverage, precision, fidelity, rule_fidelity
+from ._counterfactual import implausibility, instability, proximity_dissimilarity, sparsity_dissimilarity
 
 
 # =============================================================================
@@ -46,5 +47,9 @@ __all__ = [
     "coverage",
     "precision",
     "fidelity",
-    "rule_fidelity"
+    "rule_fidelity",
+    "implausibility",
+    "instability",
+    "proximity_dissimilarity",
+    "sparsity_dissimilarity"
 ]

@@ -75,9 +75,10 @@ from those defined in :mod:`teacher.neighbors`
 
 # Local application
 from ._factual import FID3_factual, m_factual, mr_factual, c_factual
-from ._counterfactual import FID3_counterfactual, i_counterfactual, f_counterfactual
+from ._counterfactual import FID3_counterfactual, i_counterfactual, f_counterfactual, d_counterfactual
 from .FID3_explainer import FID3Explainer
 from .FDT_explainer import FDTExplainer
+from .FBDT_explainer import FBDTExplainer
 
 # =============================================================================
 # Public objects
@@ -93,6 +94,8 @@ __all__ = [
     "FID3_counterfactual",
     "i_counterfactual",
     "f_counterfactual",
+    "d_counterfactual",
     "FID3Explainer",
-    "FDTExplainer"
+    "FDTExplainer",
+    "FBDTExplainer"
 ]
