@@ -40,7 +40,7 @@ COUNTERFACTUAL_METHODS = {
 
 
 class FBDTExplainer(FactualLocalExplainer):
-    """This *Explainer* uses the :class:`.FDT` implemented in :mod:`teacher` as a white box model to
+    """This *Explainer* uses the :class:`.FBDT` implemented in :mod:`teacher` as a white box model to
        explain a local instance of a scikit-learn compatible black box classifier."""
     def __init__(self):
         self.local_explainer = None
@@ -48,7 +48,7 @@ class FBDTExplainer(FactualLocalExplainer):
         self.counterfactual_method = None
         super().__init__()
 
-    def fit(self, instance, target, neighborhood, df_num_cols, factual, counterfactual, **kwargs):
+    def fit(self, instance, target, neighborhood, factual, counterfactual, **kwargs):
         """
         .. _article: https://doi.org/10.1109/TFUZZ.2022.3179582
 
@@ -64,8 +64,6 @@ class FBDTExplainer(FactualLocalExplainer):
         neighborhood : class extending from BaseNeighborhood
             Neighborhood fitted around the instance to train
             the whitebox model
-        df_num_cols : array-like of shape (n_numerical) where
-            n_numerical are the number of numerical columns
         factual : {"m_factual", "mr_factual", "c_factual"}
             The function to compute the factual explanation. Supported
             methods are explained in this article_.
