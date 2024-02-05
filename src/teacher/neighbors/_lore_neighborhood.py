@@ -79,7 +79,7 @@ class LoreNeighborhood(FuzzyNeighborhood):
         for i, var in enumerate(features):
             try:
                 decoded_instance.append(self.dataset['label_encoder'][var].inverse_transform([self.instance[i]])[0])
-            except Exception:  # TODO: Change this to a more specific exception
+            except KeyError:
                 decoded_instance += [self.instance[i]]
 
         self.decoded_instance = np.array([decoded_instance], dtype='object')
