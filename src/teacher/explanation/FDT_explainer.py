@@ -122,7 +122,6 @@ class FDTExplainer(FactualLocalExplainer):
         except KeyError:
             fuzzy_threshold = 0.0001
 
-        # TODO: IMPORTANTE NO MERGEAR A LA RAMA MASTER HASTA NO LIMPIAR
         if counterfactual == 'd_counterfactual':
             try:
                 cont_idx = kwargs['cont_idx']
