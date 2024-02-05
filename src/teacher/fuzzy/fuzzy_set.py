@@ -150,7 +150,7 @@ class FuzzyContinuousSet(FuzzySet):
         return inters / union
 
     def alpha_cut(self, cut):
-        # Return the interval of the alpha cut
+        '''Return the interval of the alpha cut'''
 
         if cut < 0 or cut > 1:
             raise ValueError('The alpha cut must be between 0 and 1')
@@ -162,6 +162,8 @@ class FuzzyContinuousSet(FuzzySet):
 
     @staticmethod
     def merge(a, b):
+        '''Merge two fuzzy sets the min and max of their fuzzy points and the
+        mean of their middle points'''
         new_name = np.mean([float(a.name), float(b.name)])
         return FuzzyContinuousSet(str(new_name),
                                   [min(a.fuzzy_points[0], b.fuzzy_points[0]),
@@ -170,7 +172,8 @@ class FuzzyContinuousSet(FuzzySet):
 
     @staticmethod
     def jaccard_similarity(a, b):
-        # Compute Jaccard similarity between two fuzzy sets with triangular membership functions
+        '''Compute the Jaccard similarity between two fuzzy sets
+        with triangular membership functions'''
 
         # Define the ranges for the common support
         common_support_start = max(a.fuzzy_points[0], b.fuzzy_points[0])
