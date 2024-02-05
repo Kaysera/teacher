@@ -9,5 +9,46 @@ requires = [
     'deap',
     'imblearn'
 ]
-
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "teacher-xai"
+requires-python = ">=3.9"
+description = "Package for Machine Learning explanation in Python."
+readme = "README.md"
+license = { file = "LICENSE" }
+dynamic = ["version"]
+dependencies = [
+    "numpy>=1.19.3",
+    "pandas",
+    "scikit-learn",
+    "deap",
+    "imblearn",
+    "scikit-fuzzy",
+    "matplotlib",
+]
+authors = [
+    {name = "Guillermo Tomás Fernández Martin", email = "Guillermo.Fernandez@uclm.es"}
+]
+maintainers = [
+    {name = "Guillermo Tomás Fernández Martin", email = "Guillermo.Fernandez@uclm.es"}
+]
+
+[project.urls]
+Homepage = "https://xai-teacher.readthedocs.io/en/latest/"
+Documentation = "https://xai-teacher.readthedocs.io/en/latest/"
+Repository = "https://github.com/Kaysera/teacher"
+
+[tool.pytest.ini_options]
+addopts = ["--disable-pytest-warnings -rxXs"]
+
+[tool.coverage.run]
+omit=[
+    "./teacher/neighbors/neighbor_generator.py",
+    "./teacher/neighbors/gpdatagenerator.py",
+    "./teacher/utils/*",
+    "./teacher/tree/id3_tree.py",
+    "./teacher/tree/tests/fdt_legacy_tree.py",
+    "./teacher/tree/tests/id3_legacy_tree.py",
+]
+dynamic_context = "test_function"

@@ -51,7 +51,7 @@ class TreeFDT:
             output += str(self.fuzzy_variable.fuzzy_sets[self.value[1]].name) + '\n'
         except Exception:  # TODO CHANGE FOR PROPER EXCEPTION
             output += 'Root \n'
-        if(self.is_leaf):
+        if self.is_leaf:
             output += '\t' * self.level + 'Class value: ' + str(self.class_value)
         else:
             for child in self.childlist:

@@ -34,7 +34,7 @@ class TreeFDT_legacy:
 
     def __str__(self):  # pragma: no cover
         output = '\t' * self.level
-        if(self.is_leaf):
+        if self.is_leaf:
             output += 'Class value: ' + str(self.class_value)
         else:
             output += 'Feature ' + str(self.value)

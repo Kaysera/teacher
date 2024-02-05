@@ -31,7 +31,7 @@ class TreeID3:
 
     def __str__(self):  # pragma: no cover
         output = '\t' * self.level
-        if(self.is_leaf):
+        if self.is_leaf:
             output += 'Class value: ' + str(self.class_value) + '\tCounts: ' + str(self.class_count)
         else:
             output += 'Feature ' + str(self.var_index)

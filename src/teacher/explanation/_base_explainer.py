@@ -37,5 +37,5 @@ class BaseExplainer(ABC):
             When the Explainer is not fitted
         """
         if self.explanation is None:
-            raise(NotFittedError)
+            raise NotFittedError
         return self.explanation
