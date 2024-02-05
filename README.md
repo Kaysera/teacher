@@ -30,6 +30,9 @@ Teacher requires:
     * deap (for compatibility with the LORE algorithm)
     * imblearn (for compatibility with the LORE algorithm)
 
+**IMPORTANT** Install scikit-fuzzy from their [GitHub](https://github.com/scikit-fuzzy/scikit-fuzzy) as the PyPi version
+is obsolete.
+
 ### User installation
 
 If you already have a working installation, you can install teacher with 

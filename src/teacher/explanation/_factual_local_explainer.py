@@ -48,5 +48,5 @@ class FactualLocalExplainer(BaseExplainer):
             When the Explainer is not fitted
         """
         if self.exp_value is None or self.target is None:
-            raise(NotFittedError)
+            raise NotFittedError
         return self.exp_value == self.target
