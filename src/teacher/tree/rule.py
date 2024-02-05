@@ -45,7 +45,7 @@ class Rule:
 
     def __hash__(self) -> int:
         return hash((self.antecedent, self.consequent, self.weight))
-    
+
     def simplify(self):
         new_antecedent = {}
         for (feature, value) in self.antecedent:
@@ -84,7 +84,7 @@ class Rule:
                 return t_norm([instance_membership[feature][value] for (feature, value) in self.antecedent])
             except KeyError:
                 return 0
-        
+
     def to_json(self, fuzzy_variables):
         """Transform the rule to a json format
 
@@ -121,12 +121,9 @@ class Rule:
                     fuzzy_things.append((feature, fuzzy_set.name, fuzzy_set.fuzzy_points))
                 else:
                     fuzzy_things.append((feature, fuzzy_set.name))
-        
-
-
 
         return [json_antecedents, self.consequent, self.weight, fuzzy_things]
-    
+
     def to_crisp(self, alpha_cut, fuzzy_variables):
         """Transform the rule to a crisp rule
 
@@ -149,12 +146,12 @@ class Rule:
             fuzzy_set = fuzzy_sets_dict[value]
 
             # Check if fuzzy set is FuzzyContinuousSet
-            
+
             if isinstance(fuzzy_set, FuzzyContinuousSet):
                 new_value = fuzzy_set.alpha_cut(alpha_cut)
             else:
                 new_value = value
-            
+
             new_antecedent.append((feature, new_value))
 
         return Rule(new_antecedent, self.consequent, self.weight)

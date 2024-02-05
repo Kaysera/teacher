@@ -51,7 +51,7 @@ class FuzzySet(ABC):
         ValueError
             If the set is not of the same subtype
         """
-    
+
     @abstractmethod
     def simmilarity(self, other):
         """Compute the similarity between two fuzzy sets of the same
@@ -85,7 +85,7 @@ class FuzzyContinuousSet(FuzzySet):
 
     def __hash__(self) -> int:
         return hash((self.name, tuple(self.fuzzy_points), self.point_set))
-    
+
     def __lt__(self, other):
         return self.fuzzy_points < other.fuzzy_points
 
@@ -128,11 +128,11 @@ class FuzzyContinuousSet(FuzzySet):
             return 0
         else:
             return y
-    
+
     def simmilarity(self, other):
         if not isinstance(other, FuzzyContinuousSet):
             raise ValueError('Intersection must be between two Fuzzy Sets of the same type')
-        
+
         # Compute the range for an alpha cut of 0.5 because we assume fuzzy strong partitions
         min_self = (self.fuzzy_points[1] - self.fuzzy_points[0]) / 2
         max_self = (self.fuzzy_points[2] - self.fuzzy_points[1]) / 2
@@ -143,25 +143,30 @@ class FuzzyContinuousSet(FuzzySet):
         # if the ranges don't intersect the simmilarity is zero
         if min_self >= max_other or min_other >= max_self:
             return 0
-        
+
         # Else compute the intersection divided by the union of the ranges
-        return (min(max_self, max_other) - max(min_self, min_other)) / (max(max_self, max_other) - min(min_self, min_other))
+        inters = min(max_self, max_other) - max(min_self, min_other)
+        union = max(max_self, max_other) - min(min_self, min_other)
+        return inters / union
 
     def alpha_cut(self, cut):
         # Return the interval of the alpha cut
 
         if cut < 0 or cut > 1:
             raise ValueError('The alpha cut must be between 0 and 1')
-        
+
         left_offset = (self.fuzzy_points[1] - self.fuzzy_points[0]) * cut
         right_offset = (self.fuzzy_points[2] - self.fuzzy_points[1]) * cut
 
         return (self.fuzzy_points[0] + left_offset, self.fuzzy_points[2] - right_offset)
-    
+
     @staticmethod
     def merge(a, b):
         new_name = np.mean([float(a.name), float(b.name)])
-        return FuzzyContinuousSet(str(new_name), [min(a.fuzzy_points[0], b.fuzzy_points[0]), np.mean([a.fuzzy_points[1], b.fuzzy_points[1]]), max(a.fuzzy_points[2], b.fuzzy_points[2])])
+        return FuzzyContinuousSet(str(new_name),
+                                  [min(a.fuzzy_points[0], b.fuzzy_points[0]),
+                                   np.mean([a.fuzzy_points[1], b.fuzzy_points[1]]),
+                                   max(a.fuzzy_points[2], b.fuzzy_points[2])])
 
     @staticmethod
     def jaccard_similarity(a, b):
@@ -180,6 +185,7 @@ class FuzzyContinuousSet(FuzzySet):
         jaccard_similarity = intersection / union * a.intersection(b)
 
         return jaccard_similarity
+
 
 @dataclass
 class FuzzyDiscreteSet(FuzzySet):
@@ -200,6 +206,6 @@ class FuzzyDiscreteSet(FuzzySet):
             raise ValueError('Intersection must be between two Fuzzy Sets of the same type')
 
         return int(self == other)
-    
+
     def simmilarity(self, other):
         return self.intersection(other)

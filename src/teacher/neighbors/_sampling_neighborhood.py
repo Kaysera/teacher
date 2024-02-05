@@ -5,7 +5,6 @@
 # Third party
 import numpy as np
 import pandas as pd
-from scipy import stats
 
 # Local application
 from ._fuzzy_neighborhood import FuzzyNeighborhood
@@ -19,6 +18,7 @@ from teacher.metrics._counterfactual import _closest_instance
 # TODO: IMPORTANTE NO MERGEAR A LA RAMA MASTER HASTA NO LIMPIAR
 ########################
 
+
 class SamplingNeighborhood(FuzzyNeighborhood):
     """
     Fuzzy adaptation of the neighborhood used by LORE, which
@@ -27,7 +27,16 @@ class SamplingNeighborhood(FuzzyNeighborhood):
     for all the different possible class values.
     """
 
-    def __init__(self, instance, size, class_name, bb, dataset, X2E, idx_record_to_explain, neighbor_generation='slow', neighbor_range='std'):
+    def __init__(self,
+                 instance,
+                 size,
+                 class_name,
+                 bb,
+                 dataset,
+                 X2E,
+                 idx_record_to_explain,
+                 neighbor_generation='slow',
+                 neighbor_range='std'):
         """
         Parameters
         ----------
@@ -63,14 +72,14 @@ class SamplingNeighborhood(FuzzyNeighborhood):
                 else:
                     raise ValueError("Neighbor range must be between 0 and 1 or 'std'")
                 vals = [x for x in np.unique(col) if x < instance[i] + col_range and x > instance[i] - col_range]
-                dists = [np.count_nonzero(col == val) for val in vals]    
+                dists = [np.count_nonzero(col == val) for val in vals]
                 dists = [d / sum(dists) for d in dists]
             else:
                 vals = [x for x in np.unique(col)]
-                dists = [np.count_nonzero(col == val) for val in vals]    
+                dists = [np.count_nonzero(col == val) for val in vals]
                 dists = [d / sum(dists) for d in dists]
             prob_dist[i] = (vals, dists)
-        
+
         return prob_dist
 
     def _get_instance_from_prob_dist(self, prob_dist):
@@ -85,7 +94,12 @@ class SamplingNeighborhood(FuzzyNeighborhood):
         prob_dist = self._generate_prob_dist(self.instance, cont_idx)
         target = self.bb.predict(self.instance.reshape(1, -1))
         y_train_pred = self.bb.predict(self.X2E)
-        closest_instance = _closest_instance(self.instance, self.X2E[y_train_pred != target], cont_idx, disc_idx, None, distance='mixed')
+        closest_instance = _closest_instance(self.instance,
+                                             self.X2E[y_train_pred != target],
+                                             cont_idx,
+                                             disc_idx,
+                                             None,
+                                             distance='mixed')
         c_prob_dist = self._generate_prob_dist(closest_instance, cont_idx)
         class_values = {i: 0 for i in range(len(self.dataset['possible_outcomes']))}
         neighborhood = []
@@ -99,7 +113,7 @@ class SamplingNeighborhood(FuzzyNeighborhood):
             if class_values[neigh_pred] < (self.size/len(class_values)):
                 class_values[neigh_pred] += 1
                 neighborhood.append(i_neigh)
-            
+
             neigh_pred = self.bb.predict(np.array(c_neigh).reshape(1, -1))[0]
             if class_values[neigh_pred] < (self.size/len(class_values)):
                 class_values[neigh_pred] += 1
@@ -109,7 +123,7 @@ class SamplingNeighborhood(FuzzyNeighborhood):
         neighborhood.append(self.instance)
         features = [col for col in self.dataset['columns'] if col != self.class_name]
         return pd.DataFrame(np.array(neighborhood), columns=features)
-    
+
     def _generate_neighborhood(self):
         prob_dist = self._generate_prob_dist()
         class_values = [i for i in range(len(self.dataset['possible_outcomes']))]
@@ -120,11 +134,11 @@ class SamplingNeighborhood(FuzzyNeighborhood):
                 neigh = np.zeros(len(prob_dist))
                 for i in prob_dist:
                     neigh[i] = np.random.choice(prob_dist[i][0], p=prob_dist[i][1])
-                
+
                 if self.bb.predict(np.array(neigh).reshape(1, -1)) == cv:
                     neighborhood.append(neigh)
                     neighs += 1
-        
+
         features = [col for col in self.dataset['columns'] if col != self.class_name]
         return pd.DataFrame(np.array(neighborhood), columns=features)
 
@@ -137,15 +151,17 @@ class SamplingNeighborhood(FuzzyNeighborhood):
         features = [col for col in self.dataset['columns'] if col != self.class_name]
         for i, var in enumerate(features):
             try:
-                decoded_instance.append(self.dataset['label_encoder'][var].inverse_transform(np.array([self.instance[i]], dtype=int))[0])
-            except:
+                val = self.dataset['label_encoder'][var].inverse_transform(np.array([self.instance[i]], dtype=int))[0]
+                decoded_instance.append(val)
+            except Exception:  # TODO: Change to proper exception
                 decoded_instance += [self.instance[i]]
 
         Z = NEIGH_GENERATION[self.neighbor_generation]()
         df = Z.copy()
-        
+
         self.decoded_instance = np.array([decoded_instance], dtype='object')
-        self.decoded_target = self.dataset['label_encoder'][self.class_name].inverse_transform(self.bb.predict(self.instance.reshape(1, -1)))
+        y = self.bb.predict(self.instance.reshape(1, -1))
+        self.decoded_target = self.dataset['label_encoder'][self.class_name].inverse_transform(y)
 
         for le in self.dataset['label_encoder']:
             if le != self.class_name:
@@ -154,7 +170,7 @@ class SamplingNeighborhood(FuzzyNeighborhood):
         self._y = self.bb.predict(Z)
         self._Xy = pd.concat([pd.DataFrame(self._y, columns=[self.class_name]), Z], axis=1)
         self._y_decoded = self.dataset['label_encoder'][self.class_name].inverse_transform(self._y)
-    
+
     def fuzzify(self, get_division, **kwargs):
         # AS INSTANCE MEMBERSHIP IS COMPUTED HERE, PASS FLAG TO NOT COMPUTE IT BEFORE
         super().fuzzify(get_division, instance_membership=False, **kwargs)

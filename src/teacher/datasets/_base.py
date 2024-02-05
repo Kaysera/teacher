@@ -342,7 +342,7 @@ def load_iris(normalize=False):
     # Features Categorization
     columns = df.columns
     class_name = columns[-1]
-    
+
     df_cols = list(df.columns)
     df_cols.remove(class_name)
     new_cols = [class_name] + df_cols
@@ -368,7 +368,7 @@ def load_wine(normalize=False):
     # Features Categorization
     columns = df.columns
     class_name = columns[-1]
-    
+
     df_cols = list(df.columns)
     df_cols.remove(class_name)
     new_cols = [class_name] + df_cols
@@ -398,6 +398,7 @@ def load_breast(normalize=False):
     discrete = []
     return generate_dataset(df, columns, class_name, discrete, 'breast', normalize)
 
+
 def load_basket(normalize=False, reduced=False):
     """
     Load and return the basket dataset.
@@ -412,10 +413,9 @@ def load_basket(normalize=False, reduced=False):
     else:
         df = pd.read_csv(MODULE_PATH + '/data/basket.csv', delimiter=',')
 
-
     # Features Categorization
     columns = df.columns
-    class_name = 'Position'    
+    class_name = 'Position'
     df_cols = list(df.columns)
     df_cols.remove(class_name)
     new_cols = [class_name] + df_cols

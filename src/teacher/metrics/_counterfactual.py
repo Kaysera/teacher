@@ -33,9 +33,11 @@ def _continuous_distance(x, cf_list, continuous_features, metric='euclidean', X=
 
         def _mad_cityblock(u, v):
             return mad_cityblock(u, v, mad)
-        dist = cdist(x.reshape(1, -1)[:, continuous_features], cf_list.reshape(1, -1)[:, continuous_features], metric=_mad_cityblock)
+        dist = cdist(x.reshape(1, -1)[:, continuous_features], cf_list.reshape(1, -1)[:, continuous_features],
+                     metric=_mad_cityblock)
     else:
-        dist = cdist(x.reshape(1, -1)[:, continuous_features], cf_list.reshape(1, -1)[:, continuous_features], metric=metric)
+        dist = cdist(x.reshape(1, -1)[:, continuous_features], cf_list.reshape(1, -1)[:, continuous_features],
+                     metric=metric)
 
     if agg is None or agg == 'mean':
         return np.mean(dist)
@@ -49,7 +51,8 @@ def _continuous_distance(x, cf_list, continuous_features, metric='euclidean', X=
 
 def _categorical_distance(x, cf_list, categorical_features, metric='jaccard', agg=None):
 
-    dist = cdist(x.reshape(1, -1)[:, categorical_features], cf_list.reshape(1, -1)[:, categorical_features], metric=metric)
+    dist = cdist(x.reshape(1, -1)[:, categorical_features], cf_list.reshape(1, -1)[:, categorical_features],
+                 metric=metric)
 
     if agg is None or agg == 'mean':
         return np.mean(dist)
@@ -90,8 +93,8 @@ def _distance(instance_a, instance_b, continuous, discrete, mad):
     discrete : array-like
         Indices of the discrete features
     mad : dict
-        Median Absolute Distances of all the 
-        continuous features in the dataset, where 
+        Median Absolute Distances of all the
+        continuous features in the dataset, where
         the keys are the indices of the continuous features
     """
     cont = 0
@@ -105,7 +108,7 @@ def _distance(instance_a, instance_b, continuous, discrete, mad):
                 cont += abs(instance_var - cf_instance_var) / mad[i]
         else:
             disc += int(instance_var != cf_instance_var)
-    
+
     # Avoid division by zero when there is no continuous or discrete variables
     if cont:
         diss += cont / len(continuous)
@@ -135,8 +138,8 @@ def _closest_instance(instance, dataset, continuous, discrete, mad, distance='mi
     discrete : array-like
         Indices of the discrete features
     mad : dict
-        Median Absolute Distances of all the 
-        continuous features in the dataset, where 
+        Median Absolute Distances of all the
+        continuous features in the dataset, where
         the keys are the indices of the continuous features
     """
 
@@ -149,7 +152,7 @@ def _closest_instance(instance, dataset, continuous, discrete, mad, distance='mi
         if new_distance < min_distance and new_distance > 0:
             min_distance = new_distance
             closest_instance = ds_instance
-    
+
     return closest_instance
 
 
@@ -189,10 +192,11 @@ def sparsity_dissimilarity(instance, cf_instance, distance='mismatch'):
         diss = 0
         for instance_var, cf_instance_var in zip(instance, cf_instance):
             diss += int(instance_var != cf_instance_var)
-        
+
         return diss / len(instance)
     else:
         return cdist(instance.reshape(1, -1), cf_instance.reshape(1, -1), metric='jaccard')[0][0]
+
 
 def implausibility(cf_instance, dataset, continuous, discrete, mad, distance='moth'):
     """Return the level of plausibility of a counterfactual instance
@@ -209,15 +213,22 @@ def implausibility(cf_instance, dataset, continuous, discrete, mad, distance='mo
     discrete : array-like
         Indices of the discrete features
     mad : dict
-        Median Absolute Distances of all the 
-        continuous features in the dataset, where 
+        Median Absolute Distances of all the
+        continuous features in the dataset, where
         the keys are the indices of the continuous features
     """
-    closest_instance =  _closest_instance(cf_instance, dataset, continuous, discrete, mad, distance)
+    closest_instance = _closest_instance(cf_instance, dataset, continuous, discrete, mad, distance)
     return DISTANCES[distance](cf_instance, closest_instance, continuous, discrete, mad)
 
 
-def instability(instance, cf_instance, closest_instance, cf_closest_instance, continuous, discrete, mad, distance='moth'):
+def instability(instance,
+                cf_instance,
+                closest_instance,
+                cf_closest_instance,
+                continuous,
+                discrete,
+                mad,
+                distance='moth'):
     """Return the level of stability of a counterfactual instance
     against the counterfactual of the closest instance to the original
     instance
@@ -237,10 +248,10 @@ def instability(instance, cf_instance, closest_instance, cf_closest_instance, co
     discrete : array-like
         Indices of the discrete features
     mad : dict
-        Median Absolute Distances of all the 
-        continuous features in the dataset, where 
+        Median Absolute Distances of all the
+        continuous features in the dataset, where
         the keys are the indices of the continuous features
     """
-
-    return DISTANCES[distance](cf_instance, cf_closest_instance, continuous, discrete, mad) / (DISTANCES[distance](instance, closest_instance, continuous, discrete, mad) + 1)
-
+    cf_distance = DISTANCES[distance](cf_instance, cf_closest_instance, continuous, discrete, mad)
+    i_distance = DISTANCES[distance](instance, closest_instance, continuous, discrete, mad)
+    return cf_distance / (i_distance + 1)

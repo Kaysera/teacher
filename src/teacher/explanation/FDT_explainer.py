@@ -109,19 +109,19 @@ class FDTExplainer(FactualLocalExplainer):
             del kwargs['max_depth']
         except KeyError:
             max_depth = 10
-        
+
         try:
             min_num_examples = kwargs['min_num_examples']
             del kwargs['min_num_examples']
         except KeyError:
             min_num_examples = 1
-        
+
         try:
             fuzzy_threshold = kwargs['fuzzy_threshold']
             del kwargs['fuzzy_threshold']
         except KeyError:
             fuzzy_threshold = 0.0001
-        
+
         # TODO: IMPORTANTE NO MERGEAR A LA RAMA MASTER HASTA NO LIMPIAR
         if counterfactual == 'd_counterfactual':
             try:
@@ -141,14 +141,17 @@ class FDTExplainer(FactualLocalExplainer):
                 del kwargs['mad']
             except KeyError:
                 raise ValueError('MAD needed for d_counterfactual')
-            
+
             try:
                 cf_dist = kwargs['cf_dist']
                 del kwargs['cf_dist']
             except KeyError:
                 cf_dist = 'moth'
 
-        self.local_explainer = FDT(fuzzy_variables, max_depth=max_depth, min_num_examples=min_num_examples, fuzzy_threshold=fuzzy_threshold)
+        self.local_explainer = FDT(fuzzy_variables,
+                                   max_depth=max_depth,
+                                   min_num_examples=min_num_examples,
+                                   fuzzy_threshold=fuzzy_threshold)
         self.local_explainer.fit(X, y)
         local_prediction = self.local_explainer.predict(X)[0]
         if len(np.unique(y)) > 2:
@@ -164,5 +167,12 @@ class FDTExplainer(FactualLocalExplainer):
         elif counterfactual == 'f_counterfactual':
             cf = self.counterfactual_method(fact, instance_membership, rules, self.exp_value, df_num_cols)
         elif counterfactual == 'd_counterfactual':
-            cf = self.counterfactual_method(decoded_instance, instance_membership, rules, self.exp_value, cont_idx, disc_idx, mad, cf_dist)
+            cf = self.counterfactual_method(decoded_instance,
+                                            instance_membership,
+                                            rules,
+                                            self.exp_value,
+                                            cont_idx,
+                                            disc_idx,
+                                            mad,
+                                            cf_dist)
         self.explanation = (fact, cf)

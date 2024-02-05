@@ -78,7 +78,13 @@ def get_fuzzy_points(discretize_method, df_numerical_columns, X, y=None, sets=0,
         if point_variables and column in point_variables:
             fuzzy_points[column] = np.unique(X[:, i])
         elif discretize_method == 'entropy':
-            fuzzy_points[column] = discretize(X[:, i], y, np.min(X[:, i]), depth=0, max_depth=max_depth, th=th, verbose=debug)
+            fuzzy_points[column] = discretize(X[:, i],
+                                              y,
+                                              np.min(X[:, i]),
+                                              depth=0,
+                                              max_depth=max_depth,
+                                              th=th,
+                                              verbose=debug)
         else:
             fuzzy_points[column] = discretize(X[:, i], sets)
 

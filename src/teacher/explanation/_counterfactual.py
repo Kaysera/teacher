@@ -12,7 +12,7 @@ import numpy as np
 
 # Local application
 from teacher.tree import Rule
-from teacher.metrics._counterfactual import _distance, _mixed_distance, DISTANCES
+from teacher.metrics._counterfactual import DISTANCES
 
 
 # =============================================================================
@@ -121,7 +121,7 @@ def _search_counterfactual(instance, class_val, rule_list, cf_list, multiclass=F
         new_instance, changes = _apply_changes(cf[0], instance)
         new_class_val = Rule.weighted_vote(rule_list, new_instance)
         if new_class_val != class_val:
-            if not multiclass: 
+            if not multiclass:
                 return changes
             else:
                 if new_class_val not in changes_dict:
@@ -129,7 +129,6 @@ def _search_counterfactual(instance, class_val, rule_list, cf_list, multiclass=F
                     if len(changes_dict) == len(possible_class_values):
                         print('Wiii')
                         return changes_dict
-
 
     if multiclass:
         return changes_dict
@@ -237,7 +236,15 @@ def f_counterfactual(factual, instance, rule_list, class_val, df_numerical_colum
     return _search_counterfactual(instance, class_val, rule_list, possible_cf)
 
 
-def d_counterfactual(decoded_instance, instance_membership, rule_list, class_val, continuous, discrete, mad, distance='moth', tau=0.5):
+def d_counterfactual(decoded_instance,
+                     instance_membership,
+                     rule_list,
+                     class_val,
+                     continuous,
+                     discrete,
+                     mad,
+                     distance='moth',
+                     tau=0.5):
     # TODO: IMPORTANTE NO MERGEAR A LA RAMA MAIN HASTA NO LIMPIAR LA FUNCION
     """Return a list that contains the counterfactual with respect to the factual
 

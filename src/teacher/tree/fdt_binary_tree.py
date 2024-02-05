@@ -52,7 +52,7 @@ class TreeFBDT:
             output += str(self.fuzzy_variable.fuzzy_sets[self.value[1]].name) + '\n'
         except Exception:  # TODO CHANGE FOR PROPER EXCEPTION
             output += 'Root \n'
-        if(self.is_leaf):
+        if self.is_leaf:
             output += '\t' * self.level + 'Class value: ' + str(self.class_value)
         else:
             for child in self.childlist:
@@ -72,7 +72,7 @@ class TreeFBDT:
                 self.level == other.level and
                 self.value == other.value and
                 np.array_equal(self.mu, other.mu))
-    
+
     def update_ignored(self, parent, feature, ignored):
         new_ignored = parent.ignored.copy()
         if feature in new_ignored:
@@ -114,7 +114,8 @@ class TreeFBDT:
 
     def to_rule_based_system(self, th=0.0001, simplify=False, verbose=False):
         rules = self._get_rules(self, [], th, verbose)
-        return [Rule(antecedent, consequent, weight, simplify, multiple_antecedents=True) for (antecedent, consequent, weight) in rules]
+        return [Rule(antecedent, consequent, weight, simplify, multiple_antecedents=True)
+                for (antecedent, consequent, weight) in rules]
 
     def _get_rules(self, tree, rule, th=0.0001, verbose=False):
         if tree.value is not None:
@@ -138,7 +139,7 @@ class TreeFBDT:
                 child_rules = self._get_rules(child, new_rule, th, verbose)
                 current_rules += child_rules
             return current_rules
-        
+
 
 class FBDT(BaseDecisionTree):
     def __init__(self, fuzzy_variables, fuzzy_threshold=0.0001,
@@ -167,7 +168,8 @@ class FBDT(BaseDecisionTree):
         features = [fuzzy_var.name for fuzzy_var in fuzzy_variables]
         self.features_dict = {feat: i for i, feat in enumerate(features)}
         self.fuzzy_variables = fuzzy_variables
-        self.categorical_features = set([fv.name for fv in fuzzy_variables if not isinstance(fv.fuzzy_sets[0], FuzzyContinuousSet)])
+        self.categorical_features = set([fv.name for fv in fuzzy_variables
+                                         if not isinstance(fv.fuzzy_sets[0], FuzzyContinuousSet)])
 
         super().__init__(set(features), th, max_depth, min_num_examples, prunning)
         self.tree_ = TreeFBDT(None, t_norm, voting)
@@ -179,14 +181,15 @@ class FBDT(BaseDecisionTree):
             if feature in self.categorical_features:
                 splits = []
                 for val in features_dict[feature]:
-                    splits.append((val, sum(X_membership[feature][val][y_positive_mask]) / sum(X_membership[feature][val])))
+                    split = (val, sum(X_membership[feature][val][y_positive_mask]) / sum(X_membership[feature][val]))
+                    splits.append(split)
                 splits.sort(key=lambda x: x[1])
                 splits = [x[0] for x in splits]
             else:
                 splits = features_dict[feature]
-            
+
             for i in range(len(splits)-1):
-                partitions.append((feature,splits[:i+1], splits[i+1:]))
+                partitions.append((feature, splits[:i+1], splits[i+1:]))
         return partitions
 
     def _get_max_f_gain(self, tree, features_dict, X_membership, y, t_norm=np.minimum, verbose=False):
@@ -215,7 +218,7 @@ class FBDT(BaseDecisionTree):
             if feature in tree.ignored:
                 left_membership = np.maximum(left_membership, tree.ignored[feature])
                 left_ignored = tree.ignored[feature]
-        
+
             left_mu = t_norm(node_mu, left_membership)
             left_f_ent = _fuzzy_entropy(left_mu, y, verbose=False)
             left_ignored[(left_membership > 0) & (left_membership < 1)] = 1
@@ -277,7 +280,11 @@ class FBDT(BaseDecisionTree):
 
     def _partial_fit(self, X_membership, y, current_tree, features_dict, current_depth):
         current_tree.level = current_depth
-        att, f_gain, child_mu, split, ignored = self._get_max_f_gain(current_tree, features_dict, X_membership, y, verbose=False)
+        att, f_gain, child_mu, split, ignored = self._get_max_f_gain(current_tree,
+                                                                     features_dict,
+                                                                     X_membership,
+                                                                     y,
+                                                                     verbose=False)
         # apply mask to y
         mask = [(x > 0) for x in current_tree.mu]
         y_masked = y[mask]
@@ -290,7 +297,7 @@ class FBDT(BaseDecisionTree):
         current_tree.is_leaf = False
         fuzzy_var = self.fuzzy_variables[self.features_dict[att]]
         fuzzy_set_dict = {s.name: i for i, s in enumerate(fuzzy_var.fuzzy_sets)}
-        
+
         # Left child
         child = TreeFBDT(fuzzy_var)
         child.value = (self.features_dict[att], [fuzzy_set_dict[s] for s in split[0]])
@@ -319,5 +326,3 @@ class FBDT(BaseDecisionTree):
         else:
             child.is_leaf = True
             child.class_value = self._get_class_value(current_tree.mu, y)
-        
-

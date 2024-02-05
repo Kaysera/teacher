@@ -57,14 +57,15 @@ class LoreNeighborhood(FuzzyNeighborhood):
                 print(min_val)
             ndf[col].loc[ndf[col] > max_val] = max_val
             ndf[col].loc[ndf[col] < min_val] = min_val
-        
+
         old_length = len(ndf)
         ndf = ndf[(np.abs(stats.zscore(ndf[continuous])) < 3).all(axis=1)]
         new_length = len(ndf)
         while new_length - old_length > 0:
             ndf = ndf[(np.abs(stats.zscore(ndf[continuous])) < 3).all(axis=1)]
-        
-        ndf = ndf.append(pd.DataFrame(np.append(self.decoded_target, self.decoded_instance).reshape(1, -1), columns=list(ndf)), ignore_index=True)
+
+        instance_df = pd.DataFrame(self.instance.reshape(1, -1), columns=list(ndf))
+        ndf = ndf.append(instance_df, ignore_index=True)
         edf = ndf.drop(self.class_name, axis=1).copy()
         for le in label_encoder:
             if le != self.class_name:
@@ -78,11 +79,12 @@ class LoreNeighborhood(FuzzyNeighborhood):
         for i, var in enumerate(features):
             try:
                 decoded_instance.append(self.dataset['label_encoder'][var].inverse_transform([self.instance[i]])[0])
-            except:
+            except Exception:  # TODO: Change this to a more specific exception
                 decoded_instance += [self.instance[i]]
-        
+
         self.decoded_instance = np.array([decoded_instance], dtype='object')
-        self.decoded_target = self.dataset['label_encoder'][self.class_name].inverse_transform(self.bb.predict(self.instance.reshape(1, -1)))
+        y = self.bb.predict(self.instance.reshape(1, -1))
+        self.decoded_target = self.dataset['label_encoder'][self.class_name].inverse_transform(y)
 
         # Dataset Preprocessing
         self.dataset['feature_values'] = calculate_feature_values(self.X2E,
@@ -98,15 +100,20 @@ class LoreNeighborhood(FuzzyNeighborhood):
 
         # Generate Neighborhood
         df, Z = genetic_neighborhood(dfZ, x, self.bb, self.dataset, self.size)
-        
+
         feat_idx = {feat: idx for idx, feat in self.dataset['idx_features'].items()}
-        df, Z = self._smooth_neighborhood(df, [col for col in self.dataset['continuous'] if col != self.class_name], self.X2E, feat_idx, self.dataset['label_encoder'], self.class_name)
+        df, Z = self._smooth_neighborhood(df,
+                                          [col for col in self.dataset['continuous'] if col != self.class_name],
+                                          self.X2E,
+                                          feat_idx,
+                                          self.dataset['label_encoder'],
+                                          self.class_name)
 
         self._Xy = df
         self._X = df.drop(self.class_name, axis=1)
         self._y = self.bb.predict(Z)
         self._y_decoded = df[self.class_name]
-    
+
     def fuzzify(self, get_division, **kwargs):
         super().fuzzify(get_division, **kwargs)
         self._instance_membership = dataset_membership(self.decoded_instance, self._fuzzy_variables)
