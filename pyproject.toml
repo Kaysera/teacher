@@ -15,7 +15,7 @@ dependencies = [
     "scikit-learn",
     "deap",
     "imblearn",
-    "scikit-fuzzy",
+    "scikit-fuzzy@git+https://github.com/scikit-fuzzy/scikit-fuzzy",
     "matplotlib",
 ]
 authors = [
@@ -31,16 +31,17 @@ Documentation = "https://xai-teacher.readthedocs.io/en/latest/"
 Repository = "https://github.com/Kaysera/teacher"
 
 [tool.pytest.ini_options]
-addopts = ["--disable-pytest-warnings -rxXs"]
+# addopts = ["--disable-pytest-warnings -rxXs"]
+addopts = ["-rxXs"]
 
 [tool.coverage.run]
 omit=[
-    "./teacher/neighbors/neighbor_generator.py",
-    "./teacher/neighbors/gpdatagenerator.py",
-    "./teacher/utils/*",
-    "./teacher/tree/id3_tree.py",
-    "./teacher/tree/tests/fdt_legacy_tree.py",
-    "./teacher/tree/tests/id3_legacy_tree.py",
+    "./src/teacher/neighbors/neighbor_generator.py",
+    "./src/teacher/neighbors/gpdatagenerator.py",
+    "./src/teacher/utils/*",
+    "./src/teacher/tree/id3_tree.py",
+    "./src/teacher/tree/tests/fdt_legacy_tree.py",
+    "./src/teacher/tree/tests/id3_legacy_tree.py",
 ]
 dynamic_context = "test_function"
 
