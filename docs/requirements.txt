@@ -1,3 +1,9 @@
 pydata-sphinx-theme>=0.8.1
 Sphinx>=5.0.0
 sphinx_design>=0.1.0
+numpy>=1.19.3
+pandas
+scikit-learn
+deap
+imblearn
+matplotlib
