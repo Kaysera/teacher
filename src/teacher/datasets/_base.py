@@ -77,7 +77,6 @@ def generate_dataset(df, columns, class_name, discrete, name, normalize=False):
     columns_tmp = list(columns)
     columns_tmp.remove(class_name)
     idx_features = {i: col for i, col in enumerate(columns_tmp)}
-    df[continuous] += 1
     if normalize:
         scaler = StandardScaler()
         df[continuous] = scaler.fit_transform(df[continuous])
