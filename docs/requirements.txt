@@ -7,3 +7,4 @@ scikit-learn
 deap
 imblearn
 matplotlib
+scikit-fuzzy @ git+https://github.com/scikit-fuzzy/scikit-fuzzy
